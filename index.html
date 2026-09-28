@@ -143,6 +143,11 @@ th.sticky{z-index:3}
 .f-info{color:var(--info);background:color-mix(in oklab,var(--info) 12%,transparent)}
 .fit{color:var(--pos);font-weight:700}
 .spark{width:96px;height:24px;display:block}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.facts div{background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.facts span{font-size:11.5px;color:var(--muted)}
+.facts b{font-family:var(--mono);font-weight:500;font-size:17px}
+.facts small{font-size:11.5px;color:var(--faint);line-height:1.35}
 .tops{display:flex;flex-direction:column;line-height:1.25;font-size:12.5px;max-width:220px;white-space:normal}
 .tops small{color:var(--muted);font-family:var(--mono);font-size:11px}
 .tops mark{background:color-mix(in oklab,var(--accent) 18%,transparent);color:var(--ink);padding:1px 5px;border-radius:4px}
@@ -394,7 +399,12 @@ function narrative(r){
     Improving:"Still lagging, but relative momentum has turned up. An early turnaround candidate.",
     Lagging:"Underperforming its market with falling relative momentum."}[m.quad];
   if(qx) out.push("Rotation: "+qx);
-  if(m.vol!=null) out.push(`Risk: ${pct(m.vol,0,false)} annualised volatility (3M), worst fall in the past year ${pct(m.mdd,1)}, now ${pct(m.offHigh,1)} from its 52-week high.`);
+  const bf=(S.data.benches[r.group]||{}).facts||{};
+  if(m.pe!=null&&bf.pe) out.push(`Valuation: P/E of ${m.pe.toFixed(1)} vs ${bf.pe.toFixed(1)} for the ${bn}, `+
+    (m.peRel>0.25?`a ${pct(m.peRel,0,false)} premium. Investors are paying up for growth, so disappointments can hurt.`
+     :m.peRel<-0.2?`a ${pct(-m.peRel,0,false)} discount. Cheap relative to the market, often for a reason, but it cushions bad news.`
+     :"roughly in line with the market."));
+  if(m.vol!=null) out.push(`Risk:${pct(m.vol,0,false)} annualised volatility (3M), worst fall in the past year ${pct(m.mdd,1)}, now ${pct(m.offHigh,1)} from its 52-week high.`);
   if(m.rsi!=null){ if(m.rsi>=70) out.push(`Timing: RSI ${m.rsi.toFixed(0)} means it is short-term overbought. Chasing here carries pullback risk.`);
     else if(m.rsi<=30) out.push(`Timing: RSI ${m.rsi.toFixed(0)} means it is short-term oversold. Bounces are common, but confirm the trend first.`);
     else out.push(`Timing: RSI ${m.rsi.toFixed(0)}, neither overbought nor oversold.`); }
@@ -504,7 +514,7 @@ function render(){
         <li><b>Improving</b> on the rotation map flags early turnarounds before the score catches up.</li>
         <li><b>Overbought</b> flags suggest waiting for a dip, even for strong sectors.</li></ul></div>
       <div class="card"><h3>Data &amp; limits</h3>
-        <p>Prices from Yahoo Finance, refreshed every ${STATIC?"15":"5"} minutes (exchange feeds can be ~15 min delayed). Scores reflect price behaviour only: they don't see valuations, earnings or news.</p>
+        <p>Prices from Yahoo Finance, refreshed every ${STATIC?"15":"5"} minutes (exchange feeds can be ~15 min delayed). Scores reflect price behaviour only. P/E, yield, beta and fees are shown alongside to check valuation and cost, but they don't change the score.</p>
         <p>Momentum works on average over 3–12 month horizons but fails at turning points. Use it to shortlist, then check fundamentals.</p>
         <p class="muted" style="font-size:12.5px">${D.rows.length} funds · built in ${D.buildSeconds}s${D.errors.length?` · unavailable: ${esc(D.errors.join(", "))}`:""}</p></div>
     </div>
@@ -561,6 +571,9 @@ function renderTable(){
     ${COLS.map(c=>th(c.k,c.l,"",c.k==="rs6m"?"6M return minus local benchmark":"")).join("")}
     ${th("trend","Trend","","Trend checks passed, out of 4")}${th("rsi","RSI","","14-day RSI: >70 overbought, <30 oversold")}
     ${th("vol","Vol","","Annualised volatility, last 3 months")}${th("offHigh","From high","","Distance from 52-week high")}
+    ${th("aum","Net assets","","Fund size, converted to US dollars")}${th("pe","P/E","","Trailing price/earnings of the holdings. Lower = cheaper")}
+    ${th("yld","Yield","","Dividend yield over the last 12 months")}${th("beta","Beta","","Beta (5Y monthly): 1 = moves with the market, above 1 = swings more")}
+    ${th("fee","Fee","","Annual expense ratio")}
     ${th("quad","Rotation","l")}${th("top10","Top holdings","l","Largest three holdings; % = weight of the top 10 combined")}<th class="l" style="cursor:default">Flags</th><th style="cursor:default" title="Favoured in the current cycle phase">Cycle</th><th style="cursor:default">1Y</th>
   </tr></thead><tbody>${rows.map((r,i)=>{const m=r.m; return `<tr data-open="${esc(r.symbol)}">
     <td class="rank l">${i+1}</td>
@@ -571,6 +584,9 @@ function renderTable(){
     <td><span class="trend" title="${m.trend}/4">${[0,1,2,3].map(j=>`<i class="${j<m.trend?"on":""}"></i>`).join("")}</span></td>
     <td class="n" style="${m.rsi>=70?"color:var(--warn)":m.rsi<=30?"color:var(--info)":""}">${m.rsi==null?"–":m.rsi.toFixed(0)}</td>
     <td class="n">${pct(m.vol,0,false)}</td><td class="n">${pct(m.offHigh,1)}</td>
+    <td class="n">${bigMoney(m.aum,"USD")}</td>
+    <td class="n" title="${m.peRel==null?"":esc(pct(m.peRel,0)+" vs its market")}" style="${m.peRel==null?"":m.peRel>0.25?"color:var(--warn)":m.peRel<-0.2?"color:var(--info)":""}">${m.pe==null?"–":m.pe.toFixed(1)}</td>
+    <td class="n">${pct(m.yld,1,false)}</td><td class="n">${m.beta==null?"–":m.beta.toFixed(2)}</td><td class="n">${pct(m.fee,2,false)}</td>
     <td class="l"><span class="q q-${m.quad}">${esc(m.quad||"–")}</span></td>
     <td class="l">${topCell(r)}</td>
     <td class="l">${(m.flags||[]).map(f=>`<span class="flag f-${f.tone}">${esc(f.label)}</span>`).join("")}</td>
@@ -668,6 +684,7 @@ function openDetail(sym){
         ["3 years (per yr)",pct(m.r3y),m.r3y],["vs market 1Y",pts(m.rs1y),m.rs1y],["vs 200-day avg",pct(m.vs200),m.vs200],["RSI (14d)",m.rsi==null?"–":m.rsi.toFixed(0),null],
         ["Volatility (3M)",pct(m.vol,0,false),null],["Sharpe (1Y)",m.sharpe==null?"–":m.sharpe.toFixed(2),m.sharpe],["Max drawdown 1Y",pct(m.mdd),m.mdd],["From 52w high",pct(m.offHigh),m.offHigh]]
         .map(([l,v,c])=>`<div><span>${l}</span><b class="${c==null?"":cls(c)}">${v}</b></div>`).join("")}</div>
+      ${factsCard(r)}
       ${holdingsCard(r)}
       <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">The reasoning</div><ul class="why">${narrative(r).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
       <dl class="card primer"><dt>What it is</dt><dd>${esc(sec.what)}</dd><dt>Type</dt><dd>${esc(sec.kind)}</dd><dt>Key drivers</dt><dd>${esc(sec.drivers)}</dd>
@@ -682,6 +699,26 @@ function openDetail(sym){
   d.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
   drawPrice(r);
   if(m.relSeries) lineChart($("#rchart"),{t:m.series.t.slice(-m.relSeries.length),series:[{v:m.relSeries,color:"var(--accent)",name:"Relative"}],h:170,baseline:100,fmt:v=>v.toFixed(1)});
+}
+const CCY_SIGN={USD:"$",EUR:"€",JPY:"¥",CAD:"C$"};
+function bigMoney(v,ccy){ if(v==null) return "–"; const s=CCY_SIGN[ccy]??(ccy+" "), a=Math.abs(v);
+  return s+(a>=1e12?(v/1e12).toFixed(2)+"T":a>=1e9?(v/1e9).toFixed(1)+"B":a>=1e6?(v/1e6).toFixed(0)+"M":Math.round(v).toLocaleString()); }
+function factsCard(r){
+  const f=r.facts||{}, b=S.data.benches[r.group]||{}, bf=b.facts||{}, bn=b.name||"its market";
+  const cmp=(v,bv,fmt,lowWord,highWord)=> v==null||bv==null? "" :
+    `<small>${esc(bn)} ${fmt(bv)} · ${Math.abs(v/bv-1)<0.05?"in line":(v>bv?highWord:lowWord)}</small>`;
+  const betaTxt = f.beta==null? "" : f.beta>1.15? "Swings more than the market" : f.beta<0.85? "Steadier than the market" : "Moves roughly with the market";
+  const feeTxt = f.fee==null? "Not published" : `${bigMoney(f.fee*10000,"USD")} a year per $10,000 invested`;
+  const local = f.aum!=null && r.ccy!=="USD" ? `<small>${bigMoney(f.aum,r.ccy)} in ${esc(r.ccy)}</small>` : "<small>Fund size</small>";
+  return `<div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:10px">Fund facts</div>
+    <div class="facts">
+      <div><span>Net assets</span><b>${bigMoney(f.aumUsd,"USD")}</b>${local}</div>
+      <div><span>P/E ratio</span><b>${f.pe==null?"–":f.pe.toFixed(1)}</b>${cmp(f.pe,bf.pe,v=>v.toFixed(1),"cheaper than market","pricier than market")||"<small>Price / trailing earnings</small>"}</div>
+      <div><span>Dividend yield</span><b>${pct(f.yld,2,false)}</b>${cmp(f.yld,bf.yld,v=>pct(v,2,false),"lower income","higher income")||"<small>Last 12 months</small>"}</div>
+      <div><span>Beta (5Y monthly)</span><b>${f.beta==null?"–":f.beta.toFixed(2)}</b><small>${esc(betaTxt)}</small></div>
+      <div><span>Expense ratio</span><b>${pct(f.fee,2,false)}</b><small>${esc(feeTxt)}</small></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin:10px 0 0">From Yahoo Finance, checked daily. Fund size is converted to US dollars at today's exchange rate.</p></div>`;
 }
 function holdingsCard(r){
   const h=r.holdings; if(!h||!h.length) return `<div class="card" style="padding:16px"><div class="eyebrow">Top 10 holdings</div><p class="muted" style="margin:6px 0 0">The fund provider hasn't published holdings for this fund.</p></div>`;
@@ -717,7 +754,10 @@ async function load(force){
     if(!res.ok) throw new Error("Server replied "+res.status);
     const data=await res.json(); if(data.error) throw new Error(data.error);
     const reopen=S.sel, scrollY=window.scrollY;
-    data.rows.forEach(r=>{ r.m.top10 = r.holdings&&r.holdings.length ? r.holdings.reduce((a,x)=>a+x.pct,0) : null; });
+    data.rows.forEach(r=>{ r.m.top10 = r.holdings&&r.holdings.length ? r.holdings.reduce((a,x)=>a+x.pct,0) : null;
+      const f=r.facts||{}, bf=(data.benches[r.group]||{}).facts||{};
+      Object.assign(r.m,{aum:f.aumUsd??null, pe:f.pe??null, yld:f.yld??null, beta:f.beta??null, fee:f.fee??null,
+        peRel: f.pe&&bf.pe ? f.pe/bf.pe-1 : null}); });
     S.data=data; S.lastOk=Date.now(); render(); window.scrollTo(0,scrollY);
     if(reopen) openDetail(reopen);
     $("#dot").className="dot";

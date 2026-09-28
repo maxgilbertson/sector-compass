@@ -26,12 +26,12 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Reuse holdings (refreshed once a day)
+      - name: Reuse fund data (holdings and facts, refreshed once a day)
         uses: actions/cache@v4
         with:
-          path: holdings_cache.json
-          key: holdings-${{ github.run_id }}
-          restore-keys: holdings-
+          path: fund_cache.json
+          key: funddata-${{ github.run_id }}
+          restore-keys: funddata-
       - run: python build_static.py
       - uses: actions/upload-pages-artifact@v3
         with:

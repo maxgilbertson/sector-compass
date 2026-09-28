@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
-import holdings
+import funddata
 from universe import GROUPS, MACRO
 
 PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 8765)
@@ -349,9 +349,14 @@ def cycle_read(macro, spy):
             "favoured": list(dict.fromkeys(fav)), "favours": CYCLE_FAVOURS}
 
 
+FX = {"EUR": "EURUSD=X", "JPY": "JPYUSD=X", "CAD": "CADUSD=X"}  # to put net assets on one scale
+
+
 def build():
-    symbols = {g["bench"] for g in GROUPS} | {f[0] for g in GROUPS for f in g["funds"]} | {m[0] for m in MACRO}
+    symbols = ({g["bench"] for g in GROUPS} | {f[0] for g in GROUPS for f in g["funds"]}
+               | {m[0] for m in MACRO} | set(FX.values()))
     raw = fetch_all(sorted(symbols))
+    usd = {"USD": 1.0, **{c: (raw.get(s) or {}).get("price") for c, s in FX.items()}}
     irx = raw.get("^IRX", {})
     rf = (irx.get("price") or 4.0) / 100
     errors = [s for s, d in raw.items() if "error" in d or len(d.get("c", [])) < 60]
@@ -381,10 +386,21 @@ def build():
                 rows.append({"symbol": sym, "name": name, "key": key, "group": g["id"],
                              "fund": d["name"], "ccy": d["ccy"], "m": m})
     score_all(rows)
-    hold = holdings.load([r["symbol"] for r in rows])
+    fund = funddata.load([r["symbol"] for r in rows] + [b["symbol"] for b in benches.values()])
+
+    def facts(sym, ccy):
+        f = dict((fund["funds"].get(sym) or {}).get("facts") or {})
+        rate = usd.get(ccy)
+        f["aumUsd"] = f["aum"] * rate if (f.get("aum") and rate) else None
+        return f
+
     for r in rows:
         r["m"]["flags"] = flags(r["m"])
-        r["holdings"] = hold["funds"].get(r["symbol"])
+        r["holdings"] = (fund["funds"].get(r["symbol"]) or {}).get("holdings")
+        r["facts"] = facts(r["symbol"], r["ccy"])
+    for g in GROUPS:
+        if g["id"] in benches:
+            benches[g["id"]]["facts"] = facts(g["bench"], (raw.get(g["bench"]) or {}).get("ccy"))
     spy = benches.get("us", {}).get("m")
     cyc = cycle_read(macro, spy)
     for sym in macro:
@@ -394,7 +410,7 @@ def build():
         "generated": time.time(), "marketTime": last, "rf": rf,
         "groups": [{k: g[k] for k in ("id", "name", "bench", "bench_name", "ccy")} for g in GROUPS],
         "benches": benches, "rows": rows, "macro": macro, "cycle": cyc,
-        "weights": WEIGHTS, "errors": errors, "holdingsAt": hold["fetched"],
+        "weights": WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
     }
 
 # ---------------------------------------------------------------- server
