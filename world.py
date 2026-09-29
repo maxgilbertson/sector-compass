@@ -56,14 +56,14 @@ COUNTRIES = [
 DEVELOPED = {"US", "CA", "GB", "DE", "FR", "NL", "ES", "IT", "CH", "SE", "NO", "DK", "BE", "JP", "HK", "AU", "NZ", "SG", "IL"}
 
 TRAITS = {
-    "em": "Emerging market", "oil": "Energy-heavy market", "oil_user": "Big oil importer",
-    "metals": "Mining-heavy market", "tech": "Tech-heavy market", "haven": "Defensive market",
-    "fragile": "Vulnerable to a strong dollar",
+    "em": "Emerging market", "oil": "Full of oil and gas companies", "oil_user": "Imports a lot of oil",
+    "metals": "Full of mining companies", "tech": "Tech-heavy market", "haven": "Tends to hold up in sell-offs",
+    "fragile": "Hurt by a strong dollar",
 }
 
 MACRO = [
-    ("DX-Y.NYB", "US dollar index"), ("^VIX", "VIX (fear gauge)"), ("^TNX", "US 10Y yield"),
-    ("CL=F", "WTI crude oil"), ("HG=F", "Copper"), ("GC=F", "Gold"),
+    ("DX-Y.NYB", "US dollar vs major currencies"), ("^VIX", "Fear gauge (VIX)"), ("^TNX", "US 10-year interest rate"),
+    ("CL=F", "Crude oil ($ a barrel)"), ("HG=F", "Copper ($ a pound)"), ("GC=F", "Gold ($ an ounce)"),
 ]
 EXTRA = ["^IRX", "SMH", "EEM"]  # rates for Sharpe; semis and EM to read tech and EM leadership
 
@@ -76,48 +76,52 @@ def backdrop_read(macro, world_m, smh_rel, eem_rel):
         rules.append({"name": name, "active": active, "note": note, "tail": list(tail), "head": list(head)})
 
     g = lambda s, k: (macro.get(s) or {}).get(k)
+    updown = lambda v: "up" if v >= 0 else "down"
     dxy = g("DX-Y.NYB", "r3m")
     if dxy is not None:
         if dxy >= 0.03:
-            rule("Strong dollar", True, f"US dollar index up {dxy:+.1%} over 3 months. Foreign returns shrink when converted to dollars, and dollar debts get harder to pay.", head=["em", "fragile"])
+            rule("Strong dollar", True, f"The US dollar has risen {dxy:.1%} against major currencies over 3 months. Gains made abroad shrink when converted back to dollars, and countries that borrowed in dollars find the debt harder to repay.", head=["em", "fragile"])
         elif dxy <= -0.03:
-            rule("Weak dollar", True, f"US dollar index {dxy:+.1%} over 3 months. Foreign returns grow when converted, and commodity prices usually firm.", tail=["em", "metals"])
+            rule("Weak dollar", True, f"The US dollar has fallen {abs(dxy):.1%} against major currencies over 3 months. Gains made abroad grow when converted back to dollars, and commodity prices usually firm.", tail=["em", "metals"])
         else:
-            rule("Dollar", False, f"US dollar index {dxy:+.1%} over 3 months: no strong push either way.")
+            rule("Dollar", False, f"The US dollar is {updown(dxy)} {abs(dxy):.1%} against major currencies over 3 months: not enough to matter (the rule needs a 3% move).")
     oil = g("CL=F", "r3m")
     if oil is not None:
         if oil >= 0.10:
-            rule("Oil rising", True, f"Crude oil {oil:+.0%} over 3 months: a windfall for energy-heavy markets and a cost for big importers.", tail=["oil"], head=["oil_user"])
+            rule("Oil rising", True, f"Oil is up {oil:.0%} over 3 months: a boost for markets full of oil and gas companies, and a cost for countries that import a lot of oil.", tail=["oil"], head=["oil_user"])
         elif oil <= -0.10:
-            rule("Oil falling", True, f"Crude oil {oil:+.0%} over 3 months: relief for importers, a hit to energy-heavy markets.", tail=["oil_user"], head=["oil"])
+            rule("Oil falling", True, f"Oil is down {abs(oil):.0%} over 3 months: relief for countries that import a lot of oil, a hit to markets full of oil and gas companies.", tail=["oil_user"], head=["oil"])
         else:
-            rule("Oil", False, f"Crude oil {oil:+.0%} over 3 months: no strong push either way.")
+            rule("Oil", False, f"Oil is {updown(oil)} {abs(oil):.0%} over 3 months: not enough to matter (the rule needs a 10% move).")
     cu = g("HG=F", "r3m")
     if cu is not None:
         if cu >= 0.08:
-            rule("Metals rising", True, f"Copper {cu:+.0%} over 3 months: supports mining-heavy markets.", tail=["metals"])
+            rule("Metals rising", True, f"Copper, a gauge of demand for industrial metals, is up {cu:.0%} over 3 months: good for markets full of mining companies.", tail=["metals"])
         elif cu <= -0.08:
-            rule("Metals falling", True, f"Copper {cu:+.0%} over 3 months: weighs on mining-heavy markets.", head=["metals"])
+            rule("Metals falling", True, f"Copper, a gauge of demand for industrial metals, is down {abs(cu):.0%} over 3 months: bad for markets full of mining companies.", head=["metals"])
         else:
-            rule("Metals", False, f"Copper {cu:+.0%} over 3 months: no strong push either way.")
+            rule("Metals", False, f"Copper, a gauge of demand for industrial metals, is {updown(cu)} {abs(cu):.0%} over 3 months: not enough to matter (the rule needs an 8% move).")
     vix, vs200 = g("^VIX", "price"), (world_m or {}).get("vs200")
     if vix is not None and vs200 is not None:
+        trend = f"world stocks are {abs(vs200):.1%} {'above' if vs200 >= 0 else 'below'} their average price over the last 200 trading days (about 10 months)"
         if vix >= 25 or vs200 < 0:
-            rule("Risk-off", True, f"VIX {vix:.1f}, world stocks {vs200:+.1%} vs their 200-day average: investors are cautious, which favours defensive markets.", tail=["haven"], head=["em", "fragile"])
+            why = f"The fear gauge (VIX) is {'high' if vix >= 25 else 'at'} {vix:.1f}{' (over 25 = stressed)' if vix >= 25 else ''}, and {trend}."
+            rule("Investors nervous", True, f"{why} When investors are nervous, steadier markets tend to hold up better and emerging markets suffer most.", tail=["haven"], head=["em", "fragile"])
         elif vix <= 18 and vs200 > 0:
-            rule("Risk-on", True, f"VIX {vix:.1f}, world stocks {vs200:+.1%} above their 200-day average: appetite for risk usually helps emerging markets.", tail=["em"])
+            rule("Investors confident", True, f"The fear gauge (VIX) is a calm {vix:.1f} (18 or less), and {trend}. When investors feel confident, emerging markets usually benefit.", tail=["em"])
         else:
-            rule("Risk appetite", False, f"VIX {vix:.1f}: mixed signals on risk appetite.")
+            rule("Investor mood", False, f"The fear gauge (VIX) is {vix:.1f}, and {trend}: a mixed picture, so no push either way.")
     if smh_rel is not None:
         if smh_rel >= 0.05:
-            rule("Chip stocks leading", True, f"Semiconductors {smh_rel:+.1%} ahead of world stocks over 3 months: lifts tech-heavy markets.", tail=["tech"])
+            rule("Chip stocks leading", True, f"Chip-maker shares did {smh_rel:.1%} better than world stocks over 3 months: a boost for tech-heavy markets.", tail=["tech"])
         elif smh_rel <= -0.05:
-            rule("Chip stocks lagging", True, f"Semiconductors {smh_rel:+.1%} behind world stocks over 3 months: weighs on tech-heavy markets.", head=["tech"])
+            rule("Chip stocks falling behind", True, f"Chip-maker shares did {abs(smh_rel):.1%} worse than world stocks over 3 months: a drag on tech-heavy markets.", head=["tech"])
         else:
-            rule("Chip stocks", False, f"Semiconductors {smh_rel:+.1%} vs world stocks over 3 months: in line.")
+            rule("Chip stocks", False, f"Chip-maker shares did {abs(smh_rel):.1%} {'better' if smh_rel >= 0 else 'worse'} than world stocks over 3 months: not enough to matter (the rule needs 5%).")
     if eem_rel is not None:
-        rule("Emerging vs developed", False,
-             f"Emerging markets {eem_rel:+.1%} vs world stocks over 3 months (for context; already reflected in the scores).")
+        rule("Emerging vs world", False,
+             f"Emerging markets as a group did {abs(eem_rel):.1%} {'better' if eem_rel >= 0 else 'worse'} than world stocks over 3 months. "
+             "Shown for context only: each country's own score already captures this.")
     return rules
 
 
@@ -176,7 +180,7 @@ def build():
             i = ft.n - 1
             strength = lambda n: fx["c"][i - n] / fx["c"][i] - 1 if i >= n else None  # + = local currency gained vs USD
             cur = {"rate": fx["raw"][-1], "d1": strength(1), "m1": strength(21), "m3": strength(63), "y1": strength(252),
-                   "y3": strength(756), "spark": [round(1 / v, 8) for v in fx["c"][-252:]]}
+                   "y3": strength(756), "spark": [round(1 / v, 8) for v in fx["c"][-253:]]}
         src = idx if idx_ok else fund
         rows.append({
             "code": code, "symbol": code, "name": name, "region": region, "iso": iso, "ll": ll,

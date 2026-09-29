@@ -3,11 +3,12 @@
 Each group is measured against its own local benchmark so relative strength is
 apples-to-apples (same exchange, same currency, same trading calendar).
 `key` maps a fund to a canonical GICS-style sector so regions can be compared.
+`plain`/`short` name each benchmark in plain English for the pages ("the whole US market (S&P 500)").
 """
 
 GROUPS = [
     {
-        "id": "us", "name": "United States", "bench": "SPY", "bench_name": "S&P 500", "ccy": "USD",
+        "id": "us", "plain": "the whole US market (S&P 500)", "short": "S&P 500", "name": "United States", "bench": "SPY", "bench_name": "S&P 500", "ccy": "USD",
         "funds": [
             ("XLK", "Technology", "tech"),
             ("XLF", "Financials", "fin"),
@@ -23,7 +24,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "global", "name": "Global", "bench": "ACWI", "bench_name": "MSCI ACWI", "ccy": "USD",
+        "id": "global", "plain": "all world stocks (MSCI ACWI)", "short": "world stocks", "name": "Global", "bench": "ACWI", "bench_name": "MSCI ACWI", "ccy": "USD",
         "funds": [
             ("IXN", "Technology", "tech"),
             ("IXG", "Financials", "fin"),
@@ -39,7 +40,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "europe", "name": "Europe", "bench": "EXSA.DE", "bench_name": "STOXX Europe 600", "ccy": "EUR",
+        "id": "europe", "plain": "the whole European market (STOXX Europe 600)", "short": "STOXX Europe 600", "name": "Europe", "bench": "EXSA.DE", "bench_name": "STOXX Europe 600", "ccy": "EUR",
         "funds": [
             ("EXV3.DE", "Technology", "tech"),
             ("EXV1.DE", "Banks", "fin"),
@@ -63,7 +64,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "japan", "name": "Japan", "bench": "1306.T", "bench_name": "TOPIX", "ccy": "JPY",
+        "id": "japan", "plain": "the whole Japanese market (TOPIX)", "short": "TOPIX", "name": "Japan", "bench": "1306.T", "bench_name": "TOPIX", "ccy": "JPY",
         "funds": [
             ("1626.T", "IT & Services", "tech"),
             ("1625.T", "Electric Appliances & Precision", "tech"),
@@ -85,7 +86,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "canada", "name": "Canada", "bench": "XIU.TO", "bench_name": "S&P/TSX 60", "ccy": "CAD",
+        "id": "canada", "plain": "Canada's 60 biggest companies (S&P/TSX 60)", "short": "TSX 60", "name": "Canada", "bench": "XIU.TO", "bench_name": "S&P/TSX 60", "ccy": "CAD",
         "funds": [
             ("XIT.TO", "Technology", "tech"),
             ("XFN.TO", "Financials", "fin"),
@@ -98,7 +99,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "themes", "name": "Themes & Industries", "bench": "SPY", "bench_name": "S&P 500", "ccy": "USD",
+        "id": "themes", "plain": "the whole US market (S&P 500)", "short": "S&P 500", "name": "Themes & Industries", "bench": "SPY", "bench_name": "S&P 500", "ccy": "USD",
         "funds": [
             ("SMH", "Semiconductors", "tech"),
             ("IGV", "Software", "tech"),
@@ -123,7 +124,7 @@ GROUPS = [
         ],
     },
     {
-        "id": "countries", "name": "Countries", "bench": "ACWI", "bench_name": "MSCI ACWI", "ccy": "USD",
+        "id": "countries", "plain": "all world stocks (MSCI ACWI)", "short": "world stocks", "name": "Countries", "bench": "ACWI", "bench_name": "MSCI ACWI", "ccy": "USD",
         "funds": [
             ("SPY", "United States", "country"),
             ("VGK", "Europe", "country"),
@@ -146,12 +147,12 @@ GROUPS = [
 
 # Macro gauges used to read the business cycle.
 MACRO = [
-    ("^VIX", "VIX (fear gauge)"),
-    ("^TNX", "US 10Y yield"),
-    ("^IRX", "US 3M bill yield"),
-    ("DX-Y.NYB", "US dollar index"),
-    ("CL=F", "WTI crude oil"),
-    ("GC=F", "Gold"),
-    ("HG=F", "Copper"),
-    ("BTC-USD", "Bitcoin"),
+    ("^VIX", "Fear gauge (VIX)"),
+    ("^TNX", "US 10-year interest rate"),
+    ("^IRX", "US 3-month interest rate"),
+    ("DX-Y.NYB", "US dollar vs major currencies"),
+    ("CL=F", "Crude oil ($ a barrel)"),
+    ("GC=F", "Gold ($ an ounce)"),
+    ("HG=F", "Copper ($ a pound)"),
+    ("BTC-USD", "Bitcoin ($)"),
 ]

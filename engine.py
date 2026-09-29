@@ -365,14 +365,22 @@ def analyse(tr, d, rf):
 
 
 def flags(m):
+    """Warning chips, each with a plain label and a tooltip that explains the rule behind it."""
     f = []
-    if m.get("rsi") is not None and m["rsi"] >= 70: f.append(("Overbought", "warn"))
-    if m.get("rsi") is not None and m["rsi"] <= 30: f.append(("Oversold", "info"))
-    if m.get("vs200") is not None and m["vs200"] > 0.15: f.append(("Stretched vs 200d", "warn"))
-    if m.get("offHigh") is not None and m["offHigh"] > -0.02: f.append(("At 52w high", "pos"))
-    if (m.get("mdd") or 0) < -0.25: f.append(("Deep drawdown", "neg"))
-    if m.get("golden") is False and m.get("vs200") is not None and m["vs200"] < 0: f.append(("Downtrend", "neg"))
-    return [{"label": a, "tone": b} for a, b in f]
+    rsi, vs200 = m.get("rsi"), m.get("vs200")
+    if rsi is not None and rsi >= 70:
+        f.append(("Rose fast", "warn", f"RSI {rsi:.0f}: it has risen unusually fast over the last 3 weeks or so ('overbought'). Sharp rises often pause."))
+    if rsi is not None and rsi <= 30:
+        f.append(("Fell fast", "info", f"RSI {rsi:.0f}: it has fallen unusually fast over the last 3 weeks or so ('oversold'). Short bounces are common."))
+    if vs200 is not None and vs200 > 0.15:
+        f.append(("Far above trend", "warn", f"The price is {vs200:.0%} above its 200-day (about 10-month) average. Gaps this big often narrow."))
+    if m.get("offHigh") is not None and m["offHigh"] > -0.02:
+        f.append(("Near 1-yr high", "pos", "Within 2% of its highest price of the past year."))
+    if (m.get("mdd") or 0) < -0.25:
+        f.append(("Big fall this year", "neg", f"It dropped {abs(m['mdd']):.0%} from a high at some point in the past year."))
+    if m.get("golden") is False and vs200 is not None and vs200 < 0:
+        f.append(("Downtrend", "neg", "The price is below its 200-day (about 10-month) average, and the 50-day average is below the 200-day."))
+    return [{"label": a, "tone": b, "tip": c} for a, b, c in f]
 
 
 def macro_block(raw, items):

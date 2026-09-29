@@ -28,56 +28,67 @@ def cycle_read(macro, spy):
         a, b = macro.get("^TNX"), macro.get("^IRX")
         if a and b and len(a["c"]) > 63 and len(b["c"]) > 63:
             curve_3m = curve - (a["c"][-64] - b["c"][-64])
+        rates = f"The 10-year US interest rate ({tnx:.2f}%)"
         if curve < 0:
             ev["Late cycle"] += 1; ev["Contraction"] += 0.5
-            notes.append(f"Yield curve inverted ({curve:+.2f} pts, 10Y minus 3M): classic late-cycle warning.")
+            notes.append(f"Short-term US interest rates (3-month, {irx:.2f}%) are {abs(curve):.2f}% above 10-year rates ({tnx:.2f}%). "
+                         "This 'inverted yield curve' has come before most US recessions: a classic late-cycle warning.")
         elif curve_3m is not None and curve_3m > 0.2:
             ev["Early cycle"] += 1
-            notes.append(f"Yield curve steepening ({curve:+.2f} pts, {curve_3m:+.2f} over 3M): often seen as growth re-accelerates.")
+            notes.append(f"{rates} is {curve:.2f}% above the 3-month rate ({irx:.2f}%), and that gap has widened by "
+                         f"{curve_3m:.2f}% in 3 months: often a sign that growth is picking up.")
+        elif curve_3m is not None and curve_3m < -0.2:
+            # a fast-shrinking gap ("flattening") tends to come late in an expansion
+            ev["Late cycle"] += 0.6; ev["Mid cycle"] += 0.3
+            notes.append(f"{rates} is {curve:.2f}% above the 3-month rate ({irx:.2f}%), but the gap has shrunk by "
+                         f"{abs(curve_3m):.2f}% in 3 months: a shrinking gap often comes late in an expansion.")
         else:
             ev["Mid cycle"] += 0.7
-            notes.append(f"Yield curve positive and stable ({curve:+.2f} pts).")
+            notes.append(f"{rates} is {curve:.2f}% above the 3-month rate ({irx:.2f}%), a normal gap that has changed little in 3 months.")
     cu, au = macro.get("HG=F"), macro.get("GC=F")
     if cu and au and len(cu["c"]) > 63 and len(au["c"]) > 63:
         cg = (cu["c"][-1] / au["c"][-1]) / (cu["c"][-64] / au["c"][-64]) - 1
         if cg > 0.03:
             ev["Early cycle"] += 0.7; ev["Mid cycle"] += 0.5
-            notes.append(f"Copper/gold ratio up {cg:+.1%} over 3M: markets pricing stronger industrial demand.")
+            notes.append(f"Copper has gained {cg:.1%} on gold over 3 months. Copper follows factory and building demand, "
+                         "while gold is bought in worrying times, so this points to stronger growth.")
         elif cg < -0.03:
             ev["Contraction"] += 0.8; ev["Late cycle"] += 0.3
-            notes.append(f"Copper/gold ratio down {cg:+.1%} over 3M: growth worries, defensive tilt.")
+            notes.append(f"Copper has lost {abs(cg):.1%} against gold over 3 months: a sign investors are worried about growth and moving to safer holdings.")
         else:
             ev["Mid cycle"] += 0.4
-            notes.append(f"Copper/gold ratio flat ({cg:+.1%} over 3M).")
+            notes.append(f"Copper and gold have moved about the same over 3 months ({cg:+.1%} for copper vs gold): no strong growth signal.")
     oil = macro.get("CL=F")
     if oil and len(oil["c"]) > 126:
         o6 = oil["c"][-1] / oil["c"][-127] - 1
         if o6 > 0.15:
             ev["Late cycle"] += 0.8
-            notes.append(f"Oil up {o6:+.0%} over 6M: inflation pressure, typical of late cycle.")
+            notes.append(f"Oil is up {o6:.0%} in 6 months. That pushes prices up across the economy (inflation), which is typical late in a boom.")
         elif o6 < -0.15:
             ev["Contraction"] += 0.3; ev["Early cycle"] += 0.3
-            notes.append(f"Oil down {o6:+.0%} over 6M: easing input costs, weaker demand.")
+            notes.append(f"Oil is down {abs(o6):.0%} in 6 months: lower costs for businesses, but often a sign of weaker demand.")
     if vix is not None:
         if vix >= 25:
             ev["Contraction"] += 1
-            notes.append(f"VIX at {vix:.1f}: elevated fear.")
+            notes.append(f"Fear gauge (VIX) at {vix:.1f}: investors are nervous (over 25 = stressed).")
         elif vix <= 16:
             ev["Mid cycle"] += 0.6
-            notes.append(f"VIX at {vix:.1f}: calm markets.")
+            notes.append(f"Fear gauge (VIX) at {vix:.1f}: markets are calm (under 16 = calm, over 25 = stressed).")
         else:
-            notes.append(f"VIX at {vix:.1f}: normal range.")
+            notes.append(f"Fear gauge (VIX) at {vix:.1f}: normal (16 to 25).")
     if spy:
         if spy["vs200"] is not None and spy["vs200"] < 0:
             ev["Contraction"] += 1
-            notes.append("S&P 500 below its 200-day average: broad downtrend.")
+            notes.append("The US stock market (S&P 500) is below its 200-day (about 10-month) average price: a broad downtrend.")
         elif spy["vs200"] is not None and spy["r6m"] is not None:
             ev["Mid cycle"] += 0.6
             if spy["mdd"] < -0.15 and spy["r3m"] > 0.08:
                 ev["Early cycle"] += 0.8
-                notes.append("S&P 500 recovering sharply from a drawdown.")
+                notes.append(f"The US stock market (S&P 500) is bouncing back strongly: up {spy['r3m']:.0%} in 3 months, "
+                             f"having fallen as much as {abs(spy['mdd']):.0%} from a peak at some point in the past year.")
             else:
-                notes.append("S&P 500 above its 200-day average: broad uptrend intact.")
+                notes.append("The US stock market (S&P 500) is above its average price over the last 200 trading days "
+                             "(about 10 months): its long-term uptrend is intact.")
     tot = sum(ev.values()) or 1
     w = {k: v / tot for k, v in ev.items()}
     order = sorted(w, key=w.get, reverse=True)
@@ -112,7 +123,7 @@ def build():
         if b:
             bm = engine.analyse(engine.Track(b), b, rf)
             benches[g["id"]] = {"symbol": g["bench"], "name": g["bench_name"],
-                                "m": {k: bm[k] for k in ("vs200", "r3m", "r6m", "r1y", "mdd")}}
+                                "m": {k: bm[k] for k in ("vs200", "r3m", "r6m", "r1y", "mdd", "vol")}}
         for sym, name, key in g["funds"]:
             d = raw.get(sym)
             if not engine.usable(d):
@@ -147,7 +158,7 @@ def build():
         macro[sym].pop("c", None)
     return {
         "generated": time.time(), "marketTime": max((d.get("mtime") or 0) for d in raw.values() if "error" not in d),
-        "groups": [{k: g[k] for k in ("id", "name", "bench", "bench_name", "ccy")} for g in GROUPS],
+        "groups": [{k: g[k] for k in ("id", "name", "bench", "bench_name", "ccy", "plain", "short")} for g in GROUPS],
         "benches": benches, "rows": rows, "macro": macro, "cycle": cyc, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
         "backtest": bt, "backtestSeconds": bt_seconds,

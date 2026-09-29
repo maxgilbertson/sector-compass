@@ -262,3 +262,7 @@ th.sticky{z-index:3}
 @media (max-width:1100px){.mapwrap{grid-template-columns:1fr}.regions{grid-template-columns:1fr 1fr}.ideas.four{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:720px){.regions,.ideas.four{grid-template-columns:1fr}.bt-verdict{grid-template-columns:1fr}.pages a{padding:4px 9px;font-size:13px}}
 .backdrop .macro,.mapwrap>.card{align-self:start}
+.howto{padding:16px 18px;display:grid;gap:6px;font-size:14.5px;background:color-mix(in oklab,var(--accent) 6%,var(--surface))}
+.howto p{margin:0;max-width:95ch}
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px;margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.45}
+.glossary b{color:var(--ink);font-weight:600}

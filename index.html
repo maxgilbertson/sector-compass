@@ -31,114 +31,134 @@
 "use strict";
 /* ---------------------------------------------------------------- static knowledge */
 const SECTORS = {
-  tech:   {name:"Technology", kind:"Cyclical growth", what:"Software, semiconductors, hardware and IT services.",
-           drivers:"Enterprise IT and cloud budgets, AI infrastructure spending, the semiconductor inventory cycle, earnings growth.",
-           rates:"High. Profits sit far in the future, so rising bond yields cut what investors will pay for them.",
-           risks:"Valuation de-rating, export controls, a pause in AI capex, customer concentration."},
-  fin:    {name:"Financials", kind:"Cyclical value", what:"Banks, insurers, brokers, asset managers and exchanges.",
-           drivers:"Loan growth, net interest margin (a steeper yield curve helps), credit quality, deal and trading activity.",
-           rates:"Positive when the curve steepens; hurt when recession lifts loan losses.",
-           risks:"Credit defaults, deposit flight, tighter capital rules, falling rates squeezing margins."},
-  health: {name:"Health Care", kind:"Defensive", what:"Pharma, biotech, medical devices, insurers and services.",
-           drivers:"Drug pipelines and approvals, patent expiries, ageing populations, government pricing policy.",
-           rates:"Low for pharma; high for biotech, which relies on funding markets.",
-           risks:"Drug-price regulation, failed trials, patent cliffs, reimbursement cuts."},
+  tech:   {name:"Technology", kind:"Cyclical growth", what:"Software, computer chips, hardware and IT services.",
+           drivers:"How much businesses spend on IT and cloud services, spending on AI data centres, the boom-and-bust cycle in chip demand, profit growth.",
+           rates:"A lot. Their profits are expected far in the future, so when interest rates rise, investors pay less for them today.",
+           risks:"Prices falling back from high levels, export restrictions, a pause in AI spending, reliance on a few big customers."},
+  fin:    {name:"Financials", kind:"Cyclical value", what:"Banks, insurers, brokers, asset managers and stock exchanges.",
+           drivers:"Lending growth, the gap between what banks earn on loans and pay on deposits (bigger when long-term rates are well above short-term ones), bad-debt levels, deal-making and trading.",
+           rates:"Helped when long-term rates rise above short-term ones; hurt when a recession brings more unpaid loans.",
+           risks:"Loan defaults, customers pulling deposits, stricter rules, falling rates squeezing lending profits."},
+  health: {name:"Health Care", kind:"Defensive", what:"Drug makers, biotech, medical devices, health insurers and services.",
+           drivers:"New drugs and approvals, patents running out, ageing populations, government pricing rules.",
+           rates:"Little for big drug makers; a lot for biotech, which relies on raising money.",
+           risks:"Rules on drug prices, failed drug trials, patents expiring, cuts to what governments pay."},
   energy: {name:"Energy", kind:"Cyclical / inflation hedge", what:"Oil and gas producers, refiners, pipelines and oilfield services.",
-           drivers:"Crude and natural gas prices, OPEC+ supply decisions, capital discipline, shareholder payouts.",
-           rates:"Low. Tends to do well when inflation is rising.",
-           risks:"Commodity price collapse, demand shocks, windfall taxes, the energy transition."},
+           drivers:"Oil and gas prices, OPEC+ production decisions, how carefully companies spend, dividends and buybacks.",
+           rates:"Little. It tends to do well when prices across the economy are rising.",
+           risks:"A slump in oil prices, falling demand, windfall taxes, the shift to cleaner energy."},
   indu:   {name:"Industrials", kind:"Cyclical", what:"Aerospace and defence, machinery, transport, construction and trading houses.",
-           drivers:"Business investment, manufacturing PMIs, infrastructure and defence budgets, freight volumes.",
-           rates:"Moderate. Higher borrowing costs slow capital projects.",
-           risks:"Manufacturing slowdown, supply-chain disruption, tariff and trade shocks."},
-  discr:  {name:"Consumer Discretionary", kind:"Cyclical", what:"Autos, retailers, travel and leisure, homebuilders, e-commerce.",
-           drivers:"Consumer confidence, real wage growth, credit availability, the housing market.",
-           rates:"High. Big-ticket purchases are often financed.",
-           risks:"Consumer slowdown, rising unemployment, tariffs on imported goods."},
-  staples:{name:"Consumer Staples", kind:"Defensive", what:"Food, beverages, household and personal products, grocers.",
-           drivers:"Steady demand, pricing power, input costs (grains, packaging, energy), emerging-market volumes.",
-           rates:"Moderate. Often traded as a bond substitute for its stable dividends.",
-           risks:"Input-cost inflation, private-label competition, weight-loss drug effects on food volumes."},
-  util:   {name:"Utilities", kind:"Defensive / bond proxy", what:"Electric, gas and water utilities, power producers.",
-           drivers:"Regulated returns, electricity demand (data centres), capital spending plans.",
-           rates:"Very high. Rising yields make their dividends less attractive by comparison.",
-           risks:"Rising bond yields, regulatory decisions, wildfire and weather liabilities."},
-  mat:    {name:"Materials", kind:"Cyclical / commodity", what:"Chemicals, metals and mining, steel, construction materials, gold miners.",
-           drivers:"Commodity prices, Chinese demand, the US dollar, global industrial production.",
-           rates:"Low to moderate. A weaker dollar usually helps.",
-           risks:"China slowdown, commodity oversupply, energy costs for European chemicals."},
-  re:     {name:"Real Estate", kind:"Rate-sensitive income", what:"REITs and property companies: offices, warehouses, housing, data centres.",
-           drivers:"Occupancy and rents, property valuations, financing costs.",
-           rates:"Very high. Property values move inversely to long-term yields.",
-           risks:"Refinancing walls, office vacancies, falling valuations."},
-  comm:   {name:"Communication Services", kind:"Mixed growth / defensive", what:"Telecoms, media, and interactive platforms such as search and social.",
-           drivers:"Digital ad spending, subscriber growth, content costs, 5G and fibre capex.",
-           rates:"Moderate. Telecoms behave like bonds; platforms behave like tech.",
-           risks:"Ad-market downturns, antitrust action, heavy network capex."},
-  country:{name:"Country fund", kind:"Broad market", what:"A whole national stock market in one fund, all sectors blended.",
-           drivers:"Domestic growth, central-bank policy, the currency, the sector mix of that market.",
-           rates:"Depends on the market; returns are in US dollars, so currency moves count.",
-           risks:"Political and policy risk, currency swings, concentration in a few large companies. See the Countries page for the full picture."},
+           drivers:"Business investment, factory activity surveys, infrastructure and defence budgets, freight volumes.",
+           rates:"Some. Higher borrowing costs slow big projects.",
+           risks:"A factory slowdown, supply-chain problems, tariffs and trade disputes."},
+  discr:  {name:"Consumer Discretionary", kind:"Cyclical", what:"Things people want but don't need: cars, shops, travel, leisure, homebuilders, online retail.",
+           drivers:"How confident shoppers feel, wages after inflation, how easy it is to borrow, the housing market.",
+           rates:"A lot. Big purchases like cars and homes are often bought on credit.",
+           risks:"Shoppers cutting back, rising unemployment, tariffs on imported goods."},
+  staples:{name:"Consumer Staples", kind:"Defensive", what:"Everyday essentials: food, drinks, household and personal products, supermarkets.",
+           drivers:"Steady demand, the ability to raise prices, ingredient and packaging costs, sales in emerging markets.",
+           rates:"Some. Investors often treat them like bonds because of their steady dividends.",
+           risks:"Rising costs, cheaper own-brand competition, weight-loss drugs reducing food sales."},
+  util:   {name:"Utilities", kind:"Defensive / bond-like", what:"Electricity, gas and water companies and power producers.",
+           drivers:"Profits set by regulators, electricity demand (including data centres), how much they spend on new plants and grids.",
+           rates:"A lot. When interest rates rise, their dividends look less attractive next to safer bonds.",
+           risks:"Rising interest rates, regulators' decisions, wildfire and storm damage claims."},
+  mat:    {name:"Materials", kind:"Cyclical / commodity", what:"Chemicals, metals and mining, steel, building materials and gold miners.",
+           drivers:"Commodity prices, demand from China, the US dollar, global factory output.",
+           rates:"Little to some. A weaker dollar usually helps.",
+           risks:"A China slowdown, too much supply, energy costs for European chemical makers."},
+  re:     {name:"Real Estate", kind:"Rate-sensitive income", what:"Property companies and REITs (funds that own buildings): offices, warehouses, homes, data centres.",
+           drivers:"How full buildings are, rents, property values, borrowing costs.",
+           rates:"A lot. Property values usually fall when long-term interest rates rise.",
+           risks:"Loans that must be refinanced at higher rates, empty offices, falling property values."},
+  comm:   {name:"Communication Services", kind:"Mixed growth / defensive", what:"Telecoms, media, and online platforms such as search and social media.",
+           drivers:"Advertising spending, subscriber growth, the cost of content, spending on mobile and fibre networks.",
+           rates:"Some. Telecoms behave like bonds; online platforms behave like tech.",
+           risks:"Advertising slumps, competition cases against big platforms, heavy network spending."},
+  country:{name:"Country fund", kind:"Broad market", what:"A whole national stock market in one fund, with all sectors mixed together.",
+           drivers:"The country's economic growth, its central bank's interest rates, its currency, which sectors dominate its stock market.",
+           rates:"Depends on the country; returns are in US dollars, so currency moves count.",
+           risks:"Political and policy changes, currency swings, a few big companies dominating. See the Countries page for the full picture."},
 };
 const PHASE_COLORS = {"Early cycle":"var(--info)","Mid cycle":"var(--pos)","Late cycle":"var(--warn)","Contraction":"var(--neg)"};
+const PHASE_PLAIN = {"Early cycle":"recovery","Mid cycle":"steady growth","Late cycle":"late expansion","Contraction":"recession"};
+const phaseMix = cyc => cyc.phases.length>1? `a mix of ${cyc.phases.map(p=>PHASE_PLAIN[p]).join(" and ")}` : PHASE_PLAIN[cyc.phases[0]];
 const MACRO_HINT = {
-  "^VIX":"Below 16 is calm, above 25 is stress. Spikes favour defensives.",
-  "^TNX":"Rising yields weigh on tech, utilities and real estate.",
-  "CURVE":"10Y minus 3M. Negative (inverted) has preceded most recessions.",
-  "DX-Y.NYB":"A strong dollar hurts US multinationals, commodities and EM.",
-  "CL=F":"Drives energy stocks; a cost for airlines and chemicals.",
-  "GC=F":"Safe-haven demand and a hedge against falling real yields.",
-  "HG=F":"'Dr Copper': an industrial-demand barometer.",
-  "BTC-USD":"A gauge of speculative risk appetite.",
+  "^VIX":"How big a swing investors expect in US shares over the next month. Under 16 = calm, over 25 = stressed. Spikes tend to favour steadier sectors like food, utilities and health care.",
+  "^TNX":"What the US government pays to borrow for 10 years. When it rises, tech, utility and property shares usually suffer.",
+  "CURVE":"How much more the US government pays to borrow for 10 years than for 3 months. Below zero ('inverted') has come before most US recessions.",
+  "DX-Y.NYB":"The dollar against the euro, yen, pound and others; watch the direction. A strong dollar hurts US companies that sell abroad, commodities and emerging markets.",
+  "CL=F":"Drives energy shares; a cost for airlines and chemical makers.",
+  "GC=F":"Bought as a safe haven in worrying times.",
+  "HG=F":"Copper goes into almost everything that gets built, so its price is a rough gauge of industrial demand.",
+  "BTC-USD":"A gauge of how much risk investors are willing to take.",
 };
 const COLS = [
-  {k:"r1d",l:"1D",cap:.02},{k:"r1w",l:"1W",cap:.04},{k:"r1m",l:"1M",cap:.08},{k:"r3m",l:"3M",cap:.15},
-  {k:"ytd",l:"YTD",cap:.3},{k:"r1y",l:"1Y",cap:.4},{k:"r3y",l:"3Y/yr",cap:.2},{k:"rs6m",l:"vs Mkt 6M",cap:.2},
+  {k:"r1d",l:"Today",cap:.02,tip:"Return today (or on the last trading day), including dividends"},
+  {k:"r1w",l:"Week",cap:.04,tip:"Return over the last 5 trading days"},
+  {k:"r1m",l:"1 mo",cap:.08,tip:"Return over the last month"},
+  {k:"r3m",l:"3 mo",cap:.15,tip:"Return over the last 3 months"},
+  {k:"ytd",l:"Since Jan 1",cap:.3,tip:"Return since 1 January"},
+  {k:"r1y",l:"1 yr",cap:.4,tip:"Return over the last year"},
+  {k:"r3y",l:"3 yr avg",cap:.2,tip:"Average yearly return over the last 3 years"},
 ];
 
 /* ---------------------------------------------------------------- state */
 const store = makeStore("sc.");
 const S = {data:null, region:store.get("region","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}),
            rrg:store.get("rrg","us"), sel:null, range:"1y"};
-const groupName = id => (S.data.groups.find(g=>g.id===id)||{}).name||id;
+const grp = id => (S.data.groups.find(g=>g.id===id)||{});
+const groupName = id => grp(id).name||id;
 const groupShort = id => ({us:"US",global:"Global",europe:"Europe",japan:"Japan",canada:"Canada",themes:"Theme",countries:"Country"})[id]||id;
+// what each fund is compared with, in plain words ("the whole US market (S&P 500)") and short ("S&P 500")
+const benchPlain = id => grp(id).plain||"its region's whole market";
+const benchShort = id => grp(id).short||"the whole market";
+const REGION_MKT = "the whole stock market of its region";
+function vsListText(){ // "US sectors and themes vs the S&P 500, ..." built from the data so it stays in sync with universe.py
+  const g=id=>grp(id).bench_name;
+  return `US sectors and themes vs the ${g("us")}, European vs the ${g("europe")}, Japanese vs ${g("japan")}, Canadian vs the ${g("canada")}, and global and country funds vs all world stocks (${g("global")})`;
+}
 
 /* ---------------------------------------------------------------- narrative */
 function narrative(r){
-  const m=r.m, b=S.data.benches[r.group], bn=b?b.name:"its market", out=[];
-  if(m.r1y!=null){ const rel = m.rs1y; out.push(`${m.r1y>=0?"Up":"Down"} ${pct(Math.abs(m.r1y),1,false)} over 12 months`+
-      (rel!=null?`, ${Math.abs(rel*100).toFixed(1)} pts ${rel>=0?"ahead of":"behind"} the ${bn}.`:".")); }
-  out.push(m.trend===4?"Clean uptrend: above both its 50- and 200-day averages, and the 200-day is rising."
-    : m.trend===0?"Clear downtrend: below both moving averages and the 200-day is falling."
-    : m.vs200>0?`Mixed trend (${m.trend}/4 trend checks pass). Still above the 200-day average.`
-    : `Mixed trend (${m.trend}/4 trend checks pass). Below the 200-day average, so the long-term trend is not yet repaired.`);
-  const qx = {Leading:"Outperforming its market and relative momentum is still rising.",
-    Weakening:"Still outperforming, but relative momentum is fading. Leaders often cool off from here.",
-    Improving:"Still lagging, but relative momentum has turned up. An early turnaround candidate.",
-    Lagging:"Underperforming its market with falling relative momentum."}[m.quad];
-  if(qx) out.push("Rotation: "+qx);
-  const ht=historyText(m); if(ht) out.push("Momentum of the rating: "+ht);
-  const bf=(S.data.benches[r.group]||{}).facts||{};
-  if(m.pe!=null&&bf.pe) out.push(`Valuation: P/E of ${m.pe.toFixed(1)} vs ${bf.pe.toFixed(1)} for the ${bn}, `+
-    (m.peRel>0.25?`a ${pct(m.peRel,0,false)} premium. Investors are paying up for growth, so disappointments can hurt.`
-     :m.peRel<-0.2?`a ${pct(-m.peRel,0,false)} discount. Cheap relative to the market, often for a reason, but it cushions bad news.`
-     :"roughly in line with the market."));
-  if(m.vol!=null) out.push(`Risk: ${pct(m.vol,0,false)} annualised volatility (3M), worst fall in the past year ${pct(m.mdd,1)}, now ${pct(m.offHigh,1)} from its 52-week high.`);
-  if(m.rsi!=null){ if(m.rsi>=70) out.push(`Timing: RSI ${m.rsi.toFixed(0)} means it is short-term overbought. Chasing here carries pullback risk.`);
-    else if(m.rsi<=30) out.push(`Timing: RSI ${m.rsi.toFixed(0)} means it is short-term oversold. Bounces are common, but confirm the trend first.`);
-    else out.push(`Timing: RSI ${m.rsi.toFixed(0)}, neither overbought nor oversold.`); }
-  const fav = S.data.cycle.favoured;
-  if(r.key!=="country") out.push(fav.includes(r.key) ? `Cycle: historically favoured in a ${S.data.cycle.phase.toLowerCase()} backdrop, which is the current read.`
-                                                    : `Cycle: not a typical winner in a ${S.data.cycle.phase.toLowerCase()} backdrop.`);
+  const m=r.m, bp=benchPlain(r.group), bench=S.data.benches[r.group]||{}, out=[], sign=CCY_SIGN[r.ccy]||"";
+  if(m.r1y!=null){
+    let s=`${m.r1y>=0?"Up":"Down"} ${pct(Math.abs(m.r1y),1,false)} over the past year.`;
+    if(m.rs1y!=null){ const br=m.r1y-m.rs1y, shown=(+(m.r1y*100).toFixed(1) - +(br*100).toFixed(1))/100;
+      s+=` ${bp[0].toUpperCase()+bp.slice(1)} ${br>=0?"rose":"fell"} ${pct(Math.abs(br),1,false)}, so this did ${betterWorse(shown)}.`;
+      if(sign) s+=` ${sign}1,000 put in a year ago would now be about ${sign}${Math.round(1000*(1+m.r1y)).toLocaleString()}, against ${sign}${Math.round(1000*(1+br)).toLocaleString()} in ${benchShort(r.group)==="world stocks"?"world stocks":"the "+benchShort(r.group)}.`; }
+    out.push(s);
+  }
+  out.push(m.trend===4?"Clear uptrend: the price is above its average over the last 50 trading days (about 2½ months) and 200 trading days (about 10 months), and the 10-month average is rising."
+    : m.trend===0?"Clear downtrend: the price is below both its 50-day and 200-day averages, and the 200-day average is falling."
+    : m.vs200>0?`Mixed trend: it passes ${m.trend} of 4 uptrend checks, and is still above its 200-day (about 10-month) average price.`
+    : `Mixed trend: it passes ${m.trend} of 4 uptrend checks, and is below its 200-day (about 10-month) average price, so the long-term trend is not yet repaired.`);
+  const qs=quadSentence(m.quad,bp); if(qs) out.push(`Rotation (${m.quad}): ${qs}`);
+  const ht=historyText(m,false); if(ht) out.push("Score changes (out of 100): "+ht);
+  const bf=bench.facts||{};
+  if(m.pe!=null&&bf.pe) out.push(`Price vs profits: buyers pay ${m.pe.toFixed(1)} times the last year's profits here (P/E), against ${bf.pe.toFixed(1)} for ${bp}, `+
+    (Math.abs(m.peRel)<0.05?"about the same."
+     :`so it is ${pct(Math.abs(m.peRel),0,false)} ${m.peRel>0?"pricier":"cheaper"}.`+
+      (m.peRel>0.25?" Investors are paying up for expected growth, so disappointments can hurt."
+       :m.peRel<-0.2?" Often cheap for a reason, but low expectations can cushion bad news.":"")));
+  if(m.vol!=null){ const bv=(bench.m||{}).vol;
+    out.push(`Risk: over the last 3 months its volatility (a measure of typical daily ups and downs, scaled to a year; higher = bumpier) was ${pct(m.vol,0,false)}${bv?`, against ${pct(bv,0,false)} for the ${benchShort(r.group)}`:""}. `+
+      `Its biggest drop in the past year was ${pct(Math.abs(m.mdd),1,false)}, and ${m.offHigh>-0.005?"it is at or very near its highest price of the past year":`it is now ${pct(Math.abs(m.offHigh),1,false)} below its highest price of the past year`}.`); }
+  if(m.rsi!=null){ if(m.rsi>=70) out.push(`Timing: its recent gains have been much bigger than its recent losses (RSI ${m.rsi.toFixed(0)}; 70 or more is called 'overbought'). Buying right after a sharp run-up carries the risk of a short-term dip.`);
+    else if(m.rsi<=30) out.push(`Timing: its recent losses have been much bigger than its recent gains (RSI ${m.rsi.toFixed(0)}; 30 or under is called 'oversold'). Short bounces are common, but it can keep falling, so wait for the trend to turn.`);
+    else out.push(`Timing: RSI ${m.rsi.toFixed(0)}: it has not risen or fallen unusually fast lately.`); }
+  const cyc=S.data.cycle, fav=cyc.favoured, phase=phaseMix(cyc);
+  if(r.key!=="country") out.push(fav.includes(r.key) ? `Economic cycle: our US market signals point to ${phase} (see the top of the page), and this sector has tended to do well then.`
+                                                    : `Economic cycle: our US market signals point to ${phase} (see the top of the page), when this sector has not usually led.`);
   return out;
 }
 function reasonShort(r){
   const m=r.m, bits=[];
-  if(m.rsMom!=null) bits.push(`12-1M vs mkt ${pts(m.rsMom,0)}`);
-  bits.push(`trend ${m.trend}/4`);
-  if(m.quad) bits.push(m.quad.toLowerCase());
-  if(m.d1w!=null&&Math.abs(m.d1w)>=1) bits.push(`score ${m.d1w>0?"+":""}${m.d1w.toFixed(0)} this week`);
-  if(m.rsi>=70) bits.push("overbought"); if(m.rsi<=30) bits.push("oversold");
+  if(m.rs1y!=null) bits.push(`${aheadBehind(m.rs1y,0)} ${relPrep(m.rs1y)}${benchShort(r.group)==="world stocks"?"world stocks":"the "+benchShort(r.group)} over the past year`);
+  bits.push(TREND_WORD[m.trend]);
+  if(m.quad) bits.push(QUAD_PLAIN[m.quad]);
+  if(m.d1w!=null&&Math.abs(m.d1w)>=1) bits.push(`score ${m.d1w>0?"up":"down"} ${Math.round(Math.abs(m.d1w))} this week`);
+  if(m.rsi>=70) bits.push("rose fast recently"); if(m.rsi<=30) bits.push("fell fast recently");
   return bits.join(" · ");
 }
 
@@ -156,19 +176,27 @@ function sorted(rows){
 
 function render(){
   const D=S.data, app=$("#app");
-  const cyc=D.cycle, fav=cyc.favoured;
+  const cyc=D.cycle, fav=cyc.favoured, n=D.rows.length;
   app.innerHTML = `
   <section>
-    <div class="sec-head"><div class="grow"><div class="eyebrow">Market backdrop</div><h2>Where are we in the cycle?</h2>
-      <p>A rules-based read of yields, commodities, volatility and the S&amp;P 500 trend. Different sectors tend to lead in different phases.</p></div></div>
+    <div class="card howto"><div class="eyebrow">How to read this page</div>
+      <p>Each sector fund is compared with <b>the whole stock market of its own region</b>. For example, US Technology is compared with the S&amp;P 500, the 500 biggest US companies across every sector. "Ahead" means the sector did better than simply owning that whole market; "behind" means it did worse.</p>
+      <p>Each fund also gets a <b>score from 0 to 100</b> that ranks it against the other ${n-1}: 50 is the middle, 60 or more is favoured, under 40 is weak. Everything is based on past prices, so it describes what has been happening, not what will happen.</p></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Economic backdrop</div><h2>Where is the economy in its cycle?</h2>
+      <p>Economies move through phases: recovery, steady growth, late expansion and recession. This is an automatic read of US market signals: the gap between long- and short-term interest rates, oil, copper against gold, how nervous investors are, and the US stock market's trend. Different sectors have tended to do best in different phases.</p></div></div>
     <div class="backdrop">
       <div class="card cycle">
-        <div><div class="eyebrow">Current read</div><div class="phase" style="color:${PHASE_COLORS[cyc.primary]}">${esc(cyc.phase)}</div></div>
-        <div class="phasebar">${Object.entries(cyc.weights).map(([k,v])=>`<i style="width:${v*100}%;background:${PHASE_COLORS[k]}" title="${esc(k)} ${Math.round(v*100)}%"></i>`).join("")}</div>
-        <div class="phaselegend">${Object.entries(cyc.weights).map(([k,v])=>`<span><i class="sw" style="background:${PHASE_COLORS[k]}"></i>${esc(k)} <b>${Math.round(v*100)}%</b></span>`).join("")}</div>
-        <ul>${cyc.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
-        <div><div class="eyebrow" style="margin-bottom:6px">Historically favoured now</div>
-          <div class="chips">${fav.map(k=>`<span class="chip">${esc(SECTORS[k].name)}</span>`).join("")}</div></div>
+        <div><div class="eyebrow">Current read</div><div class="phase" style="color:${PHASE_COLORS[cyc.primary]}">${esc(cyc.phase)}</div>
+          <div class="muted" style="font-size:14px;margin-top:4px">${esc(phaseMix(cyc).replace(/^./,c=>c.toUpperCase()))}</div></div>
+        <div class="muted" style="font-size:12.5px">How the evidence below is weighted between the four phases:</div>
+        <div class="phasebar">${Object.entries(cyc.weights).map(([k,v])=>`<i style="width:${v*100}%;background:${PHASE_COLORS[k]}" title="${esc(k)}: ${Math.round(v*100)}% of the weighted evidence"></i>`).join("")}</div>
+        <div class="phaselegend">${Object.entries(cyc.weights).map(([k,v])=>`<span><i class="sw" style="background:${PHASE_COLORS[k]}"></i>${esc(k.replace(" cycle",""))} (${esc(PHASE_PLAIN[k])}) <b>${Math.round(v*100)}%</b></span>`).join("")}</div>
+        <ul>${cyc.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+        <div><div class="eyebrow" style="margin-bottom:6px">Sectors that have usually done well in this phase</div>
+          <div class="chips">${fav.map(k=>`<span class="chip" title="${esc(SECTORS[k].what)}">${esc(SECTORS[k].name)}</span>`).join("")}</div></div>
       </div>
       <div class="macro">${macroTiles()}</div>
     </div>
@@ -176,64 +204,68 @@ function render(){
 
   <section>
     <div class="sec-head"><div class="grow"><div class="eyebrow">Shortlist</div><h2>What the data favours today</h2>
-      <p>Pulled from all ${D.rows.length} funds. Scores rank each fund against every other on momentum, trend, relative strength and risk (0 = weakest, 100 = strongest). Read the <a href="#limits">limitations</a> before acting on it.</p>
-      ${btSummaryLine(D.backtest,"sectors")}</div></div>
+      <p>Picked from all ${n} funds using the 0–100 score, which combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop. Read the <a href="#limits">limitations</a> before acting on it.</p>
+      ${btSummaryLine(D.backtest,{noun:"funds",vs:"the whole stock market of their own region"})}</div></div>
     <div class="ideas">${ideas()}</div>
   </section>
 
   <section class="two">
     <div class="card panel rrgbox">
-      <div class="sec-head"><div class="grow"><div class="eyebrow">Rotation map</div><h3>Who is gaining leadership?</h3>
-        <p style="font-size:13px">Right = beating the market. Up = that lead is growing. Sectors usually rotate clockwise: Improving → Leading → Weakening → Lagging. Tails show the last 6 weeks.</p></div>
+      <div class="sec-head"><div class="grow"><div class="eyebrow">Rotation map</div><h3>Who is gaining on the market?</h3>
+        <p style="font-size:13px" id="rrgcap"></p></div>
         <select id="rrgsel" class="btn" aria-label="Region for rotation map">${D.groups.map(g=>`<option value="${g.id}" ${S.rrg===g.id?"selected":""}>${esc(g.name)}</option>`).join("")}</select></div>
       <div id="rrg"></div>
     </div>
     <div class="card panel">
-      <div class="sec-head"><div class="grow"><div class="eyebrow">Across regions</div><h3>Same sector, different market</h3>
-        <p style="font-size:13px">Average score of each sector in each region. Use it to pick where to own a sector, not just which one. Click a cell to open it.</p></div></div>
+      <div class="sec-head"><div class="grow"><div class="eyebrow">Across regions</div><h3>Same sector, different region</h3>
+        <p style="font-size:13px">Average score (0–100) of each sector's funds in each region: green = strong, red = weak. Each fund is judged against its own region's whole stock market, so this shows where a sector is strong within its region; it doesn't directly compare one region's returns with another's. Click a cell to open its best fund.</p></div></div>
       <div style="overflow-x:auto">${matrix()}</div>
     </div>
   </section>
 
   <section id="ranking">
     <div class="sec-head"><div class="grow"><div class="eyebrow">Full ranking</div><h2>Every sector, scored</h2>
-      <p>Click any row for the full breakdown, chart and reasoning. Click a column header to sort. Returns are total return in local currency.</p></div>
+      <p>Click any row for the full breakdown, chart and reasoning. Click a column header to sort. Returns include dividends and are in each fund's own currency (dollars for US funds, euros for European, yen for Japanese, Canadian dollars for Canadian).</p></div>
       <div class="controls">
         <div class="tabs" role="group" aria-label="Region">${[["all","All"],...D.groups.map(g=>[g.id,groupShort(g.id)])].map(([id,l])=>
           `<button class="tab" type="button" data-region="${id}" aria-pressed="${S.region===id}">${esc(l==="Theme"?"Themes":l==="Country"?"Countries":l)}</button>`).join("")}</div>
-        <input class="search" id="search" type="search" placeholder="Search sector, ticker or holding (e.g. Nvidia)" value="${esc(S.q)}" aria-label="Search">
+        <input class="search" id="search" type="search" placeholder="Search sector, ticker or company (e.g. Nvidia)" value="${esc(S.q)}" aria-label="Search">
       </div></div>
     <div class="tablebox" id="tablebox"></div>
-    <div class="legend-row">
-      <span><b>Δ 1W</b> change in score over the past week</span>
-      <span><b>Trend</b> 4 bars: above 50-day avg · above 200-day avg · 50-day above 200-day · 200-day rising</span>
-      <span><b>vs Mkt 6M</b> 6-month return minus its local benchmark</span>
-      <span><b>Rotation</b> <span class="q q-Leading">Leading</span> · <span class="q q-Weakening">Weakening</span> · <span class="q q-Lagging">Lagging</span> · <span class="q q-Improving">Improving</span></span>
-      <span><b class="fit">✓</b> suits the current cycle phase</span>
+    <div class="glossary">
+      <div><b>Score (0–100)</b> ranks each fund against all ${n}. 50 = middle; 60+ = favoured (Overweight: hold more than usual); under 40 = weak (Underweight or Avoid).</div>
+      <div><b>vs whole mkt, 6 mo</b> how far ahead (+) or behind (−) the whole stock market of its own region over 6 months: ${esc(vsListText())}.</div>
+      <div><b>Score chg (wk)</b> how much the score moved this week.</div>
+      <div><b>Trend</b> 4 uptrend checks: price above its 50-day average · above its 200-day average · 50-day above 200-day · 200-day rising. 4 bars = clear uptrend.</div>
+      <div><b>Heat (RSI)</b> compares the size of recent gains with recent losses (last 14 trading days). 70 or more (amber) = sharp run-up, which can pause; 30 or under (blue) = sharp fall, which can bounce.</div>
+      <div><b>Swings</b> volatility: how bumpy the price has been over the last 3 months, scaled to a year. Higher = bigger ups and downs.</div>
+      <div><b>P/E</b> what buyers pay for each $1 of yearly profits. Amber = over 25% pricier than its region's market; blue = over 20% cheaper.</div>
+      <div><b>Rotation</b> vs its region's whole market over roughly the last two months (so it can differ from the 6-month and 1-year figures): <span class="q q-Leading">Leading</span> = ahead and pulling away · <span class="q q-Weakening">Weakening</span> = ahead but its edge is fading · <span class="q q-Lagging">Lagging</span> = behind and slipping · <span class="q q-Improving">Improving</span> = behind but improving.</div>
+      <div><b class="fit">✓</b> this sector has usually done well in the economy's current phase (see the top of the page).</div>
     </div>
   </section>
 
-  ${backtestSection(D.backtest,{noun:"sectors",benchWord:"their own market"})}
+  ${backtestSection(D.backtest,{noun:"funds",one:"fund",vs:"the whole stock market of their own region",vsShort:"their region's whole market",vsList:vsListText()})}
 
   <section>
     <div class="sec-head"><div class="grow"><div class="eyebrow">Method</div><h2>How to use this</h2></div></div>
     <div class="method">
-      <div class="card"><h3>The score</h3><p>Every fund is ranked against all others on six measures, then blended:</p>
-        <ul>${Object.entries(D.weights).map(([k,w])=>`<li>${esc(partName(k))}: ${Math.round(w*100)}%</li>`).join("")}</ul>
-        <p>Measuring against each region's own benchmark keeps currency and market moves out of the comparison.</p></div>
+      <div class="card"><h3>The score</h3><p>Each fund gets a 0–100 rank on six measures (100 = best of all ${n} funds), and the ranks are combined with these weights:</p>
+        <ul>${Object.entries(D.weights).map(([k,w])=>`<li title="${esc(partTip(k,"its region's whole market"))}">${esc(partName(k,"its region's whole market"))}: ${Math.round(w*100)}%</li>`).join("")}</ul>
+        <p>What each fund is compared with: ${esc(vsListText())}. That way a sector doesn't look good just because its whole market went up.</p></div>
       <div class="card"><h3>Reading the signals</h3><ul>
-        <li><b>Strong overweight / Overweight</b> (60+): momentum and trend are on its side.</li>
-        <li><b>Neutral</b> (40–60): no clear edge.</li>
-        <li><b>Underweight / Avoid</b> (&lt;40): lagging with a weak trend.</li>
-        <li><b>Δ 1W</b> shows whether a rating is improving or fading. A rising score often leads a signal change.</li>
-        <li><b>Improving</b> on the rotation map flags early turnarounds before the score catches up.</li>
-        <li><b>Overbought</b> flags suggest waiting for a dip, even for strong sectors.</li></ul></div>
+        <li><b>Strong overweight</b> (80+) / <b>Overweight</b> (60–79): usually doing better than its region's whole market with a healthy trend; a case for holding more of it than its usual share.</li>
+        <li><b>Neutral</b> (40–59): no clear lean either way; a normal amount.</li>
+        <li><b>Underweight</b> (20–39) / <b>Avoid</b> (under 20): usually behind its region's whole market with a weak trend; a case for holding less, or none.</li>
+        <li><b>Score chg (wk)</b> shows whether a score is rising or fading. A rising score often comes before a better signal.</li>
+        <li><b>Improving</b> on the rotation map flags funds catching up before the score does.</li>
+        <li><b>Rose fast</b> flags suggest waiting for a dip, even for strong sectors.</li></ul></div>
       <div class="card"><h3>What updates, and when</h3>
-        <p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): returns, trend, RSI, volatility, every score and signal, score changes and history, flags, the rotation map, the cycle read, the shortlists and every written verdict. Scores use the latest trade price. Open pages pick up new data by themselves.</p>
-        <p><b>Once a month:</b> the backtest gains a new month when one completes.</p>
-        <p><b>Once a day:</b> top-10 holdings, net assets, P/E, yield, beta and fees.</p>
-        <p><b>Fixed:</b> the sector descriptions and the cycle-to-sector mapping.</p>
-        <p class="muted" style="font-size:12.5px">${D.rows.length} funds · built in ${D.buildSeconds}s${D.errors.length?` · unavailable: ${esc(D.errors.join(", "))}`:""}</p></div>
+        <p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): returns, trend, heat, swings, every score and signal, score changes and history, flags, the rotation map, the economic read, the shortlists and every written verdict. Scores use the latest trade price. Open pages pick up new data by themselves.</p>
+        <p><b>Once a month:</b> the track record test adds the month just finished.</p>
+        <p><b>Once a day:</b> top-10 holdings, fund size, P/E, dividend yield, beta and fees.</p>
+        <p><b>Fixed:</b> the sector descriptions and which sectors suit which economic phase.</p>
+        <p class="muted" style="font-size:12.5px">${n} funds${D.errors.length?` · unavailable: ${esc(D.errors.join(", "))}`:""}</p></div>
     </div>
   </section>
 
@@ -242,30 +274,30 @@ function render(){
       <p>This is a screening tool that summarises price behaviour. It is not a forecast, and it should be one input among several.</p></div></div>
     <div class="method">
       <div class="card"><h3>The data</h3><ul>
-        <li>Prices come from Yahoo Finance's free, unofficial feed. Exchange data can be ~15 minutes delayed, and the feed can have gaps, errors or stop working without notice.</li>
-        <li>Yahoo's history occasionally contains bad prints (for example, TOPIX at a tenth of its value for two days in March 2026). Short glitches that snap back are filtered out; longer ones could still slip through.</li>
+        <li>Prices come from Yahoo Finance's free, unofficial feed. They can be about 15 minutes late, and the feed can have gaps, errors or stop working without notice.</li>
+        <li>Yahoo's history occasionally contains wrong prices (for example, TOPIX at a tenth of its value for two days in March 2026). Short glitches that snap back are filtered out; longer ones could still slip through.</li>
         <li>The website depends on GitHub's scheduler, which can run late. The status line at the top turns amber ("Delayed") if data is more than an hour old.</li>
-        <li>Each region only moves while its market is open, so Japan, Europe and North America update at different times of day.</li>
-        <li>Fund facts (P/E, yield, beta, fees, net assets) are Yahoo's figures and can lag or differ from the fund provider's own. Yahoo has no expense ratio for the Japanese TOPIX-17 funds.</li>
-        <li>Holdings are as of the provider's last disclosure, which can be weeks old.</li></ul></div>
+        <li>Each region only moves while its stock exchange is open, so Japan, Europe and North America update at different times of day.</li>
+        <li>Fund facts (P/E, dividend yield, beta, fees, fund size) are Yahoo's figures and can lag or differ from the fund provider's own. Yahoo has no fee figure for the Japanese TOPIX-17 funds.</li>
+        <li>Holdings are as of the provider's last update, which can be weeks old.</li></ul></div>
       <div class="card"><h3>The analysis</h3><ul>
-        <li>Scores are built only from past prices. They don't see earnings, valuations, news, policy or events that haven't hit prices yet.</li>
-        <li>Momentum tends to persist over 3–12 months on average, but it reverses sharply at turning points, which is exactly when it hurts most.</li>
-        <li>${D.backtest?`The backtest found ${esc(btStrength(D.backtest).word)} for this score, and it covers funds chosen with hindsight.`:"The score has not been backtested yet."} See <a href="#track">the track record</a>.</li>
-        <li>Scores are ranks against the other funds here, so a fund's score can change because other funds moved.</li>
-        <li>The cycle read uses a handful of US-centred indicators and simple rules. Which sectors "suit" each phase is a historical tendency, not a rule.</li>
-        <li>The rotation map is an approximation of the Relative Rotation Graph method, not the licensed original.</li></ul></div>
+        <li>Scores are built only from past prices. They don't see profits, valuations, news, policy or events that haven't moved prices yet.</li>
+        <li>Funds that have been beating the market tend to keep doing so for 3–12 months on average ("momentum"), but this reverses sharply at turning points, which is exactly when it hurts most.</li>
+        <li>${!D.backtest?"The score has not been tested on past data yet.":btStrength(D.backtest).cls==="good"?"Tested on past data, high-scoring funds went on to do clearly better than low-scoring ones, but not in every month.":btStrength(D.backtest).cls==="weak"?"Tested on past data, high-scoring funds did better than low-scoring ones on average, but the results swung so much from month to month that this could still be luck.":"Tested on past data, high-scoring funds did not reliably do better than low-scoring ones."} The test also only includes funds picked in 2026, with hindsight. See <a href="#track">the track record</a>.</li>
+        <li>Scores rank funds against each other, so a fund's score can change because other funds moved.</li>
+        <li>The economic read uses a handful of US market signals and simple rules, and applies them to every region. Which sectors "suit" each phase is a historical tendency, not a rule.</li>
+        <li>The rotation map is a simplified version of a method called Relative Rotation Graphs, not the licensed original.</li></ul></div>
       <div class="card"><h3>Investing with it</h3><ul>
-        <li>Returns are in each fund's local currency and include dividends. They exclude trading costs, spreads, taxes and currency moves for your home currency.</li>
-        <li>Some funds (European UCITS, Japanese and Canadian listings) may not be available to you, may be taxed differently, or trade thinly with wide spreads.</li>
-        <li>Net assets are converted to US dollars at today's exchange rate.</li>
+        <li>Returns include dividends and are in each fund's own currency. They leave out trading costs, the gap between buying and selling prices, taxes, and currency moves for your home currency.</li>
+        <li>Some funds (European, Japanese and Canadian listings) may not be available to you, may be taxed differently, or may have few buyers and sellers, so prices can jump.</li>
+        <li>Fund sizes are converted to US dollars at today's exchange rate.</li>
         <li>The fund list is hand-picked and doesn't cover every sector, market or share class.</li>
         <li>Past performance does not guarantee future returns.</li></ul></div>
     </div>
     <p class="disclaimer">For research and education only. This is not personalised investment advice. Check a fund's costs, holdings, risks and suitability for you before investing, and consider speaking to a licensed adviser.</p>
   </section>`;
 
-  renderTable(); renderRRG(); drawBacktest(D.backtest);
+  renderTable(); renderRRG(); drawBacktest(D.backtest,{baselineLabel:"Market = $100"});
   app.querySelectorAll("[data-region]").forEach(b=>b.onclick=()=>{S.region=b.dataset.region;store.set("region",S.region);
     app.querySelectorAll("[data-region]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.region===S.region));renderTable();});
   $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
@@ -275,24 +307,29 @@ function render(){
 
 function macroTiles(){
   const M=S.data.macro, order=["^VIX","^TNX","CURVE","DX-Y.NYB","CL=F","GC=F","HG=F","BTC-USD"];
+  const DOLLAR=new Set(["CL=F","GC=F","HG=F","BTC-USD"]);
+  const before=(m,dp,u="")=>`prev close ${(m.price/(1+m.r1d)).toFixed(dp)}${u} · 3 mo ago ${(m.price/(1+m.r3m)).toFixed(dp)}${u}`;
   return order.map(sym=>{
     if(sym==="CURVE"){ const a=M["^TNX"], b=M["^IRX"]; if(!a||!b) return "";
-      const v=a.price-b.price; return `<div class="tile"><span class="lab">Yield curve</span><span class="val ${v<0?"neg":""}">${v>0?"+":""}${v.toFixed(2)}<small style="font-size:12px"> pts</small></span>
-        <span class="chg"><span class="muted">3M bill ${b.price.toFixed(2)}%</span></span><span class="hint">${MACRO_HINT.CURVE}</span></div>`; }
+      const v=a.price-b.price; return `<div class="tile"><span class="lab">Yield curve (long minus short rates)</span><span class="val ${v<0?"neg":""}">${v>0?"+":""}${v.toFixed(2)}%</span>
+        <span class="chg"><span class="muted">10-yr ${a.price.toFixed(2)}% vs 3-mo ${b.price.toFixed(2)}%</span></span><span class="hint">${MACRO_HINT.CURVE}</span></div>`; }
     const m=M[sym]; if(!m) return "";
-    const isY = sym==="^TNX", val = isY? m.price.toFixed(2)+"%" : money(m.price);
+    const val = sym==="^TNX"? m.price.toFixed(2)+"%" : (DOLLAR.has(sym)?"$":"")+money(m.price);
+    const chg = sym==="^TNX"? `<span class="muted">${before(m,2,"%")}</span>`
+              : sym==="^VIX"? `<span class="muted">${before(m,1)}</span>`
+              : `<span class="${cls(m.r1d)}">Today ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3 mo ${pct(m.r3m)}</span>`;
     const up = sym==="^VIX"||sym==="^TNX" ? "var(--warn)" : null;
     return `<div class="tile"><span class="lab">${esc(m.label)}</span><span class="val">${val}</span>
-      <span class="chg"><span class="${cls(m.r1d)}">1D ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3M ${pct(m.r3m)}</span></span>
-      ${sparkSVG(m.spark,{w:200,h:30,color:up})}<span class="hint">${esc(MACRO_HINT[sym]||"")}</span></div>`;
+      <span class="chg">${chg}</span>
+      ${sparkSVG(m.spark,{w:200,h:30,color:up})}<span class="hint">${esc(MACRO_HINT[sym]||"")} Chart: last 6 months.</span></div>`;
   }).join("");
 }
 
 function ideaRow(r){
   return `<div class="idea" data-open="${esc(r.symbol)}" role="button" tabindex="0">
     <span class="nm">${esc(r.name)} <span class="muted" style="font-weight:400;font-size:13px">${esc(groupShort(r.group))} · ${esc(r.symbol)}</span></span>
-    <span class="sc"><span class="pill ${sigClass(r.m.signal)}">${Math.round(r.m.score)}</span></span>
-    <span class="sub">${esc(reasonShort(r))} · 1Y ${pct(r.m.r1y,0)}</span></div>`;
+    <span class="sc">${sigPill(r.m.signal,Math.round(r.m.score))}</span>
+    <span class="sub">${esc(reasonShort(r))} · ${esc(upDown(r.m.r1y,0))} in a year</span></div>`;
 }
 function ideas(){
   const rows=S.data.rows.filter(r=>r.m.score!=null);
@@ -302,40 +339,42 @@ function ideas(){
     .sort((a,b)=>b.mom-a.mom).slice(0,6).map(x=>x.r);
   const avoid = rows.slice().sort((a,b)=>a.m.score-b.m.score).slice(0,6);
   const col=(title,color,desc,list)=>`<div class="card idea-col"><h3><i class="sw" style="background:${color}"></i>${title}</h3><p>${desc}</p>${list.map(ideaRow).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div>`;
-  return col("Leaders to own","var(--pos)","Highest scores: strong trend and outperformance.",lead)+
-         col("Turnaround watch","var(--info)","Lagging but relative momentum has turned up. Wait for trend confirmation.",turn)+
-         col("Weakest: avoid for now","var(--neg)","Lowest scores: persistent underperformance and weak trend.",avoid);
+  return col("Leaders","var(--pos)","Highest scores: prices rising and doing better than the whole stock market of their region.",lead)+
+         col("Turnaround watch","var(--info)","Behind their region's whole market lately, but improving. Wait until the price trend turns up too.",turn)+
+         col("Weakest: avoid for now","var(--neg)","Lowest scores: they rank poorly on performance against their region's whole market, trend and risk.",avoid);
 }
 
 function renderTable(){
-  const rows=sorted(filtered()), fav=S.data.cycle.favoured;
+  const rows=sorted(filtered()), fav=S.data.cycle.favoured, n=S.data.rows.length;
+  const vsHead = S.region==="all"? "vs whole mkt, 6 mo" : `vs ${benchShort(S.region)}, 6 mo`;
   const th=(k,l,c="",title="")=>`<th class="${c}" data-k="${k}" ${S.sort.k===k?`data-dir="${S.sort.dir>0?"▲":"▼"}"`:""} title="${esc(title)}">${l}</th>`;
   $("#tablebox").innerHTML = rows.length? `<table><thead><tr>
-    <th class="l" style="cursor:default">#</th>${th("name","Sector","l sticky")}${th("score","Score &amp; signal","l","Composite 0–100")}${th("d1w","Δ 1W","","Change in score over the past week")}
-    ${COLS.map(c=>th(c.k,c.l,"",c.k==="rs6m"?"6M return minus local benchmark":"")).join("")}
-    ${th("trend","Trend","","Trend checks passed, out of 4")}${th("rsi","RSI","","14-day RSI: >70 overbought, <30 oversold")}
-    ${th("vol","Vol","","Annualised volatility, last 3 months")}${th("offHigh","From high","","Distance from 52-week high")}
-    ${th("aum","Net assets","","Fund size, converted to US dollars")}${th("pe","P/E","","Trailing price/earnings of the holdings. Lower = cheaper")}
-    ${th("yld","Yield","","Dividend yield over the last 12 months")}${th("beta","Beta","","Beta (5Y monthly): 1 = moves with the market, above 1 = swings more")}
-    ${th("fee","Fee","","Annual expense ratio")}
-    ${th("quad","Rotation","l")}${th("top10","Top holdings","l","Largest three holdings; % = weight of the top 10 combined")}<th class="l" style="cursor:default">Flags</th><th style="cursor:default" title="Favoured in the current cycle phase">Cycle</th><th style="cursor:default">1Y</th>
-  </tr></thead><tbody>${rows.map((r,i)=>{const m=r.m; return `<tr data-open="${esc(r.symbol)}">
+    <th class="l" style="cursor:default">#</th>${th("name","Sector","l sticky")}${th("score","Score (0–100)","l",`Ranks each fund against all ${n}: 50 = middle, 60+ favoured, under 40 weak. Signals: 80+ Strong overweight · 60–79 Overweight · 40–59 Neutral · 20–39 Underweight · under 20 Avoid.`)}${th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week")}
+    ${COLS.map(c=>th(c.k,c.l,"",c.tip)).join("")}${th("rs6m",vsHead,"","How far ahead (+) or behind (−) the whole stock market of its own region over 6 months")}
+    ${th("trend","Trend","","Uptrend checks passed, out of 4")}${th("rsi","Heat (RSI)","","Compares the size of recent gains with recent losses (14 trading days), 0–100: 70 or more = sharp run-up, 30 or under = sharp fall")}
+    ${th("vol","Swings","","How bumpy the price has been over the last 3 months, as a yearly rate (volatility)")}${th("offHigh","From 1-yr high","","How far below its highest price of the past year (0% = at the high)")}
+    ${th("aum","Fund size","","Money invested in the fund, in US dollars")}${th("pe","P/E","","Price vs profits: what buyers pay for each $1 of the companies' profits over the last 12 months. Lower = cheaper")}
+    ${th("yld","Dividend","","Dividends paid over the last 12 months, as a % of today's price")}${th("beta","Beta","","Yahoo's beta: how much it has tended to move when its reference market moves. 1 = in step, above 1 = bigger moves")}
+    ${th("fee","Fee/yr","","Yearly fund fee: 0.08% = $8 a year per $10,000 invested")}
+    ${th("quad","Rotation","l","Over roughly the last two months vs its region's whole market: Leading = ahead and pulling away · Weakening = ahead but its edge is fading · Lagging = behind and slipping · Improving = behind but improving")}${th("top10","Top holdings","l","Its three biggest companies; the % is how much of the fund sits in its 10 biggest")}<th class="l" style="cursor:default" title="Warnings: hover a flag for what it means">Flags</th><th style="cursor:default" title="This sector has usually done well in the economy's current phase">Cycle</th><th style="cursor:default" title="Price over the last 12 months">Past year</th>
+  </tr></thead><tbody>${rows.map((r,i)=>{const m=r.m, bs=benchShort(r.group), bp=benchPlain(r.group); return `<tr data-open="${esc(r.symbol)}">
     <td class="rank l">${i+1}</td>
-    <td class="l sticky"><div class="nmcell"><b>${esc(r.name)}</b><small>${esc(r.symbol)} · ${esc(groupShort(r.group))}</small></div></td>
+    <td class="l sticky"><div class="nmcell"><b>${esc(r.name)}</b><small>${esc(r.symbol)} · ${esc(groupShort(r.group))} · vs ${esc(bs)}</small></div></td>
     <td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${m.score==null?"–":Math.round(m.score)}</span>
-      <span class="bar"><i style="width:${m.score||0}%;background:${scoreColor(m.score)}"></i></span><span class="pill ${sigClass(m.signal)}">${esc(m.signal||"–")}</span></div></td>
-    <td>${delta(m.d1w,`Today ${m.d1??"–"} · 1 month ${m.d1m??"–"}`)}</td>
+      <span class="bar"><i style="width:${m.score||0}%;background:${scoreColor(m.score)}"></i></span>${sigPill(m.signal)}</div></td>
+    <td>${delta(m.d1w,scoreChangeTip(m))}</td>
     ${COLS.map(c=>`<td class="n" style="${heat(m[c.k],c.cap)}">${pct(m[c.k])}</td>`).join("")}
+    <td class="n" style="${heat(m.rs6m,.2)}" title="${esc(`${aheadBehind(m.rs6m)} ${relPrep(m.rs6m)}${bp} over 6 months`)}">${pct(m.rs6m)}</td>
     <td>${trendBars(m.trend)}</td>
     <td class="n" style="${m.rsi>=70?"color:var(--warn)":m.rsi<=30?"color:var(--info)":""}">${m.rsi==null?"–":m.rsi.toFixed(0)}</td>
     <td class="n">${pct(m.vol,0,false)}</td><td class="n">${pct(m.offHigh,1)}</td>
     <td class="n">${bigMoney(m.aum,"USD")}</td>
-    <td class="n" title="${m.peRel==null?"":esc(pct(m.peRel,0)+" vs its market")}" style="${m.peRel==null?"":m.peRel>0.25?"color:var(--warn)":m.peRel<-0.2?"color:var(--info)":""}">${m.pe==null?"–":m.pe.toFixed(1)}</td>
+    <td class="n" title="${m.peRel==null?"":esc(`${pct(Math.abs(m.peRel),0,false)} ${m.peRel>0?"pricier":"cheaper"} than ${bp}`)}" style="${m.peRel==null?"":m.peRel>0.25?"color:var(--warn)":m.peRel<-0.2?"color:var(--info)":""}">${m.pe==null?"–":m.pe.toFixed(1)}</td>
     <td class="n">${pct(m.yld,1,false)}</td><td class="n">${m.beta==null?"–":m.beta.toFixed(2)}</td><td class="n">${pct(m.fee,2,false)}</td>
-    <td class="l"><span class="q q-${m.quad}">${esc(m.quad||"–")}</span></td>
+    <td class="l"><span class="q q-${m.quad}" title="${esc(m.quad?`${QUAD_PLAIN[m.quad]} vs ${bp}`:"")}">${esc(m.quad||"–")}</span></td>
     <td class="l">${topCell(r)}</td>
     <td class="l">${flagsHTML(m)}</td>
-    <td>${r.key!=="country"&&fav.includes(r.key)?'<span class="fit" title="Favoured in the current cycle phase">✓</span>':""}</td>
+    <td>${r.key!=="country"&&fav.includes(r.key)?'<span class="fit" title="This sector has usually done well in the economy\'s current phase">✓</span>':""}</td>
     <td>${sparkSVG(m.series.c.filter((_,j)=>j%3===0||j===m.series.c.length-1))}</td></tr>`;}).join("")}</tbody></table>`
     : `<p class="loading">No sectors match “${esc(S.q)}”.</p>`;
   $("#tablebox").querySelectorAll("th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;
@@ -348,63 +387,76 @@ function topCell(r){
   const hit=holdingMatch(r);
   if(hit) return `<span class="tops"><mark>${esc(hit.name)} ${pct(hit.pct,1,false)}</mark></span>`;
   const short=s=>s.replace(/ (Inc|Corp|Corporation|Co|Ltd|Plc|PLC|AG|SA|SE|NV|ASA|Holdings?|Group|Class [A-C]|Company|Incorporated)\.?$/i,"").replace(/ (Inc|Corp|Co|Ltd|Plc)\.?$/i,"");
-  return `<span class="tops" title="${esc(h.map(x=>x.name+" "+pct(x.pct,1,false)).join("\n"))}">${esc(h.slice(0,3).map(x=>short(x.name)).join(", "))}<small>${pct(r.m.top10,0,false)} in top 10</small></span>`;
+  return `<span class="tops" title="${esc(h.map(x=>x.name+" "+pct(x.pct,1,false)).join("\n"))}">${esc(h.slice(0,3).map(x=>short(x.name)).join(", "))}<small>top 10 = ${pct(r.m.top10,0,false)} of fund</small></span>`;
 }
 function renderRRG(){
+  const bp=benchPlain(S.rrg), bs=benchShort(S.rrg);
+  $("#rrgcap").textContent=`Compared with ${bp}, over roughly the last two months. Right of centre = doing better than it lately; left = doing worse. Above centre = gaining ground; below = losing ground. Funds tend to circle clockwise: Improving → Leading → Weakening → Lagging. The big dot is today; the tail shows the last 6 weeks.`;
   rrgChart($("#rrg"), S.data.rows.filter(r=>r.group===S.rrg&&r.m.rrg&&r.m.rrg.length)
-    .map(r=>({key:r.symbol,label:r.name,rrg:r.m.rrg,quad:r.m.quad})), openDetail);
+    .map(r=>({key:r.symbol,label:r.name,rrg:r.m.rrg,quad:r.m.quad})), openDetail, {vs:bs==="world stocks"?"world stocks":"the "+bs});
 }
 
 function matrix(){
   const regs=["us","global","europe","japan","canada","themes"], keys=Object.keys(SECTORS).filter(k=>k!=="country");
   const fav=S.data.cycle.favoured;
   const cell=(k,g)=>{ const rs=S.data.rows.filter(r=>r.key===k&&r.group===g&&r.m.score!=null);
-    if(!rs.length) return `<td class="cell empty">·</td>`;
+    if(!rs.length) return `<td class="cell empty" title="No fund for this sector here">·</td>`;
     const avg=rs.reduce((a,r)=>a+r.m.score,0)/rs.length, best=rs.slice().sort((a,b)=>b.m.score-a.m.score)[0];
     const t=(avg-50)/50, bg=`color-mix(in oklab,var(${t>0?"--pos":"--neg"}) ${Math.round(Math.abs(t)*55)}%,transparent)`;
     return `<td class="cell" style="background:${bg}" data-open="${esc(best.symbol)}" title="${esc(rs.map(r=>r.name+" "+Math.round(r.m.score)).join(", "))}">${Math.round(avg)}</td>`; };
-  return `<table class="matrix"><thead><tr><th class="l"></th>${regs.map(g=>`<th>${esc(groupShort(g))}</th>`).join("")}</tr></thead>
-    <tbody>${keys.map(k=>`<tr><td class="l">${esc(SECTORS[k].name)}${fav.includes(k)?' <span class="fit" title="Favoured in the current cycle phase">✓</span>':""}</td>${regs.map(g=>cell(k,g)).join("")}</tr>`).join("")}</tbody></table>`;
+  return `<table class="matrix"><thead><tr><th class="l"></th>${regs.map(g=>`<th title="${esc("Compared with "+benchPlain(g))}">${esc(g==="themes"?"Themes (US-listed)":groupShort(g))}</th>`).join("")}</tr></thead>
+    <tbody>${keys.map(k=>`<tr><td class="l" title="${esc(SECTORS[k].what)}">${esc(SECTORS[k].name)}${fav.includes(k)?' <span class="fit" title="Has usually done well in the economy\'s current phase">✓</span>':""}</td>${regs.map(g=>cell(k,g)).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
 /* ---------------------------------------------------------------- detail drawer */
+function band(v,cuts,words){ for(let i=0;i<cuts.length;i++) if(v>=cuts[i]) return words[i]; return words[words.length-1]; }
 function openDetail(sym){
   const r=S.data.rows.find(x=>x.symbol===sym); if(!r) return; S.sel=sym;
-  const m=r.m, sec=SECTORS[r.key]||SECTORS.country, b=S.data.benches[r.group];
+  const m=r.m, sec=SECTORS[r.key]||SECTORS.country, b=S.data.benches[r.group]||{}, bp=benchPlain(r.group), bs=benchShort(r.group), n=S.data.rows.length;
   const peers=S.data.rows.filter(x=>x.key===r.key&&x.symbol!==sym&&r.key!=="country").sort((a,b)=>b.m.score-a.m.score).slice(0,8);
   const rangeBtn=(k,l)=>`<button type="button" data-range="${k}" aria-pressed="${S.range===k}">${l}</button>`;
+  const tile=(l,v,c,tip="")=>`<div title="${esc(tip)}"><span>${l}</span><b class="${c==null?"":cls(c)}">${v}</b></div>`;
+  const br=m.r1y!=null&&m.rs1y!=null?m.r1y-m.rs1y:null, bv=(b.m||{}).vol;
   const d=Drawer.open(r.name,`
     <div class="hd"><div><div class="eyebrow">${esc(groupName(r.group))} · ${esc(r.symbol)} · ${esc(sec.name)}</div><h2>${esc(r.name)}</h2>
       <div class="muted" style="font-size:13px">${esc(r.fund)}</div>
       <div style="margin-top:6px"><span class="num" style="font-size:18px">${money(m.price,r.ccy)}</span>
-      <span class="num ${cls(m.r1d)}" style="margin-left:8px">${pct(m.r1d,2)} today</span></div></div>
+      <span class="num ${cls(m.r1d)}" style="margin-left:8px">${pct(m.r1d,2)} today</span></div>
+      <p class="note">Throughout this panel, ${esc(r.name)} is compared with <b>${esc(bp)}</b>, not with other ${esc(sec.name.toLowerCase())} funds.</p></div>
       <button class="btn close" type="button" id="closeD" aria-label="Close">Close ✕</button></div>
     <div class="dgrid">
-      <div class="card verdict"><div class="bigscore" style="color:${scoreColor(m.score)}">${m.score==null?"–":Math.round(m.score)}<small>/100</small></div>
-        <div><span class="pill ${sigClass(m.signal)}">${esc(m.signal)}</span> <span class="q q-${m.quad}" style="margin-left:6px">${esc(m.quad||"")}</span>
+      <div class="card verdict"><div><div class="bigscore" style="color:${scoreColor(m.score)}" title="Ranks this fund against all ${n}: 50 = middle">${m.score==null?"–":Math.round(m.score)}<small>/100</small></div><div class="muted" style="font-size:12px;text-align:center">vs all ${n} funds</div></div>
+        <div>${sigPill(m.signal)} <span class="q q-${m.quad}" style="margin-left:6px" title="${esc(m.quad?`${QUAD_PLAIN[m.quad]} vs ${bp}`:"")}">${esc(m.quad||"")}</span>
           ${flagsHTML(m)}
-          <p style="margin:8px 0 0;font-size:15px">${esc(verdict(m))}</p>${automatedNote(S.data.generated)}</div></div>
-      <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">What drives the score (percentile vs all ${S.data.rows.length} funds)</div>
-        <div class="parts">${Object.entries(m.parts).map(([k,v])=>`<span>${esc(partName(k))}</span><span class="bar"><i style="width:${v??0}%;background:${scoreColor(v??50)}"></i></span><span class="num">${v??"–"}</span>`).join("")}</div></div>
-      ${scoreHistoryCard()}
+          <p style="margin:8px 0 0;font-size:15px">${esc(verdict(m,bp))}</p>${automatedNote(S.data.generated)}</div></div>
+      <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:4px">What drives the score</div>
+        <p class="note" style="margin:0 0 8px">Each bar ranks this fund against all ${n} funds on one measure: 100 = best, 50 = middle, 0 = worst.</p>
+        <div class="parts">${Object.entries(m.parts).map(([k,v])=>`<span title="${esc(partTip(k,bp))}">${esc(partName(k,bs==="world stocks"?"world stocks":"the "+bs))}</span><span class="bar"><i style="width:${v??0}%;background:${scoreColor(v??50)}"></i></span><span class="num" title="${v==null?"":esc(`Better than ${v}% of the ${n} funds on this measure. Counts for ${Math.round((S.data.weights[k]||0)*100)}% of the score.`)}">${v??"–"}</span>`).join("")}</div></div>
+      ${scoreHistoryCard("funds")}
       <div class="card chartbox"><div class="row"><span class="eyebrow">Price</span>
-        <span class="key"><i style="background:var(--ink)"></i>Price</span><span class="key"><i style="background:var(--accent)"></i>50-day</span><span class="key"><i style="background:var(--warn)"></i>200-day</span>
-        <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1Y")}${rangeBtn("5y","5Y")}${rangeBtn("10y","10Y")}</span></div>
-        <div id="pchart"></div></div>
-      ${m.relSeries?`<div class="card chartbox"><div class="row"><span class="eyebrow">Relative to ${esc(b?b.name:"market")}</span>
-        <span class="muted" style="font-size:12.5px">Rising line = beating the market. Rebased to 100 a year ago.</span></div><div id="rchart"></div></div>`:""}
-      <div class="stats">${[["1 month",pct(m.r1m),m.r1m],["3 months",pct(m.r3m),m.r3m],["Year to date",pct(m.ytd),m.ytd],["1 year",pct(m.r1y),m.r1y],
-        ["3 years (per yr)",pct(m.r3y),m.r3y],["5 years (per yr)",pct(m.r5y),m.r5y],["vs market 1Y",pts(m.rs1y),m.rs1y],["vs 200-day avg",pct(m.vs200),m.vs200],
-        ["RSI (14d)",m.rsi==null?"–":m.rsi.toFixed(0),null],["Volatility (3M)",pct(m.vol,0,false),null],["Sharpe (1Y)",m.sharpe==null?"–":m.sharpe.toFixed(2),m.sharpe],["Max drawdown 1Y",pct(m.mdd),m.mdd]]
-        .map(([l,v,c])=>`<div><span>${l}</span><b class="${c==null?"":cls(c)}">${v}</b></div>`).join("")}</div>
-      ${factsCard(r.facts||{},{ccy:r.ccy,bf:(b||{}).facts||{},bn:b?b.name:"its market",note:"From Yahoo Finance, checked daily. Fund size is converted to US dollars at today's exchange rate."})}
+        <span class="key"><i style="background:var(--ink)"></i>Price</span><span class="key ma"><i style="background:var(--accent)"></i>50-day average</span><span class="key ma"><i style="background:var(--warn)"></i>200-day average</span>
+        <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("10y","10 yrs")}</span></div>
+        <div id="pchart"></div><p class="note">The averages smooth out day-to-day noise (50 days ≈ 2½ months, 200 days ≈ 10 months). A price above a rising 200-day average is the classic sign of an uptrend.</p></div>
+      ${m.relSeries?`<div class="card chartbox"><div class="row"><span class="eyebrow">Compared with ${esc(bp)}</span></div><div id="rchart"></div>
+        <p class="note">Starts at 0% a year ago. Above 0% = ahead of the ${esc(bs)} since then (+4% = money here grew to 4% more than the same money in the ${esc(bs)}). A rising line = gaining ground on it; a falling line = losing ground.</p></div>`:""}
+      <div class="stats">${[
+        tile("1 month",pct(m.r1m),m.r1m),tile("3 months",pct(m.r3m),m.r3m),tile("Since Jan 1",pct(m.ytd),m.ytd),tile("1 year",pct(m.r1y),m.r1y),
+        tile("3 yrs, yearly avg",pct(m.r3y),m.r3y,"Average growth per year over the last 3 years, including dividends"),
+        tile("5 yrs, yearly avg",pct(m.r5y),m.r5y,"Average growth per year over the last 5 years, including dividends"),
+        tile(`vs ${esc(bs)}, 1 yr`,aheadBehind(m.rs1y),m.rs1y,br==null?"":`Past year: ${r.name} ${pct(m.r1y,1)}, ${bp} ${pct(br,1)}`),
+        tile("vs 200-day avg price",pct(m.vs200),m.vs200,"Today's price compared with its average over the last 200 trading days (about 10 months). Above 0 = above its long-term trend line."),
+        tile("Heat (RSI)",m.rsi==null?"–":`${m.rsi.toFixed(0)} · ${band(m.rsi,[70,30.5],["hot","normal","cold"])}`,null,"RSI compares the size of recent gains with recent losses over the last 14 trading days (about 3 weeks). 70 or more = a sharp run-up, which can pause; 30 or under = a sharp fall, which can bounce."),
+        tile("Swings (volatility)",m.vol==null?"–":`${pct(m.vol,0,false)} a yr`,null,`Volatility: how bumpy the price has been over the last 3 months, scaled to a year. Higher = bigger ups and downs.${bv?` The ${bs} is at ${pct(bv,0,false)}.`:""}`),
+        tile("Reward for risk (Sharpe)",m.sharpe==null?"–":`${m.sharpe.toFixed(2)} · ${band(m.sharpe,[1,0],["good","modest","below cash"])}`,m.sharpe,"The past year's return minus today's US cash rate (3-month Treasury bill), divided by how much the price swung over the year. Above 1 = good reward for the ups and downs; below 0 = did worse than that cash rate."),
+        tile("Biggest drop, past year",pct(m.mdd),m.mdd,"The largest fall from a high point to a later low at any time in the past 12 months.")].join("")}</div>
+      ${factsCard(r.facts||{},{ccy:r.ccy,bf:b.facts||{},bn:bp[0].toUpperCase()+bp.slice(1),note:"From Yahoo Finance, checked daily. Fund size is converted to US dollars at today's exchange rate."})}
       ${holdingsCard(r,S.data.holdingsAt)}
       <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">The reasoning</div><ul class="why">${narrative(r).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
-      <dl class="card primer"><dt>What it is</dt><dd>${esc(sec.what)}</dd><dt>Type</dt><dd>${esc(sec.kind)}</dd><dt>Key drivers</dt><dd>${esc(sec.drivers)}</dd>
-        <dt>Rate sensitivity</dt><dd>${esc(sec.rates)}</dd><dt>Main risks</dt><dd>${esc(sec.risks)}</dd></dl>
-      ${peers.length?`<div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:4px">${esc(sec.name)} elsewhere</div>
-        ${peers.map(p=>`<div class="idea" data-open="${esc(p.symbol)}" role="button" tabindex="0"><span class="nm">${esc(p.name)} <span class="muted" style="font-weight:400;font-size:13px">${esc(groupShort(p.group))} · ${esc(p.symbol)}</span></span>
-          <span class="sc"><span class="pill ${sigClass(p.m.signal)}">${Math.round(p.m.score)}</span></span></div>`).join("")}</div>`:""}
+      <dl class="card primer"><dt>What it is</dt><dd>${esc(sec.what)}</dd><dt>Type</dt><dd title="Cyclical = rises and falls with the economy · Defensive = demand holds up in downturns · Value = priced cheaply vs profits · Growth = priced for fast future growth · Bond-like = bought for steady dividends, so it tends to fall when interest rates rise · Commodity = tied to raw-material prices">${esc(sec.kind)}</dd><dt>Key drivers</dt><dd>${esc(sec.drivers)}</dd>
+        <dt>How interest rates affect it</dt><dd>${esc(sec.rates)}</dd><dt>Main risks</dt><dd>${esc(sec.risks)}</dd></dl>
+      ${peers.length?`<div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:4px">${esc(sec.name)} elsewhere (score out of 100)</div>
+        ${peers.map(p=>`<div class="idea" data-open="${esc(p.symbol)}" role="button" tabindex="0"><span class="nm">${esc(p.name)} <span class="muted" style="font-weight:400;font-size:13px">${esc(groupShort(p.group))} · ${esc(p.symbol)} · vs ${esc(benchShort(p.group))}</span></span>
+          <span class="sc">${sigPill(p.m.signal,Math.round(p.m.score))}</span></div>`).join("")}</div>`:""}
     </div>`,()=>{S.sel=null;});
   d.querySelectorAll("[data-range]").forEach(bt=>bt.onclick=()=>{S.range=bt.dataset.range;d.querySelectorAll("[data-range]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.range===S.range));drawPrice(r);});
   d.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
@@ -412,7 +464,7 @@ function openDetail(sym){
 }
 function drawCharts(r){
   const m=r.m; drawPrice(r); drawScoreHistory(m,S.data.histCuts);
-  if(m.relSeries) lineChart($("#rchart"),{t:m.series.t.slice(-m.relSeries.length),series:[{v:m.relSeries,color:"var(--accent)",name:"Relative"}],h:170,baseline:100,fmt:v=>v.toFixed(1)});
+  if(m.relSeries) lineChart($("#rchart"),{t:m.series.t.slice(-m.relSeries.length),series:[{v:m.relSeries,color:"var(--accent)",name:"vs "+benchShort(r.group)}],h:170,baseline:100,fmt:v=>pct(v/100-1,1)});
 }
 function holdingMatch(r){
   const q=S.q.trim().toLowerCase(); if(!q||!r.holdings) return null;
@@ -420,9 +472,10 @@ function holdingMatch(r){
 }
 function drawPrice(r){
   const m=r.m, dp=m.price>=100?0:2;
-  if(S.range==="1y") return lineChart($("#pchart"),{t:m.series.t,series:[{v:m.series.c,color:"var(--ink)",name:"Price",w:1.8},{v:m.ma50,color:"var(--accent)",name:"50d",w:1.2},{v:m.ma200,color:"var(--warn)",name:"200d",w:1.2}],fmt:v=>v.toFixed(dp),area:1});
-  const n=S.range==="5y"?252:m.long.t.length;
-  lineChart($("#pchart"),{t:m.long.t.slice(-n),series:[{v:m.long.c.slice(-n),color:"var(--ink)",name:"Price",w:1.6}],fmt:v=>v.toFixed(dp),area:1});
+  document.querySelectorAll("#drawer .key.ma").forEach(k=>k.hidden=S.range!=="1y");
+  if(S.range==="1y") return lineChart($("#pchart"),{t:m.series.t,series:[{v:m.series.c,color:"var(--ink)",name:"Price",w:1.8},{v:m.ma50,color:"var(--accent)",name:"50-day avg",w:1.2},{v:m.ma200,color:"var(--warn)",name:"200-day avg",w:1.2}],fmt:v=>v.toFixed(dp),area:1});
+  const k=S.range==="5y"?252:m.long.t.length;
+  lineChart($("#pchart"),{t:m.long.t.slice(-k),series:[{v:m.long.c.slice(-k),color:"var(--ink)",name:"Price",w:1.6}],fmt:v=>v.toFixed(dp),area:1});
 }
 
 /* ---------------------------------------------------------------- data loop */
