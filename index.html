@@ -41,6 +41,8 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;l
 h2{font-size:26px;line-height:1.1}
 h3{font-size:18px}
 .eyebrow{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+a{color:var(--accent)}
+#limits{scroll-margin-top:80px}
 .muted{color:var(--muted)} .pos{color:var(--pos)} .neg{color:var(--neg)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
 
@@ -414,13 +416,23 @@ function narrative(r){
   return out;
 }
 function verdict(r){
-  const m=r.m, s=m.score??50, hot=(m.rsi>=70)||(m.vs200>.15);
-  if(s>=60&&hot) return "Strong trend but stretched. Favour adding on pullbacks rather than chasing.";
-  if(s>=60&&m.quad==="Weakening") return "A leader that is losing steam. Fine to hold; be selective with new money.";
-  if(s>=60) return "Momentum, trend and relative strength all support an overweight.";
-  if(s<40&&m.quad==="Improving") return "Early signs of a turn, but the trend is still weak. Wait for a close back above the 200-day average.";
-  if(s<40) return "Weak trend and relative performance. Underweight or avoid until it improves.";
-  if(m.quad==="Improving") return "Turning up from a laggard position. A watch-list candidate.";
+  // Built fresh from the latest data on every refresh; each clause only appears when the numbers support it.
+  const m=r.m, s=m.score??50, over=m.rsi!=null&&m.rsi>=70, stretched=m.vs200!=null&&m.vs200>.15;
+  const below200=m.vs200!=null&&m.vs200<0, gap=below200?` It is ${pct(-m.vs200,1,false)} below that line today.`:"";
+  if(s>=60){
+    const base = m.quad==="Weakening" ? "A leader that is losing relative momentum. Fine to hold; be selective with new money."
+                                      : "Momentum, trend and relative strength all support an overweight.";
+    if(!over&&!stretched) return base;
+    const why=[over?`RSI ${m.rsi.toFixed(0)}`:"", stretched?`${pct(m.vs200,0,false)} above its 200-day average`:""].filter(Boolean).join(", ");
+    return `${base} It is also stretched (${why}), so favour adding on pullbacks rather than chasing.`;
+  }
+  if(m.quad==="Improving"){
+    if(s>=40) return "Turning up from a laggard position. A watch-list candidate.";
+    return below200 ? `Early signs of a turn, but the trend is still weak. Wait for a close back above the 200-day average.${gap}`
+                    : "Early signs of a turn and already back above its 200-day average, but the score is still low. Watch whether relative strength keeps improving before committing.";
+  }
+  if(s<40) return "Weak trend and relative performance. Underweight or avoid until it improves."+
+                  (below200?` A close back above the 200-day average would be the first sign of repair.${gap}`:"");
   return "No strong edge either way. Market weight.";
 }
 function reasonShort(r){
@@ -466,7 +478,7 @@ function render(){
 
   <section>
     <div class="sec-head"><div class="grow"><div class="eyebrow">Shortlist</div><h2>What the data favours today</h2>
-      <p>Pulled from all ${D.rows.length} funds. Scores rank each fund against every other on momentum, trend, relative strength and risk (0 = weakest, 100 = strongest).</p></div></div>
+      <p>Pulled from all ${D.rows.length} funds. Scores rank each fund against every other on momentum, trend, relative strength and risk (0 = weakest, 100 = strongest). Read the <a href="#limits">limitations</a> before acting on it.</p></div></div>
     <div class="ideas">${ideas()}</div>
   </section>
 
@@ -513,12 +525,39 @@ function render(){
         <li><b>Underweight / Avoid</b> (&lt;40): lagging with a weak trend.</li>
         <li><b>Improving</b> on the rotation map flags early turnarounds before the score catches up.</li>
         <li><b>Overbought</b> flags suggest waiting for a dip, even for strong sectors.</li></ul></div>
-      <div class="card"><h3>Data &amp; limits</h3>
-        <p>Prices from Yahoo Finance, refreshed every ${STATIC?"15":"5"} minutes (exchange feeds can be ~15 min delayed). Scores reflect price behaviour only. P/E, yield, beta and fees are shown alongside to check valuation and cost, but they don't change the score.</p>
-        <p>Momentum works on average over 3–12 month horizons but fails at turning points. Use it to shortlist, then check fundamentals.</p>
+      <div class="card"><h3>What updates, and when</h3>
+        <p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): returns, trend, RSI, volatility, scores, signals, flags, the rotation map, the cycle read, the shortlists and every written verdict. Open pages pick up new data by themselves.</p>
+        <p><b>Once a day:</b> top-10 holdings, net assets, P/E, yield, beta and fees.</p>
+        <p><b>Fixed:</b> the sector descriptions and the cycle-to-sector mapping.</p>
         <p class="muted" style="font-size:12.5px">${D.rows.length} funds · built in ${D.buildSeconds}s${D.errors.length?` · unavailable: ${esc(D.errors.join(", "))}`:""}</p></div>
     </div>
-    <p class="disclaimer">For research and education only. This is not personalised investment advice, and past price behaviour does not guarantee future returns. Check a fund's costs, holdings and suitability before investing.</p>
+  </section>
+
+  <section id="limits">
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Read before relying on it</div><h2>Limitations</h2>
+      <p>This is a screening tool that summarises price behaviour. It is not a forecast, and it should be one input among several.</p></div></div>
+    <div class="method">
+      <div class="card"><h3>The data</h3><ul>
+        <li>Prices come from Yahoo Finance's free, unofficial feed. Exchange data can be ~15 minutes delayed, and the feed can have gaps, errors or stop working without notice.</li>
+        <li>The website depends on GitHub's scheduler, which can run late. The status line at the top turns amber ("Delayed") if data is more than an hour old.</li>
+        <li>Each region only moves while its market is open, so Japan, Europe and North America update at different times of day.</li>
+        <li>Fund facts (P/E, yield, beta, fees, net assets) are Yahoo's figures and can lag or differ from the fund provider's own. Yahoo has no expense ratio for the Japanese TOPIX-17 funds.</li>
+        <li>Holdings are as of the provider's last disclosure, which can be weeks old.</li></ul></div>
+      <div class="card"><h3>The analysis</h3><ul>
+        <li>Scores are built only from past prices. They don't see earnings, valuations, news, policy or events that haven't hit prices yet.</li>
+        <li>Momentum tends to persist over 3–12 months on average, but it reverses sharply at turning points, which is exactly when it hurts most.</li>
+        <li>The score weights, thresholds and verdict wording are fixed rules chosen for this tool. They have not been backtested, so there's no evidence yet that high scores beat low ones.</li>
+        <li>Scores are ranks against the other funds here, so a fund's score can change because other funds moved.</li>
+        <li>The cycle read uses a handful of US-centred indicators and simple rules. Which sectors "suit" each phase is a historical tendency, not a rule.</li>
+        <li>The rotation map is an approximation of the Relative Rotation Graph method, not the licensed original.</li></ul></div>
+      <div class="card"><h3>Investing with it</h3><ul>
+        <li>Returns are in each fund's local currency and include dividends. They exclude trading costs, spreads, taxes and currency moves for your home currency.</li>
+        <li>Some funds (European UCITS, Japanese and Canadian listings) may not be available to you, may be taxed differently, or trade thinly with wide spreads.</li>
+        <li>Net assets are converted to US dollars at today's exchange rate.</li>
+        <li>The fund list is hand-picked and doesn't cover every sector, market or share class.</li>
+        <li>Past performance does not guarantee future returns.</li></ul></div>
+    </div>
+    <p class="disclaimer">For research and education only. This is not personalised investment advice. Check a fund's costs, holdings, risks and suitability for you before investing, and consider speaking to a licensed adviser.</p>
   </section>`;
 
   renderTable(); renderRRG();
@@ -671,7 +710,8 @@ function openDetail(sym){
       <div class="card verdict"><div class="bigscore" style="color:${scoreColor(m.score)}">${m.score==null?"–":Math.round(m.score)}<small>/100</small></div>
         <div><span class="pill ${sigClass(m.signal)}">${esc(m.signal)}</span> <span class="q q-${m.quad}" style="margin-left:6px">${esc(m.quad||"")}</span>
           ${(m.flags||[]).map(f=>`<span class="flag f-${f.tone}">${esc(f.label)}</span>`).join("")}
-          <p style="margin:8px 0 0;font-size:15px">${esc(verdict(r))}</p></div></div>
+          <p style="margin:8px 0 0;font-size:15px">${esc(verdict(r))}</p>
+          <p class="muted" style="margin:6px 0 0;font-size:12px">An automated, rule-based read of data from ${esc(new Date(S.data.generated*1000).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}))}. It rewrites itself as prices change. <a href="#limits" id="limlink">Limitations</a></p></div></div>
       <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">What drives the score (percentile vs all ${S.data.rows.length} funds)</div>
         <div class="parts">${Object.entries(m.parts).map(([k,v])=>`<span>${esc(partName(k))}</span><span class="bar"><i style="width:${v??0}%;background:${scoreColor(v??50)}"></i></span><span class="num">${v??"–"}</span>`).join("")}</div></div>
       <div class="card chartbox"><div class="row"><span class="eyebrow">Price</span>
@@ -694,7 +734,7 @@ function openDetail(sym){
           <span class="sc"><span class="pill ${sigClass(p.m.signal)}">${Math.round(p.m.score)}</span></span></div>`).join("")}</div>`:""}
     </div>`;
   document.body.append(scrim,d); document.body.style.overflow="hidden";
-  $("#closeD").onclick=()=>closeDetail(); $("#closeD").focus();
+  $("#closeD").onclick=()=>closeDetail(); $("#closeD").focus(); $("#limlink").onclick=()=>closeDetail();
   d.querySelectorAll("[data-range]").forEach(bt=>bt.onclick=()=>{S.range=bt.dataset.range;d.querySelectorAll("[data-range]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.range===S.range));drawPrice(r);});
   d.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
   drawPrice(r);
