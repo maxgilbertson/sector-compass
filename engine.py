@@ -98,6 +98,34 @@ def fetch_all(symbols):
     return out
 
 
+def ffill(d, rate):
+    """`rate`'s closes carried forward onto d's trading days (None before rate's history starts)."""
+    return Track({"t": d["t"], "c": d["c"], "raw": d["raw"], "off": d.get("off", 0)}, rate).b
+
+
+def cross(num, den):
+    """num / den on num's dates, e.g. GBP per EUR = (GBP per USD) / (EUR per USD)."""
+    dv = ffill(num, den)
+    keep = [k for k, v in enumerate(dv) if v]
+    return {"t": [num["t"][k] for k in keep], "c": [num["c"][k] / dv[k] for k in keep],
+            "raw": [num["raw"][k] / dv[k] for k in keep], "off": num.get("off", 0)}
+
+
+def invert(rate):
+    return {"t": rate["t"], "c": [1 / v for v in rate["c"]], "raw": [1 / v for v in rate["raw"]], "off": rate.get("off", 0)}
+
+
+def convert(d, rate):
+    """Price series d re-expressed in another currency: multiply by `rate` (target units per d's unit)."""
+    if rate is None:
+        return d
+    r = ffill(d, rate)
+    keep = [k for k, v in enumerate(r) if v]
+    return {"t": [d["t"][k] for k in keep], "c": [d["c"][k] * r[k] for k in keep],
+            "raw": [d["raw"][k] * r[k] for k in keep], "off": d.get("off", 0),
+            "price": d["raw"][-1] * r[-1] if r and r[-1] else None}
+
+
 def usable(d, n=60):
     return bool(d) and "error" not in d and len(d.get("c", [])) >= n
 
@@ -232,9 +260,10 @@ def pct_rank(values):
     return out
 
 
-def score(inputs):
+def score(inputs, weights=None):
     """Cross-sectional composite for one date: [(score, parts)] aligned with `inputs`."""
-    ranks = {k: pct_rank([f(x) if x else None for x in inputs]) for k, f in COMPONENTS.items()}
+    weights = weights or WEIGHTS
+    ranks = {k: pct_rank([f(x) if x else None for x in inputs]) for k, f in COMPONENTS.items() if k in weights}
     out = []
     for i, x in enumerate(inputs):
         if x is None:
@@ -242,7 +271,7 @@ def score(inputs):
             continue
         tot = wsum = 0.0
         parts = {}
-        for k, w in WEIGHTS.items():
+        for k, w in weights.items():
             v = ranks[k][i]
             parts[k] = None if v is None else round(v)
             if v is not None:
@@ -328,6 +357,17 @@ def quadrant(pt):
     return "Improving" if y >= 100 else "Lagging"
 
 
+def period_returns(tr, i=None):
+    """Returns over the standard periods, as of bar i (default: the latest)."""
+    i = tr.n - 1 if i is None else i
+    t, c = tr.t, tr.c
+    ytd0 = tr.at(datetime(datetime.fromtimestamp(t[i], timezone.utc).year, 1, 1, tzinfo=timezone.utc).timestamp() - 1)
+    ann = lambda n: None if tr.ret(i, n) is None else (1 + tr.ret(i, n)) ** (252 / n) - 1
+    return {"r1d": tr.ret(i, 1), "r1w": tr.ret(i, 5), "r1m": tr.ret(i, 21), "r3m": tr.ret(i, 63),
+            "r6m": tr.ret(i, 126), "ytd": c[i] / c[ytd0] - 1 if ytd0 >= 0 else None,
+            "r1y": tr.ret(i, 252), "r3y": ann(756), "r5y": ann(1260)}
+
+
 def analyse(tr, d, rf):
     """Everything the page shows for one fund, as of its latest bar."""
     if tr.n < 60:
@@ -336,15 +376,11 @@ def analyse(tr, d, rf):
     x = tr.inputs(i, rf) or {"trend": 0, "vs50": None, "vs200": None, "golden": None, "slope200": None,
                              "r1y": None, "vol1y": None, "sharpe": None, "mdd": tr.mdd(i),
                              "rs3m": None, "rs6m": None, "rsMom": None}
-    ytd0 = tr.at(datetime(datetime.fromtimestamp(t[i], timezone.utc).year, 1, 1, tzinfo=timezone.utc).timestamp() - 1)
-    ann = lambda n: None if tr.ret(i, n) is None else (1 + tr.ret(i, n)) ** (252 / n) - 1
     yr = raw[-252:]
     m = {
         **x,
+        **{k: v for k, v in period_returns(tr).items() if k != "r1y"},
         "price": d.get("price") or raw[-1],
-        "r1d": tr.ret(i, 1), "r1w": tr.ret(i, 5), "r1m": tr.ret(i, 21), "r3m": tr.ret(i, 63),
-        "r6m": tr.ret(i, 126), "ytd": c[i] / c[ytd0] - 1 if ytd0 >= 0 else None,
-        "r3y": ann(756), "r5y": ann(1260),
         "mom121": c[i - 21] / c[i - 252] - 1 if i >= 252 else None,
         "vol": tr.vol(i, 63), "rsi": rsi(c),
         "offHigh": raw[-1] / max(yr) - 1, "offLow": raw[-1] / min(yr) - 1,
@@ -453,7 +489,21 @@ def _month_ends(t0, t1):
         out.append(cut)
 
 
-def backtest(tracks, rf_at, min_funds=8):
+COST_PER_TRADE = 0.0015  # assumed one-way cost of a trade: bid/ask spread plus commission
+
+
+def _summary(months):
+    """Headline statistics for a run of backtest months."""
+    if len(months) < 6:
+        return None
+    sp = [m["spread"] for m in months]
+    return {"from": months[0]["t"], "to": months[-1]["t"], "months": len(months),
+            "topAnn": _mean([m["top"] for m in months]) * 12, "botAnn": _mean([m["bot"] for m in months]) * 12,
+            "spreadAnn": _mean(sp) * 12, "spreadT": _tstat(sp), "hit": sum(s > 0 for s in sp) / len(sp),
+            "topNetAnn": _mean([m["top"] - m["cost"] for m in months]) * 12}
+
+
+def backtest(tracks, rf_at, min_funds=8, weights=None, cost=COST_PER_TRADE):
     """Monthly walk-forward test of the live score.
 
     At each month-end, every fund is scored using only data up to that day (the
@@ -484,7 +534,7 @@ def backtest(tracks, rf_at, min_funds=8):
         inputs = [tr.inputs(i, rf_at(cut)) if i >= 0 else None for tr, i in zip(tracks, idx)]
         if sum(x is not None for x in inputs) < min_funds:
             continue
-        sc = [s for s, _ in score(inputs)]
+        sc = [s for s, _ in score(inputs, weights)]
         nxt = [tr.at(cuts[k + 1]) for tr in tracks]
         f1 = [fwd(tr, i, j) if s is not None else None for tr, i, j, s in zip(tracks, idx, nxt, sc)]
         live = [(s, r, n) for n, (s, r) in enumerate(zip(sc, f1)) if s is not None and r is not None]
@@ -500,9 +550,12 @@ def backtest(tracks, rf_at, min_funds=8):
         for s, r, n in live:
             bands[signal(s)].append(r)
         top = {n for rank, (s, r, n) in enumerate(live) if rank * 5 // len(live) == 0}
+        swapped = 1.0 if prev_top is None else (1 - len(top & prev_top) / len(top) if top else 0.0)
         if prev_top is not None and top:
-            turnover.append(1 - len(top & prev_top) / len(top))
+            turnover.append(swapped)
         prev_top = top
+        # swapping a share of the portfolio means selling that share and buying its replacement
+        month_cost = swapped * 2 * cost if len(turnover) else 0.0
         for key, f in COMPONENTS.items():
             comp_ic[key].append(_spearman([f(x) if x else None for x in inputs], f1))
         for h in (3, 6):
@@ -513,7 +566,7 @@ def backtest(tracks, rf_at, min_funds=8):
                     cut5 = max(1, len(lh) // 5)
                     fwd_spread[h].append(_mean([r for _, r in lh[:cut5]]) - _mean([r for _, r in lh[-cut5:]]))
         allm = sum(r for _, r, _ in live) / len(live)
-        months.append({"t": cut, "top": qm[0], "bot": qm[4], "all": allm, "spread": qm[0] - qm[4],
+        months.append({"t": cut, "top": qm[0], "bot": qm[4], "all": allm, "spread": qm[0] - qm[4], "cost": month_cost,
                        "ic": _spearman([p[0] for p in live], [p[1] for p in live]), "n": len(live)})
         curves["t"].append(cuts[k + 1])
         curves["top"].append(curves["top"][-1] * (1 + qm[0]))
@@ -544,6 +597,10 @@ def backtest(tracks, rf_at, min_funds=8):
         "spreadMaxDD": dd, "worstMonth": {"t": worst["t"], "spread": worst["spread"]},
         "fwd3": _mean(fwd_spread[3]), "fwd6": _mean(fwd_spread[6]),
         "turnover": _mean(turnover),
+        "costPerTrade": cost, "costAnn": _mean([m["cost"] for m in months]) * 12,
+        "topNetAnn": _mean([m["top"] - m["cost"] for m in months]) * 12,
+        # the stricter check: does the result hold in both halves of the period, not just on average?
+        "halves": [_summary(months[:len(months) // 2]), _summary(months[len(months) // 2:])],
         "quintiles": [_mean(g) * 12 for g in quint],
         "bands": {b: {"ann": _mean(v) * 12 if v else None, "n": len(v),
                       "hit": sum(x > 0 for x in v) / len(v) if v else None} for b, v in bands.items()},

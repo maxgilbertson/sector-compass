@@ -30,5 +30,7 @@ js = (OUT / "common.js").read_text(encoding="utf-8")
 marker = "const STATIC = false;"
 assert marker in js, "static-mode marker missing from common.js"
 (OUT / "common.js").write_text(js.replace(marker, "const STATIC = true;", 1), encoding="utf-8")
+if (HERE / "briefings").exists():
+    shutil.copytree(HERE / "briefings", OUT / "briefings", dirs_exist_ok=True)
 (OUT / ".nojekyll").write_text("")
 print("Built site/")

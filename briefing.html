@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weekly Market Briefing</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Briefing">
+<meta name="theme-color" content="#0B1110" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEF1F0" media="(prefers-color-scheme: light)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+.brief{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start;margin-top:28px}
+.doc{padding:28px 32px;font-size:16px;line-height:1.65}
+.doc h1{font-size:34px;line-height:1.1;margin:0 0 6px}
+.doc h2{font-size:24px;margin:26px 0 8px}
+.doc h3{font-size:19px;margin:20px 0 6px}
+.doc p,.doc ul{max-width:70ch;margin:0 0 12px}
+.doc ul{padding-left:20px;display:grid;gap:6px}
+.doc em{color:var(--muted)}
+.byline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;font-size:13px;color:var(--muted)}
+.archive{padding:16px;position:sticky;top:90px}
+.archive a{display:block;padding:7px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
+.archive a[aria-current="true"]{color:var(--accent);font-weight:600}
+.archive small{display:block;color:var(--faint);font-size:11.5px}
+@media (max-width:900px){.brief{grid-template-columns:1fr}.archive{position:static}.doc{padding:20px 18px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Weekly <span>Briefing</span></h1><span class="eyebrow">Sectors and countries, every Saturday</span></div>
+    <nav class="pages" aria-label="Pages"><a href="index.html">Sectors</a><a href="world.html">Countries</a><a href="briefing.html" aria-current="page">Briefing</a></nav>
+  </div>
+</header>
+<main class="wrap" id="app"><div class="loading">Loading the latest briefing…</div></main>
+
+<script src="common.js"></script>
+<script>
+"use strict";
+// A small, safe Markdown renderer: everything is escaped first, then headings, lists, bold, italics and links are added.
+function md(text){
+  const inline=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|[\w./#-]+)\)/g,'<a href="$2">$1</a>');
+  const out=[]; let list=null, para=[];
+  const flush=()=>{ if(para.length){ out.push(`<p>${inline(para.join(" "))}</p>`); para=[]; } if(list){ out.push(`<ul>${list.join("")}</ul>`); list=null; } };
+  for(const raw of text.replace(/<!--[\s\S]*?-->/g,"").split(/\r?\n/)){
+    const line=raw.trimEnd();
+    if(!line.trim()){ flush(); continue; }
+    const h=line.match(/^(#{1,3})\s+(.*)$/);
+    if(h){ flush(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
+    const li=line.match(/^\s*[-*]\s+(.*)$/);
+    if(li){ if(para.length){ out.push(`<p>${inline(para.join(" "))}</p>`); para=[]; } (list=list||[]).push(`<li>${inline(li[1])}</li>`); continue; }
+    if(list){ flush(); }
+    para.push(line.trim());
+  }
+  flush();
+  return out.join("");
+}
+const base = STATIC ? "briefings/" : "/briefings/";
+async function show(){
+  const app=$("#app");
+  try{
+    const index=await (await fetch(base+"index.json?t="+Date.now(),{cache:"no-store"})).json();
+    if(!index.length) throw new Error("No briefings yet");
+    const want=location.hash.slice(1), entry=index.find(e=>e.date===want)||index[0];
+    const text=await (await fetch(base+entry.file+"?t="+Date.now(),{cache:"no-store"})).text();
+    const byClaude=/author:\s*Claude/.test(text.slice(0,300));
+    app.innerHTML=`<div class="brief">
+      <article class="card doc"><div class="byline">${byClaude?'<span class="chip tail">Written by Claude from this week\'s data</span>':'<span class="chip">Automatic factual draft</span>'}
+        <span>Every number comes from the Sectors and Countries pages. Not investment advice.</span></div>${md(text)}</article>
+      <aside class="card archive"><div class="eyebrow" style="margin-bottom:6px">All briefings</div>
+        ${index.map(e=>`<a href="#${esc(e.date)}" aria-current="${e.date===entry.date}">${esc(e.title)}<small>${e.author==="Claude"?"Written by Claude":"Draft"}</small></a>`).join("")}
+        <p class="note">A fresh briefing appears every Saturday morning (UK time). GitHub gathers the week's numbers first; Claude then writes them up in plain English.</p></aside></div>`;
+  }catch(e){
+    app.innerHTML=`<div class="loading">No briefing is available yet. The first one appears on Saturday morning.</div>`;
+  }
+}
+addEventListener("hashchange",show);
+show();
+</script>
+</body>
+</html>

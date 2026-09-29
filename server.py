@@ -20,9 +20,10 @@ import world
 PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 8765)
 CACHE_SECONDS = 300
 HERE = Path(__file__).parent
-PAGES = {"index.html", "world.html", "common.css", "common.js"}  # the files the site is made of
+PAGES = {"index.html", "world.html", "briefing.html", "common.css", "common.js"}  # the files the site is made of
 BUILDS = {"data": sectors.build, "world": world.build}
-TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8"}
+TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+         ".json": "application/json", ".md": "text/markdown; charset=utf-8"}
 
 _cache = {name: {"at": 0, "body": None} for name in BUILDS}
 _locks = {name: threading.Lock() for name in BUILDS}
@@ -53,6 +54,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(404, b"not found", "text/plain")
                 self._send(200, get_data(key, force="force" in parse_qs(u.query)), "application/json")
             elif name in PAGES:
+                self._send(200, (HERE / name).read_bytes(), TYPES[Path(name).suffix])
+            elif name.startswith("briefings/") and ".." not in name and Path(name).suffix in (".json", ".md")                     and (HERE / name).is_file():
                 self._send(200, (HERE / name).read_bytes(), TYPES[Path(name).suffix])
             else:
                 self._send(404, b"not found", "text/plain")

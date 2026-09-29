@@ -321,6 +321,7 @@ function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
         ${kpi("Last 12 months, top vs lowest group",betterWorse(bt.recentSpreadAnn),`in total. The top group beat the lowest group in ${wonRecent} of 12 months. One year is too short to judge.`,cls(bt.recentSpreadAnn))}
         ${kpi("Swapped each month",pct(bt.turnover,0,false),`of the top group changes each month (about ${Math.round(bt.turnover*group)} of ${group}). Real trading costs would eat into any gain; they aren't included.`)}
       </div>
+      ${strictChecks(bt,vsShort)}
       <div class="two">
         <div class="card chartbox"><div class="row"><span class="eyebrow">Top vs lowest group, relative to the market (100 = level with it)</span></div>
           <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored 20%</span><span class="key"><i style="background:var(--faint)"></i>All ${esc(noun)} (average)</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored 20%</span></div>
@@ -341,12 +342,84 @@ function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
         <li>Past results do not guarantee future ones, especially once many investors start following the same pattern.</li></ul></div>
     </div></section>`;
 }
+function strictChecks(bt,vsShort){
+  const hs=(bt.halves||[]).filter(Boolean); if(!hs.length) return "";
+  const row=(label,h,from,to)=>`<tr><td>${label}<br><small class="muted">${esc(monthYear(from))} – ${esc(monthYear(to))}</small></td>
+    <td class="${cls(h.topAnn)}">${aheadBehind(h.topAnn)}</td><td class="${cls(h.botAnn)}">${aheadBehind(h.botAnn)}</td>
+    <td class="${cls(h.spreadAnn)}">${betterWorse(h.spreadAnn)}</td><td>${confText(h.spreadT)}</td><td>${Math.round(h.hit*h.months)} of ${h.months}</td></tr>`;
+  const both = hs.length===2 && hs.every(h=>h.spreadAnn>0), weaker = hs.length===2 && hs[1].spreadAnn < hs[0].spreadAnn/2;
+  return `<div class="card panel"><div class="eyebrow" style="margin-bottom:6px">Stricter checks</div>
+    <div style="overflow-x:auto"><table class="comp"><thead><tr><th>Period</th><th>Top-scored 20%, per year</th><th>Lowest-scored 20%, per year</th><th>Top vs lowest</th><th>Reliability</th><th>Months top won</th></tr></thead><tbody>
+      ${hs[0]?row("First half",hs[0],hs[0].from,hs[0].to+86400):""}${hs[1]?row("Second half",hs[1],hs[1].from,hs[1].to+86400):""}
+      ${row("Whole period",bt,bt.from,bt.to)}</tbody></table></div>
+    <p class="note">${both?`The top group did better than the lowest group in both halves${weaker?", but the gap shrank a lot in the more recent half":""}.`:"The result did not hold up in both halves, which is a warning sign that it may be luck."}
+      After estimated trading costs (${pct(bt.costPerTrade,2,false)} per trade, about ${pct(bt.costAnn,1,false)} a year at this level of swapping), the top-scored group was ${aheadBehind(bt.topNetAnn)} ${relPrep(bt.topNetAnn)}${esc(vsShort)} a year on average.
+      Any future change to the score's recipe has to beat the current one on the first half and then again on the second half, which it never saw, before it is adopted.</p></div>`;
+}
 let engineWeights = {};
 function drawBacktest(bt){
   if(!bt||!$("#btchart")) return;
   const c=bt.curves;
   lineChart($("#btchart"),{t:c.t,series:[{v:c.top.map(v=>v*100),color:"var(--pos)",name:"Top 20%",w:2},{v:c.mid.map(v=>v*100),color:"var(--faint)",name:"All (average)",w:1.4},{v:c.bot.map(v=>v*100),color:"var(--neg)",name:"Lowest 20%",w:2}],
     h:230,baseline:100,baselineLabel:"100 = level with the market",fmt:v=>v.toFixed(0)});
+}
+
+/* ---------------------------------------------------------------- practice portfolios (live test) */
+const CUR = {gbp:{sign:"£",word:"pounds"}, usd:{sign:"$",word:"US dollars"}};
+const moneyIn = (v,cur) => v==null? "–" : CUR[cur].sign+Math.round(v).toLocaleString();
+const lastVal = a => { for(let i=(a||[]).length-1;i>=0;i--) if(a[i]!=null) return a[i]; return null; };
+/* nameOf(key) -> display name; mkt: short name for "the picks' own markets" (null when that's just world stocks) */
+function paperSection(p,{noun,nameOf,mkt,cur="gbp"}){
+  if(!p) return `<section id="paper"><div class="sec-head"><div class="grow"><div class="eyebrow">Live test</div><h2>Practice portfolios</h2>
+    <p>The practice portfolios start with the first daily snapshot. Check back tomorrow.</p></div></div></section>`;
+  const L=p[cur], v=g=>lastVal(L[g]), start=10000, days=p.t.length, chg=g=>v(g)==null?null:v(g)/start-1;
+  const kpi=(l,g,sub)=>`<div class="kpi"><span>${l}</span><b class="${cls(chg(g))}">${moneyIn(v(g),cur)}</b><small>${esc(upDown(chg(g)))} since ${esc(p.started)}${sub?` · ${sub}`:""}</small></div>`;
+  const list=(rows,title)=>`<div class="card panel"><div class="eyebrow" style="margin-bottom:4px">${title}</div>
+    ${rows.map(h=>`<div class="idea" data-open="${esc(h.key)}" role="button" tabindex="0"><span class="nm">${esc(nameOf(h.key))}</span><span class="sc ${cls(h.sinceGbp)}">${pct(h.sinceGbp,1)}</span></div>`).join("")}
+    <p class="note">Change in pounds since the latest monthly picks (${esc(p.rebalances[p.rebalances.length-1].date)}).</p></div>`;
+  return `<section id="paper">
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Live test · started ${esc(p.started)} · day ${days}</div><h2>Practice portfolios</h2>
+      <p>A test on past data can be tuned until it looks good; this can't. At the start of each month we save the 20% of ${esc(noun)} with the highest scores and the 20% with the lowest, then track what ${CUR[cur].sign}10,000 in each would do. No real money is involved; trading costs (${pct(p.costPerTrade,2,false)} per trade) are included. Next picks: ${esc(p.nextRebalance)}.</p></div>
+      <span class="seg" role="group" aria-label="Portfolio currency" style="margin-left:0"><button type="button" data-pcur="gbp" aria-pressed="${cur==="gbp"}">£</button><button type="button" data-pcur="usd" aria-pressed="${cur==="usd"}">$</button></span></div>
+    <div class="bt-grid">
+      <div class="kpis">
+        ${kpi("Top-scored portfolio","top")}
+        ${kpi("Lowest-scored portfolio","bottom","for comparison")}
+        ${mkt?kpi("Same money in the picks' own markets","mkt",esc(mkt)):""}
+        ${kpi("World stocks (MSCI ACWI)","world","a simple benchmark")}
+      </div>
+      <div class="card chartbox"><div class="row"><span class="eyebrow">Value of ${CUR[cur].sign}10,000 since ${esc(p.started)} (in ${CUR[cur].word})</span></div>
+        <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored</span>${mkt?`<span class="key"><i style="background:var(--accent)"></i>Picks' own markets</span>`:""}<span class="key"><i style="background:var(--faint)"></i>World stocks</span></div>
+        <div id="paperchart"></div>
+        <p class="note">Early days: a few weeks tells you almost nothing, because short-term moves are mostly noise. Judge it after 6–12 months.</p></div>
+      <div class="two">${list(p.holdings,`Top-scored holdings (${p.holdings.length})`)}${list(p.bottomHoldings||[],`Lowest-scored holdings (${(p.bottomHoldings||[]).length})`)}</div>
+      <details class="card panel"><summary class="eyebrow" style="cursor:pointer">Every monthly pick so far (${p.rebalances.length})</summary>
+        ${p.rebalances.slice().reverse().map(r=>`<p style="font-size:13.5px;margin:10px 0 0"><b>${esc(r.date)}</b><br><span class="pos">Top:</span> ${esc(r.top.map(nameOf).join(", "))}<br><span class="neg">Lowest:</span> ${esc(r.bottom.map(nameOf).join(", "))}</p>`).join("")}</details>
+    </div></section>`;
+}
+function drawPaper(p,cur,mkt){
+  const el=$("#paperchart"); if(!p||!el) return;
+  if(p.t.length<2){ el.innerHTML='<p class="muted" style="margin:8px 0">The chart appears once there are a couple of days of history.</p>'; return; }
+  const L=p[cur], s=[{v:L.top,color:"var(--pos)",name:"Top",w:2},{v:L.bottom,color:"var(--neg)",name:"Lowest",w:2}];
+  if(mkt) s.push({v:L.mkt,color:"var(--accent)",name:"Markets",w:1.4});
+  s.push({v:L.world,color:"var(--faint)",name:"World",w:1.4});
+  lineChart(el,{t:p.t,series:s,h:220,baseline:10000,fmt:v=>moneyIn(v,cur)});
+}
+/* Signal changes recorded from the daily snapshots */
+function changesSection(ch,{nameOf,noun}){
+  const list=(ch&&ch.changes||[]).slice().reverse().slice(0,40);
+  const byDate={}; list.forEach(c=>(byDate[c.date]=byDate[c.date]||[]).push(c));
+  return `<section id="changes"><div class="sec-head"><div class="grow"><div class="eyebrow">Signal changes</div><h2>What changed recently</h2>
+    <p>Recorded from a snapshot of every score taken each weekday after the US market closes${ch&&ch.since?`, starting ${esc(ch.since)}`:""}. Today's entries are live and can still change before the close.</p></div></div>
+    <div class="card panel">${list.length?Object.entries(byDate).map(([d,cs])=>`<div style="margin-bottom:10px"><div class="eyebrow" style="margin-bottom:2px">${esc(d)}${cs[0].live?" · live":""}</div>
+      ${cs.map(c=>`<div class="idea" data-open="${esc(c.key)}" role="button" tabindex="0"><span class="nm">${esc(nameOf(c.key))}</span><span class="sc">${sigPill(c.from)} → ${sigPill(c.to)}</span></div>`).join("")}</div>`).join("")
+      :`<p class="muted" style="margin:0">No signal changes recorded yet. The record started ${esc(ch&&ch.since||"today")}; changes to any of the ${esc(noun)} will appear here as they happen.</p>`}</div></section>`;
+}
+function signalHistoryCard(ch,key){
+  const mine=(ch&&ch.changes||[]).filter(c=>c.key===key).slice().reverse();
+  return `<div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:6px">Signal history</div>
+    ${mine.length?mine.map(c=>`<div style="display:flex;gap:10px;align-items:center;padding:4px 0;font-size:13.5px"><span class="num" style="min-width:86px">${esc(c.date)}${c.live?" (live)":""}</span>${sigPill(c.from)} → ${sigPill(c.to)}</div>`).join("")
+      :`<p class="muted" style="margin:0;font-size:13.5px">No change recorded since daily snapshots began${ch&&ch.since?` on ${esc(ch.since)}`:""}.</p>`}</div>`;
 }
 
 /* ---------------------------------------------------------------- detail drawer */

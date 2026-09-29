@@ -1,0 +1,69 @@
+{
+ "page": "countries",
+ "started": "2026-09-29",
+ "startValue": 10000,
+ "costPerTrade": 0.0015,
+ "rebalances": [
+  {
+   "date": "2026-09-29",
+   "ts": 1790691683,
+   "top": [
+    "PL",
+    "TW",
+    "SG",
+    "KR",
+    "ES",
+    "JP",
+    "NO"
+   ],
+   "bottom": [
+    "SA",
+    "TR",
+    "VN",
+    "IN",
+    "PH",
+    "CN",
+    "ID"
+   ],
+   "scores": {
+    "PL": 93.1,
+    "TW": 89.3,
+    "SG": 86.0,
+    "KR": 79.0,
+    "ES": 78.3,
+    "JP": 74.1,
+    "NO": 73.7,
+    "CA": 73.1,
+    "NL": 72.3,
+    "US": 71.4,
+    "TH": 69.7,
+    "IT": 67.7,
+    "BE": 64.3,
+    "IL": 64.3,
+    "GB": 61.4,
+    "BR": 48.6,
+    "SE": 48.6,
+    "AU": 48.3,
+    "DE": 46.7,
+    "CH": 43.1,
+    "HK": 41.6,
+    "AR": 40.0,
+    "MY": 39.6,
+    "CL": 39.3,
+    "NZ": 38.9,
+    "DK": 37.9,
+    "ZA": 36.7,
+    "MX": 35.7,
+    "FR": 29.4,
+    "SA": 21.6,
+    "TR": 21.3,
+    "VN": 18.0,
+    "IN": 15.4,
+    "PH": 12.1,
+    "CN": 11.1,
+    "ID": 8.3
+   }
+  }
+ ],
+ "rule": "Each month, hold the 20% of markets with the highest scores in equal amounts; compare with the lowest-scored 20% and with the same money in each holding's own market."
+}

@@ -17,7 +17,7 @@
 <header class="top">
   <div class="wrap">
     <div class="brand"><h1>Sector <span>Compass</span></h1><span class="eyebrow">Global sector tracker</span></div>
-    <nav class="pages" aria-label="Pages"><a href="index.html" aria-current="page">Sectors</a><a href="world.html">Countries</a></nav>
+    <nav class="pages" aria-label="Pages"><a href="index.html" aria-current="page">Sectors</a><a href="world.html">Countries</a><a href="briefing.html">Briefing</a></nav>
     <div class="status"><span class="dot" id="dot"></span><span id="stamp">Loading live prices…</span></div>
     <button class="btn primary" id="refresh" type="button">Refresh now</button>
   </div>
@@ -102,9 +102,13 @@ const COLS = [
 /* ---------------------------------------------------------------- state */
 const store = makeStore("sc.");
 const S = {data:null, region:store.get("region","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}),
-           rrg:store.get("rrg","us"), sel:null, range:"1y"};
+           rrg:store.get("rrg","us"), sel:null, range:"1y", cur:store.get("cur","local"), pcur:store.get("pcur","gbp")};
+// returns in the chosen currency: each fund's own currency, or converted into pounds
+const rv = (r,k) => S.cur==="gbp" ? (r.gbp||{})[k] : r.m[k];
+const curWord = () => S.cur==="gbp" ? "in pounds" : "in each fund's own currency";
 const grp = id => (S.data.groups.find(g=>g.id===id)||{});
 const groupName = id => grp(id).name||id;
+const fundName = sym => { const r=S.data.rows.find(x=>x.symbol===sym); return r? `${r.name} (${groupShort(r.group)})` : sym; };
 const groupShort = id => ({us:"US",global:"Global",europe:"Europe",japan:"Japan",canada:"Canada",themes:"Theme"})[id]||id;
 // what each fund is compared with, in plain words ("the whole US market (S&P 500)") and short ("S&P 500")
 const benchPlain = id => grp(id).plain||"its region's whole market";
@@ -117,12 +121,14 @@ function vsListText(){ // "US sectors and themes vs the S&P 500, ..." built from
 
 /* ---------------------------------------------------------------- narrative */
 function narrative(r){
-  const m=r.m, bp=benchPlain(r.group), bench=S.data.benches[r.group]||{}, out=[], sign=CCY_SIGN[r.ccy]||"";
+  const m=r.m, bp=benchPlain(r.group), bench=S.data.benches[r.group]||{}, out=[];
+  const gb=S.cur==="gbp", sign=gb?"£":(CCY_SIGN[r.ccy]||""), fy=gb?(r.gbp||{}).r1y:m.r1y, by=gb?(bench.gbp||{}).r1y:null;
   if(m.r1y!=null){
-    let s=`${m.r1y>=0?"Up":"Down"} ${pct(Math.abs(m.r1y),1,false)} over the past year.`;
+    let s=`${m.r1y>=0?"Up":"Down"} ${pct(Math.abs(m.r1y),1,false)} over the past year${gb?" in its own currency":""}.`;
     if(m.rs1y!=null){ const br=m.r1y-m.rs1y, shown=(+(m.r1y*100).toFixed(1) - +(br*100).toFixed(1))/100;
       s+=` ${bp[0].toUpperCase()+bp.slice(1)} ${br>=0?"rose":"fell"} ${pct(Math.abs(br),1,false)}, so this did ${betterWorse(shown)}.`;
-      if(sign) s+=` ${sign}1,000 put in a year ago would now be about ${sign}${Math.round(1000*(1+m.r1y)).toLocaleString()}, against ${sign}${Math.round(1000*(1+br)).toLocaleString()} in ${benchShort(r.group)==="world stocks"?"world stocks":"the "+benchShort(r.group)}.`; }
+      const b1=gb?by:br;
+      if(sign&&fy!=null&&b1!=null) s+=` ${sign}1,000 put in a year ago would now be about ${sign}${Math.round(1000*(1+fy)).toLocaleString()}, against ${sign}${Math.round(1000*(1+b1)).toLocaleString()} in ${benchShort(r.group)==="world stocks"?"world stocks":"the "+benchShort(r.group)}${gb?" (in pounds)":""}.`; }
     out.push(s);
   }
   out.push(m.trend===4?"Clear uptrend: the price is above its average over the last 50 trading days (about 2½ months) and 200 trading days (about 10 months), and the 10-month average is rising."
@@ -165,7 +171,7 @@ function filtered(){
     (!q || (r.name+" "+r.symbol+" "+r.fund+" "+groupName(r.group)+" "+(SECTORS[r.key]||{}).name).toLowerCase().includes(q) || holdingMatch(r)));
 }
 function sorted(rows){
-  const {k,dir}=S.sort, get = r => k==="name"?r.name : k==="quad"?["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad) : r.m[k];
+  const {k,dir}=S.sort, get = r => k==="name"?r.name : k==="quad"?["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad) : COLS.some(c=>c.k===k)? rv(r,k) : r.m[k];
   return rows.slice().sort((a,b)=>{ const x=get(a), y=get(b); if(x==null) return 1; if(y==null) return -1;
     return (typeof x==="string"? x.localeCompare(y) : x-y)*dir; });
 }
@@ -224,8 +230,9 @@ function render(){
 
   <section id="ranking">
     <div class="sec-head"><div class="grow"><div class="eyebrow">Full ranking</div><h2>Every sector, scored</h2>
-      <p>Click any row for the full breakdown, chart and reasoning. Click a column header to sort. Returns include dividends and are in each fund's own currency (dollars for US funds, euros for European, yen for Japanese, Canadian dollars for Canadian).</p></div>
+      <p>Click any row for the full breakdown, chart and reasoning. Click a column header to sort. Returns include dividends. Choose whether they're shown in each fund's own currency (dollars for US funds, euros for European, yen for Japanese, Canadian dollars for Canadian) or converted into pounds. Comparisons with each region's market don't change.</p></div>
       <div class="controls">
+        <span class="seg" role="group" aria-label="Return currency" style="margin-left:0"><button type="button" data-cur="local" aria-pressed="${S.cur==="local"}">Own currency</button><button type="button" data-cur="gbp" aria-pressed="${S.cur==="gbp"}">Pounds (£)</button></span>
         <div class="tabs" role="group" aria-label="Region">${[["all","All"],...D.groups.map(g=>[g.id,groupShort(g.id)])].map(([id,l])=>
           `<button class="tab" type="button" data-region="${id}" aria-pressed="${S.region===id}">${esc(l==="Theme"?"Themes":l)}</button>`).join("")}</div>
         <input class="search" id="search" type="search" placeholder="Search sector, ticker or company (e.g. Nvidia)" value="${esc(S.q)}" aria-label="Search">
@@ -243,6 +250,10 @@ function render(){
       <div><b class="fit">✓</b> this sector has usually done well in the economy's current phase (see the top of the page).</div>
     </div>
   </section>
+
+  ${changesSection(D.changes,{nameOf:fundName,noun:"funds"})}
+
+  ${paperSection(D.paper,{noun:"sector funds",nameOf:fundName,mkt:"each holding's own regional market",cur:S.pcur})}
 
   ${backtestSection(D.backtest,{noun:"funds",one:"fund",vs:"the whole stock market of their own region",vsShort:"their region's whole market",vsList:vsListText()})}
 
@@ -296,7 +307,12 @@ function render(){
     <p class="disclaimer">For research and education only. This is not personalised investment advice. Check a fund's costs, holdings, risks and suitability for you before investing, and consider speaking to a licensed adviser.</p>
   </section>`;
 
-  renderTable(); renderRRG(); drawBacktest(D.backtest,{baselineLabel:"Market = $100"});
+  renderTable(); renderRRG(); drawBacktest(D.backtest); drawPaper(D.paper,S.pcur,true);
+  app.querySelectorAll("[data-cur]").forEach(b=>b.onclick=()=>{S.cur=b.dataset.cur;store.set("cur",S.cur);
+    app.querySelectorAll("[data-cur]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.cur===S.cur));renderTable();});
+  app.querySelectorAll("[data-pcur]").forEach(b=>b.onclick=()=>{S.pcur=b.dataset.pcur;store.set("pcur",S.pcur);
+    const y=scrollY; render(); scrollTo(0,y);});
+  app.querySelectorAll("#paper [data-open], #changes [data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
   app.querySelectorAll("[data-region]").forEach(b=>b.onclick=()=>{S.region=b.dataset.region;store.set("region",S.region);
     app.querySelectorAll("[data-region]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.region===S.region));renderTable();});
   $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
@@ -349,7 +365,7 @@ function renderTable(){
   const th=(k,l,c="",title="")=>`<th class="${c}" data-k="${k}" ${S.sort.k===k?`data-dir="${S.sort.dir>0?"▲":"▼"}"`:""} title="${esc(title)}">${l}</th>`;
   $("#tablebox").innerHTML = rows.length? `<table><thead><tr>
     <th class="l" style="cursor:default">#</th>${th("name","Sector","l sticky")}${th("score","Score (0–100)","l",`Ranks each fund against all ${n}: 50 = middle, 60+ favoured, under 40 weak. Signals: 80+ Strong overweight · 60–79 Overweight · 40–59 Neutral · 20–39 Underweight · under 20 Avoid.`)}${th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week")}
-    ${COLS.map(c=>th(c.k,c.l,"",c.tip)).join("")}${th("rs6m",vsHead,"","How far ahead (+) or behind (−) the whole stock market of its own region over 6 months")}
+    ${COLS.map(c=>th(c.k,c.l,"",`${c.tip}, ${curWord()}`)).join("")}${th("rs6m",vsHead,"","How far ahead (+) or behind (−) the whole stock market of its own region over 6 months")}
     ${th("trend","Trend","","Uptrend checks passed, out of 4")}${th("rsi","Heat (RSI)","","Compares the size of recent gains with recent losses (14 trading days), 0–100: 70 or more = sharp run-up, 30 or under = sharp fall")}
     ${th("vol","Swings","","How bumpy the price has been over the last 3 months, as a yearly rate (volatility)")}${th("offHigh","From 1-yr high","","How far below its highest price of the past year (0% = at the high)")}
     ${th("aum","Fund size","","Money invested in the fund, in US dollars")}${th("pe","P/E","","Price vs profits: what buyers pay for each $1 of the companies' profits over the last 12 months. Lower = cheaper")}
@@ -362,7 +378,7 @@ function renderTable(){
     <td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${m.score==null?"–":Math.round(m.score)}</span>
       <span class="bar"><i style="width:${m.score||0}%;background:${scoreColor(m.score)}"></i></span>${sigPill(m.signal)}</div></td>
     <td>${delta(m.d1w,scoreChangeTip(m))}</td>
-    ${COLS.map(c=>`<td class="n" style="${heat(m[c.k],c.cap)}">${pct(m[c.k])}</td>`).join("")}
+    ${COLS.map(c=>`<td class="n" style="${heat(rv(r,c.k),c.cap)}">${pct(rv(r,c.k))}</td>`).join("")}
     <td class="n" style="${heat(m.rs6m,.2)}" title="${esc(`${aheadBehind(m.rs6m)} ${relPrep(m.rs6m)}${bp} over 6 months`)}">${pct(m.rs6m)}</td>
     <td>${trendBars(m.trend)}</td>
     <td class="n" style="${m.rsi>=70?"color:var(--warn)":m.rsi<=30?"color:var(--info)":""}">${m.rsi==null?"–":m.rsi.toFixed(0)}</td>
@@ -432,6 +448,7 @@ function openDetail(sym){
         <p class="note" style="margin:0 0 8px">Each bar ranks this fund against all ${n} funds on one measure: 100 = best, 50 = middle, 0 = worst.</p>
         <div class="parts">${Object.entries(m.parts).map(([k,v])=>`<span title="${esc(partTip(k,bp))}">${esc(partName(k,bs==="world stocks"?"world stocks":"the "+bs))}</span><span class="bar"><i style="width:${v??0}%;background:${scoreColor(v??50)}"></i></span><span class="num" title="${v==null?"":esc(`Better than ${v}% of the ${n} funds on this measure. Counts for ${Math.round((S.data.weights[k]||0)*100)}% of the score.`)}">${v??"–"}</span>`).join("")}</div></div>
       ${scoreHistoryCard("funds")}
+      ${signalHistoryCard(S.data.changes,r.symbol)}
       <div class="card chartbox"><div class="row"><span class="eyebrow">Price</span>
         <span class="key"><i style="background:var(--ink)"></i>Price</span><span class="key ma"><i style="background:var(--accent)"></i>50-day average</span><span class="key ma"><i style="background:var(--warn)"></i>200-day average</span>
         <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("10y","10 yrs")}</span></div>
@@ -439,9 +456,10 @@ function openDetail(sym){
       ${m.relSeries?`<div class="card chartbox"><div class="row"><span class="eyebrow">Compared with ${esc(bp)}</span></div><div id="rchart"></div>
         <p class="note">Starts at 0% a year ago. Above 0% = ahead of the ${esc(bs)} since then (+4% = money here grew to 4% more than the same money in the ${esc(bs)}). A rising line = gaining ground on it; a falling line = losing ground.</p></div>`:""}
       <div class="stats">${[
-        tile("1 month",pct(m.r1m),m.r1m),tile("3 months",pct(m.r3m),m.r3m),tile("Since Jan 1",pct(m.ytd),m.ytd),tile("1 year",pct(m.r1y),m.r1y),
-        tile("3 yrs, yearly avg",pct(m.r3y),m.r3y,"Average growth per year over the last 3 years, including dividends"),
-        tile("5 yrs, yearly avg",pct(m.r5y),m.r5y,"Average growth per year over the last 5 years, including dividends"),
+        tile("1 month",pct(rv(r,"r1m")),rv(r,"r1m"),curWord()),tile("3 months",pct(rv(r,"r3m")),rv(r,"r3m"),curWord()),
+        tile("Since Jan 1",pct(rv(r,"ytd")),rv(r,"ytd"),curWord()),tile("1 year",pct(rv(r,"r1y")),rv(r,"r1y"),curWord()),
+        tile("3 yrs, yearly avg",pct(rv(r,"r3y")),rv(r,"r3y"),`Average growth per year over the last 3 years, including dividends, ${curWord()}`),
+        tile("5 yrs, yearly avg",pct(rv(r,"r5y")),rv(r,"r5y"),`Average growth per year over the last 5 years, including dividends, ${curWord()}`),
         tile(`vs ${esc(bs)}, 1 yr`,aheadBehind(m.rs1y),m.rs1y,br==null?"":`Past year: ${r.name} ${pct(m.r1y,1)}, ${bp} ${pct(br,1)}`),
         tile("vs 200-day avg price",pct(m.vs200),m.vs200,"Today's price compared with its average over the last 200 trading days (about 10 months). Above 0 = above its long-term trend line."),
         tile("Heat (RSI)",m.rsi==null?"–":`${m.rsi.toFixed(0)} · ${band(m.rsi,[70,30.5],["hot","normal","cold"])}`,null,"RSI compares the size of recent gains with recent losses over the last 14 trading days (about 3 weeks). 70 or more = a sharp run-up, which can pause; 30 or under = a sharp fall, which can bounce."),

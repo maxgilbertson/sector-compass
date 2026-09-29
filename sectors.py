@@ -3,9 +3,11 @@ import time
 
 import engine
 import funddata
+import tracking
 from universe import GROUPS, MACRO
 
 FX = {"EUR": "EURUSD=X", "JPY": "JPYUSD=X", "CAD": "CADUSD=X"}  # to put net assets on one scale
+PER_USD = {"GBP": "GBP=X", "EUR": "EUR=X", "JPY": "JPY=X", "CAD": "CAD=X"}  # units per US dollar, for pound returns
 
 # Business-cycle read from macro gauges. Deliberately simple and transparent.
 CYCLE_FAVOURS = {
@@ -107,14 +109,21 @@ def cycle_read(macro, spy):
 
 def build():
     symbols = ({g["bench"] for g in GROUPS} | {f[0] for g in GROUPS for f in g["funds"]}
-               | {m[0] for m in MACRO} | set(FX.values()))
+               | {m[0] for m in MACRO} | set(FX.values()) | set(PER_USD.values()))
     raw = engine.fetch_all(sorted(symbols))
+    # conversion rates: into pounds and into US dollars, from each fund's own currency
+    per_usd = {c: raw.get(sym) for c, sym in PER_USD.items() if engine.usable(raw.get(sym))}
+    gbp = per_usd.get("GBP")
+    to_gbp = {"USD": gbp, **{c: engine.cross(gbp, v) for c, v in per_usd.items() if c != "GBP" and gbp}}
+    to_usd = {"USD": None, **{c: engine.invert(v) for c, v in per_usd.items() if c != "GBP"}}
+    in_ccys = lambda d, ccy: {"gbp": engine.convert(d, to_gbp.get(ccy)) if to_gbp.get(ccy) or ccy == "GBP" else None,
+                              "usd": engine.convert(d, to_usd.get(ccy)) if ccy in to_usd else None}
     usd = {"USD": 1.0, **{c: (raw.get(s) or {}).get("price") for c, s in FX.items()}}
     rf_at = engine.rate_at(raw.get("^IRX"))
     errors = sorted(s for s, d in raw.items() if not engine.usable(d))
     macro = engine.macro_block(raw, MACRO)
 
-    rows, tracks, benches = [], [], {}
+    rows, tracks, benches, series, market_of = [], [], {}, {}, {}
     now = max(d["t"][-1] for d in raw.values() if engine.usable(d))
     rf = rf_at(now)
     for g in GROUPS:
@@ -122,8 +131,10 @@ def build():
         b = b if engine.usable(b) else None
         if b:
             bm = engine.analyse(engine.Track(b), b, rf)
+            b_ccy = in_ccys(b, b.get("ccy"))
             benches[g["id"]] = {"symbol": g["bench"], "name": g["bench_name"],
-                                "m": {k: bm[k] for k in ("vs200", "r3m", "r6m", "r1y", "mdd", "vol")}}
+                                "m": {k: bm[k] for k in ("vs200", "r1d", "r1w", "r3m", "r6m", "r1y", "mdd", "vol")},
+                                "gbp": engine.period_returns(engine.Track(b_ccy["gbp"])) if b_ccy["gbp"] else None}
         for sym, name, key in g["funds"]:
             d = raw.get(sym)
             if not engine.usable(d):
@@ -131,9 +142,15 @@ def build():
             tr = engine.Track(d, b)
             m = engine.analyse(tr, d, rf)
             if m:
+                conv = in_ccys(d, d["ccy"])
                 rows.append({"symbol": sym, "name": name, "key": key, "group": g["id"],
-                             "fund": d["name"], "ccy": d["ccy"], "m": m})
+                             "fund": d["name"], "ccy": d["ccy"], "m": m,
+                             "gbp": engine.period_returns(engine.Track(conv["gbp"])) if conv["gbp"] else None})
                 tracks.append(tr)
+                if conv["gbp"] and conv["usd"]:
+                    series[sym] = conv
+                    if b:
+                        market_of[sym] = in_ccys(b, b.get("ccy"))
     hist_cuts = engine.apply_scores(rows, tracks, rf_at)
     t0 = time.time()
     bt = engine.backtest(tracks, rf_at)
@@ -154,6 +171,10 @@ def build():
         if g["id"] in benches:
             benches[g["id"]]["facts"] = facts(g["bench"], (raw.get(g["bench"]) or {}).get("ccy"))
     cyc = cycle_read(macro, benches.get("us", {}).get("m"))
+    acwi = raw.get("ACWI")
+    world_series = {"gbp": engine.convert(acwi, to_gbp["USD"]), "usd": acwi} if engine.usable(acwi) and gbp else None
+    paper = tracking.paper_report("sectors", series, market_of, world_series) if world_series else None
+    changes = tracking.signal_log("sectors", rows, "symbol")
     for sym in macro:
         macro[sym].pop("c", None)
     return {
@@ -161,5 +182,5 @@ def build():
         "groups": [{k: g[k] for k in ("id", "name", "bench", "bench_name", "ccy", "plain", "short")} for g in GROUPS],
         "benches": benches, "rows": rows, "macro": macro, "cycle": cyc, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
-        "backtest": bt, "backtestSeconds": bt_seconds,
+        "backtest": bt, "backtestSeconds": bt_seconds, "paper": paper, "changes": changes,
     }

@@ -10,6 +10,7 @@ import time
 
 import engine
 import funddata
+import tracking
 
 WORLD, WORLD_NAME = "ACWI", "MSCI ACWI"
 
@@ -150,6 +151,9 @@ def build():
     macro = engine.macro_block(raw, MACRO)
     world_tr = engine.Track(world)
     world_m = engine.analyse(world_tr, world, rf)
+    gbp_rate = raw.get("GBP=X") if engine.usable(raw.get("GBP=X")) else None  # pounds per US dollar
+    world_series = {"gbp": engine.convert(world, gbp_rate), "usd": world} if gbp_rate else None
+    series = {}
 
     def rel3m(sym):
         d = raw.get(sym)
@@ -179,9 +183,12 @@ def build():
             ft = engine.Track(fx)
             i = ft.n - 1
             strength = lambda n: fx["c"][i - n] / fx["c"][i] - 1 if i >= n else None  # + = local currency gained vs USD
-            cur = {"rate": fx["raw"][-1], "d1": strength(1), "m1": strength(21), "m3": strength(63), "y1": strength(252),
+            cur = {"rate": fx["raw"][-1], "d1": strength(1), "w1": strength(5), "m1": strength(21), "m3": strength(63), "y1": strength(252),
                    "y3": strength(756), "spark": [round(1 / v, 8) for v in fx["c"][-253:]]}
         src = idx if idx_ok else fund
+        fund_gbp = engine.convert(fund, gbp_rate) if gbp_rate else None
+        if fund_gbp:
+            series[code] = {"gbp": fund_gbp, "usd": fund}
         rows.append({
             "code": code, "symbol": code, "name": name, "region": region, "iso": iso, "ll": ll,
             "dm": code in DEVELOPED, "traits": traits,
@@ -192,6 +199,7 @@ def build():
                                               "rsi", "vs50", "vs200", "trend", "offHigh", "mdd", "vol",
                                               "series", "ma50", "ma200", "long")},
             "fx": cur,
+            "gbp": engine.period_returns(engine.Track(fund_gbp)) if fund_gbp else None,
             "status": {"period": src.get("period"), "tz": src.get("tz"), "mtime": src.get("mtime")},
         })
         tracks.append(tr)
@@ -226,11 +234,14 @@ def build():
     for sym in macro:
         macro[sym].pop("c", None)
     macro["SMH_REL"], macro["EEM_REL"] = rel3m("SMH"), rel3m("EEM")
+    paper = tracking.paper_report("countries", series, {c: world_series for c in series}, world_series) if world_series else None
+    changes = tracking.signal_log("countries", rows, "code")
     return {
         "generated": time.time(), "marketTime": max((d.get("mtime") or 0) for d in raw.values() if "error" not in d),
         "world": {"symbol": WORLD, "name": WORLD_NAME, "facts": wf,
-                  "m": {k: world_m[k] for k in ("r1d", "r1m", "r3m", "ytd", "r1y", "vs200", "trend")}},
+                  "m": {k: world_m[k] for k in ("r1d", "r1w", "r1m", "r3m", "ytd", "r1y", "vs200", "trend")},
+                  "gbp": engine.period_returns(engine.Track(world_series["gbp"])) if world_series else None},
         "rows": rows, "macro": macro, "rules": rules, "traits": TRAITS, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
-        "backtest": bt, "backtestSeconds": bt_seconds,
+        "backtest": bt, "backtestSeconds": bt_seconds, "paper": paper, "changes": changes,
     }
