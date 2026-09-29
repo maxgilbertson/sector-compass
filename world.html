@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>World Compass</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Countries">
+<meta name="theme-color" content="#0B1110" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEF1F0" media="(prefers-color-scheme: light)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="common.css">
+<script src="https://cdn.jsdelivr.net/npm/d3-array@3.2.4/dist/d3-array.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo@3.1.1/dist/d3-geo.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>World <span>Compass</span></h1><span class="eyebrow">Global markets tracker</span></div>
+    <nav class="pages" aria-label="Pages"><a href="index.html">Sectors</a><a href="world.html" aria-current="page">Countries</a></nav>
+    <div class="status"><span class="dot" id="dot"></span><span id="stamp">Loading live prices…</span></div>
+    <button class="btn primary" id="refresh" type="button">Refresh now</button>
+  </div>
+</header>
+
+<main class="wrap" id="app"><div class="loading">Fetching live index levels, currencies and country funds for 36 markets…</div></main>
+<div class="tip" id="tip" hidden></div>
+
+<script src="common.js"></script>
+<script>
+"use strict";
+/* ---------------------------------------------------------------- static knowledge */
+const INFO = {
+  US:{market:"The world's largest stock market, dominated by mega-cap technology and communication companies.",drivers:"US earnings growth (especially Big Tech and AI spending), Federal Reserve policy, bond yields.",risks:"High valuations and concentration in a handful of giant companies; policy and interest-rate shocks."},
+  CA:{market:"Heavy in banks, oil and gas producers, pipelines and miners.",drivers:"Oil, gas and metal prices, Canadian banks and housing, trade with the US.",risks:"Commodity downturns, household debt and housing, US tariffs."},
+  MX:{market:"Telecoms, retail, banks and mining groups.",drivers:"US demand and manufacturing moving closer to the US, the peso, Banxico rates, remittances.",risks:"US trade policy, domestic judicial and policy reforms, security."},
+  BR:{market:"Large weights in commodity exporters (Vale, Petrobras) and banks.",drivers:"Iron ore and oil prices, Chinese demand, the real, very high local interest rates.",risks:"Government finances, political interference in state companies, currency swings."},
+  AR:{market:"A small, volatile market. The US-listed fund also holds MercadoLibre and other Argentina-linked companies, so it can move differently from the Merval.",drivers:"Progress on inflation and reforms, the peso and currency controls, IMF support, energy from Vaca Muerta.",risks:"A long history of crises and defaults, very high inflation, abrupt policy shifts."},
+  CL:{market:"Banks, utilities, retailers and lithium- and copper-linked companies.",drivers:"Copper and lithium prices, the peso, Chinese demand.",risks:"Commodity swings, political and constitutional uncertainty."},
+  GB:{market:"A global, value-heavy index: energy majors, miners, banks, pharma and consumer staples, earning most of its revenue abroad.",drivers:"Oil and metal prices, the pound (a weaker pound lifts FTSE 100 profits in sterling), Bank of England policy.",risks:"Little exposure to fast-growing tech; UK growth and public-finance worries; sterling swings."},
+  DE:{market:"Industrial and export-led: autos, chemicals, industrials, SAP, Siemens and Allianz.",drivers:"The global manufacturing cycle, demand from China and the US, energy costs, ECB policy, spending on infrastructure and defence.",risks:"Energy prices, trade tensions, disruption in the car industry."},
+  FR:{market:"Led by luxury goods (LVMH, Hermès), TotalEnergies, aerospace, pharma and banks.",drivers:"Global luxury demand (especially China and the US), energy prices, ECB policy.",risks:"A luxury slowdown, French budget and political uncertainty."},
+  NL:{market:"Dominated by chip-equipment maker ASML, with payments, consumer and financial companies.",drivers:"Chip-equipment orders and AI investment, export controls, ECB policy.",risks:"Heavy concentration in ASML; restrictions on exports to China."},
+  ES:{market:"Banks (Santander, BBVA), Inditex, Iberdrola and telecoms.",drivers:"Interest rates (bank margins), Spanish growth and tourism, banks' Latin American businesses.",risks:"Falling rates squeezing banks, Latin American currency swings."},
+  IT:{market:"Banks, energy (ENI, Enel), luxury and cars (Ferrari, Stellantis).",drivers:"Bank margins and ECB rates, energy prices, the gap between Italian and German bond yields.",risks:"High public debt, bond-spread blow-outs, political shifts."},
+  CH:{market:"Defensive giants: Nestlé, Roche, Novartis, plus UBS and Richemont.",drivers:"Global demand for healthcare and staples, the Swiss franc as a safe haven.",risks:"A strong franc hurts exporters' earnings; drug-pricing pressure; low growth."},
+  SE:{market:"Industrials (Atlas Copco, Volvo), banks, telecoms equipment and investment companies.",drivers:"The global industrial cycle, the krona, Riksbank rates, housing.",risks:"Rate-sensitive housing market, cyclical exposure."},
+  NO:{market:"Energy (Equinor, Aker BP), salmon farmers, DNB bank and Norsk Hydro.",drivers:"Oil and gas prices, salmon prices, the krone.",risks:"Falling oil prices, the energy transition, windfall taxes."},
+  DK:{market:"Dominated by Novo Nordisk, plus Maersk, DSV, Vestas, Ørsted and Carlsberg.",drivers:"Obesity and diabetes drug sales, shipping rates, wind-energy policy.",risks:"Heavy dependence on Novo Nordisk; troubles in the wind sector."},
+  BE:{market:"Anheuser-Busch InBev, KBC, UCB and holding companies.",drivers:"Beer volumes and emerging-market currencies (AB InBev), ECB rates.",risks:"Concentration in a few companies, a consumer slowdown."},
+  PL:{market:"Banks, insurers, energy and mining (PKO, PZU, Orlen, KGHM), plus retailers and game developers.",drivers:"Domestic growth, interest rates (bank margins), EU funds, the zloty.",risks:"Bank taxes and regulation, proximity to the war in Ukraine."},
+  TR:{market:"Banks, industrial conglomerates, airlines and steel.",drivers:"Inflation and interest-rate policy, the lira, tourism, energy import costs.",risks:"Very high inflation, currency collapses, sudden policy U-turns."},
+  JP:{market:"Cars, electronics, trading houses and banks. The Nikkei is price-weighted, so a few high-priced stocks matter a lot; the US fund follows the broader MSCI Japan.",drivers:"The yen (a weak yen lifts exporters), corporate-governance reforms and buybacks, Bank of Japan policy.",risks:"A stronger yen, Bank of Japan rate rises, global trade."},
+  CN:{market:"The Shanghai Composite is mostly state-linked banks, energy and industrial companies. The US fund (MCHI) is dominated by internet and tech names such as Tencent and Alibaba, so the two can diverge sharply.",drivers:"Government stimulus, the property sector, consumer confidence, US-China relations.",risks:"The property slump, regulatory crackdowns, geopolitics and sanctions."},
+  HK:{market:"The Hang Seng includes mainland Chinese giants (Tencent, Alibaba, Meituan) plus HSBC and AIA. The US fund (EWH) leaves out mainland companies and holds mainly local banks, insurers, property and utilities, so the two can diverge sharply.",drivers:"China's economy and policy, US interest rates (the Hong Kong dollar is pegged to the US dollar), property.",risks:"Property downturn, China slowdown, geopolitics."},
+  IN:{market:"Banks, IT services, energy (Reliance) and consumer companies.",drivers:"Strong domestic growth, steady local investor inflows, oil prices (a big importer), RBI policy.",risks:"High valuations, oil price spikes, rupee weakness."},
+  KR:{market:"Dominated by Samsung Electronics and SK Hynix (memory chips), plus cars, batteries and shipbuilding.",drivers:"The memory-chip cycle and AI demand, exports, the won, 'value-up' governance reforms.",risks:"Chip downturns, North Korea, governance at family-run conglomerates."},
+  TW:{market:"TSMC dominates, alongside chip designers and electronics makers.",drivers:"Global semiconductor and AI demand, the Apple and Nvidia supply chains.",risks:"Extreme concentration in TSMC, cross-strait tensions, the chip cycle."},
+  AU:{market:"Banks and miners (BHP, CBA, Rio Tinto), plus healthcare (CSL).",drivers:"Iron ore and Chinese demand, RBA rates, housing, the Australian dollar.",risks:"A China slowdown, heavy bank weighting, housing."},
+  NZ:{market:"A small, defensive market: healthcare, utilities and infrastructure.",drivers:"RBNZ interest rates, dairy exports, tourism.",risks:"Rate-sensitive valuations, a small and concentrated market."},
+  SG:{market:"Banks (DBS, OCBC, UOB), property trusts and telecoms.",drivers:"Interest rates (bank margins), regional trade, wealth-management flows.",risks:"Falling rates, trade tensions in Asia."},
+  ID:{market:"Banks, telecoms, consumer companies, and coal and nickel miners.",drivers:"Domestic consumption, commodity exports, the rupiah, Bank Indonesia.",risks:"Currency weakness, commodity swings, policy surprises, foreign outflows."},
+  MY:{market:"Banks, utilities, palm-oil plantations and energy companies.",drivers:"Oil, gas and palm-oil prices, data-centre investment, the ringgit.",risks:"Commodity swings, politics."},
+  TH:{market:"Energy (PTT), banks, telecoms and tourism-linked companies.",drivers:"Tourism (especially from China), domestic politics, oil prices.",risks:"Political instability, weak growth, household debt."},
+  PH:{market:"Conglomerates, banks, property developers and telecoms.",drivers:"Remittances and consumer spending, interest rates, oil prices (an importer).",risks:"Inflation, peso weakness, a small and thinly traded market."},
+  VN:{market:"Property developers, banks and conglomerates. The US fund also holds foreign companies with big Vietnamese operations.",drivers:"Manufacturing moving from China, credit growth, a possible upgrade to emerging-market status.",risks:"Property and bond-market stress, foreign-ownership limits, US tariffs."},
+  IL:{market:"Banks, technology, pharma (Teva) and defence (Elbit).",drivers:"The tech sector, interest rates, the shekel, geopolitics.",risks:"Regional conflict, domestic political tension."},
+  SA:{market:"Banks, Saudi Aramco, petrochemicals and telecoms.",drivers:"Oil prices and OPEC+ output decisions, Vision 2030 spending.",risks:"Falling oil prices, a small free float in Aramco, regional tensions."},
+  ZA:{market:"Global miners (gold, platinum), Naspers/Prosus (through its Tencent stake), banks and retailers.",drivers:"Gold and platinum prices, the rand, electricity supply, China.",risks:"Rand volatility, power shortages, political risk."},
+};
+const REGIONS=["Americas","Europe","Asia-Pacific","Middle East & Africa"];
+const MACRO_HINT = {
+  "DX-Y.NYB":"A rising dollar shrinks foreign returns for dollar investors and squeezes emerging markets.",
+  "^VIX":"Below 16 is calm, above 25 is stress. Stress hits emerging markets hardest.",
+  "^TNX":"Higher US yields pull money back to the US and tighten global financing.",
+  "CL=F":"Helps oil exporters (Norway, Saudi, Canada, Brazil); hurts importers (India, Japan, Korea, Turkey).",
+  "HG=F":"'Dr Copper': demand gauge for mining-heavy markets (Chile, Australia, South Africa).",
+  "GC=F":"Safe-haven demand; supports South African and Australian gold miners.",
+};
+const METRICS = {
+  score:{label:"Score",get:r=>r.m.score,center:50,cap:50,fmt:v=>v.toFixed(0)},
+  d1w:{label:"Score change, 1 week",get:r=>r.m.d1w,center:0,cap:12,fmt:v=>(v>0?"+":"")+v.toFixed(1)},
+  today:{label:"Today (local index)",get:r=>r.local.r1d,center:0,cap:.02,fmt:v=>pct(v,1)},
+  r1m:{label:"1 month (US dollars)",get:r=>r.m.r1m,center:0,cap:.08,fmt:v=>pct(v,1)},
+  ytd:{label:"Year to date (US dollars)",get:r=>r.m.ytd,center:0,cap:.3,fmt:v=>pct(v,0)},
+  r1y:{label:"1 year (US dollars)",get:r=>r.m.r1y,center:0,cap:.4,fmt:v=>pct(v,0)},
+  fx:{label:"Currency vs USD, 1 year",get:r=>r.fx?r.fx.y1:0,center:0,cap:.1,fmt:v=>pct(v,1)},
+  value:{label:"Value score",get:r=>r.m.value,center:50,cap:50,fmt:v=>v.toFixed(0)},
+  pe:{label:"P/E vs world",get:r=>r.m.peRel==null?null:-r.m.peRel,center:0,cap:.5,fmt:v=>pct(-v,0)},
+};
+const RET = [{k:"r1m",l:"1M",cap:.08},{k:"r3m",l:"3M",cap:.15},{k:"ytd",l:"YTD",cap:.3},{k:"r1y",l:"1Y",cap:.4},{k:"r3y",l:"3Y/yr",cap:.2}];
+
+/* ---------------------------------------------------------------- state */
+const store = makeStore("wc.");
+const S = {data:null, filter:store.get("filter","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}), basis:store.get("basis","usd"),
+           metric:store.get("metric","score"), rrg:store.get("rrg","all"), sel:null, range:"1y"};
+let TOPO=null;
+const isOpen = r => { const p=r.status&&r.status.period, now=Date.now()/1000; return !!(p&&p.start&&p.end&&p.start<=now&&now<p.end); };
+const rows = () => S.data.rows;
+const byCode = c => rows().find(r=>r.code===c);
+function mixColor(v,center,cap){ if(v==null) return "var(--surface2)";
+  const t=Math.max(-1,Math.min(1,(v-center)/cap)); return `color-mix(in oklab,var(${t>=0?"--pos":"--neg"}) ${Math.round(12+Math.abs(t)*68)}%,var(--surface2))`; }
+function traitChips(r){ return r.traits.map(t=>`<span class="chip">${esc(S.data.traits[t]||t)}</span>`).join("")+`<span class="chip">${r.dm?"Developed":"Emerging"} market</span>`; }
+
+/* ---------------------------------------------------------------- narrative */
+function narrative(r){
+  const m=r.m, l=r.local, fx=r.fx, out=[];
+  if(m.r1y!=null) out.push(`In US dollars, ${r.name} is ${m.r1y>=0?"up":"down"} ${pct(Math.abs(m.r1y),1,false)} over 12 months, ${m.rs1y==null?"":`${Math.abs(m.rs1y*100).toFixed(1)} pts ${m.rs1y>=0?"ahead of":"behind"} world stocks.`}`);
+  if(l.r1y!=null) out.push(`In ${r.index.ccy}, the ${r.index.name} is ${pct(l.r1y,1)} over the year`+(fx&&fx.y1!=null?`, while the ${r.index.ccy} ${fx.y1>=0?"gained":"lost"} ${pct(Math.abs(fx.y1),1,false)} against the dollar. ${Math.abs(fx.y1)>=0.03?(fx.y1>0?"The currency added to dollar returns.":"The currency ate into dollar returns."):"Currency made little difference."}`:"."));
+  if(l.r1y!=null&&m.r1y!=null&&fx&&fx.y1!=null&&!r.index.proxy){
+    // what the fund earned in local currency, to separate currency effects from differences in holdings
+    const localFund=(1+m.r1y)/(1+fx.y1)-1;
+    if(Math.abs(l.r1y-localFund)>0.05) out.push(`Index vs fund: in ${r.index.ccy}, the ${r.etf} fund returned ${pct(localFund,1)} against ${pct(l.r1y,1)} for the ${r.index.name}. That ${pts(Math.abs(l.r1y-localFund),0)} gap comes from the two holding a different mix of companies (and dividends), not from the currency.`);
+  }
+  out.push(m.trend===4?"Clean uptrend in dollar terms: above both its 50- and 200-day averages, and the 200-day is rising."
+    : m.trend===0?"Clear downtrend in dollar terms: below both moving averages and the 200-day is falling."
+    : m.vs200>0?`Mixed trend (${m.trend}/4 trend checks pass), still above the 200-day average.`
+    : `Mixed trend (${m.trend}/4 trend checks pass), below the 200-day average.`);
+  const qx={Leading:"Outperforming world stocks and relative momentum is still rising.",Weakening:"Still ahead of world stocks, but relative momentum is fading.",
+    Improving:"Still behind world stocks, but relative momentum has turned up.",Lagging:"Behind world stocks with falling relative momentum."}[m.quad];
+  if(qx) out.push("Rotation: "+qx);
+  const ht=historyText(m); if(ht) out.push("Momentum of the rating: "+ht);
+  const wpe=(S.data.world.facts||{}).pe;
+  if(m.pe!=null&&wpe) out.push(`Valuation: P/E ${m.pe.toFixed(1)} vs ${wpe.toFixed(1)} for world stocks (${m.peRel>0?"a "+pct(m.peRel,0,false)+" premium":"a "+pct(-m.peRel,0,false)+" discount"}), value score ${m.value==null?"–":Math.round(m.value)}/100. `+
+    (m.peRel<-0.25?"Cheap markets are often cheap for a reason (sector mix, governance, politics), but they carry lower expectations.":m.peRel>0.2?"A premium needs strong earnings growth to justify it.":""));
+  if(m.tail.length||m.head.length) out.push(`Backdrop: ${m.tail.length?"tailwinds from "+m.tail.join(", ").toLowerCase():""}${m.tail.length&&m.head.length?"; ":""}${m.head.length?"headwinds from "+m.head.join(", ").toLowerCase():""}.`);
+  if(m.corr!=null) out.push(`Diversification: correlation with world stocks ${m.corr.toFixed(2)} over the past year. ${m.corr<0.5?"Low, so it has behaved quite differently from the global market.":m.corr>0.85?"High, so it adds little diversification to a global portfolio.":"Moderate."}`);
+  if(m.vol!=null) out.push(`Risk: ${pct(m.vol,0,false)} annualised volatility (3M, in dollars), worst fall in the past year ${pct(m.mdd,1)}.`);
+  if(m.rsi!=null){ if(m.rsi>=70) out.push(`Timing: RSI ${m.rsi.toFixed(0)}, short-term overbought.`); else if(m.rsi<=30) out.push(`Timing: RSI ${m.rsi.toFixed(0)}, short-term oversold.`); }
+  return out;
+}
+function reasonShort(r){
+  const m=r.m, bits=[`1Y ${pct(m.r1y,0)} in USD`,`trend ${m.trend}/4`];
+  if(m.quad) bits.push(m.quad.toLowerCase());
+  if(m.peRel!=null) bits.push(`P/E ${m.peRel>0?"+":""}${Math.round(m.peRel*100)}% vs world`);
+  if(m.d1w!=null&&Math.abs(m.d1w)>=1) bits.push(`score ${m.d1w>0?"+":""}${m.d1w.toFixed(0)} this week`);
+  return bits.join(" · ");
+}
+
+/* ---------------------------------------------------------------- page */
+function render(){
+  const D=S.data, app=$("#app"), open=rows().filter(isOpen);
+  const movers=rows().filter(r=>r.local.r1d!=null).sort((a,b)=>b.local.r1d-a.local.r1d);
+  app.innerHTML = `
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">World map</div><h2>How the world's markets stand</h2>
+      <p>Colour each market by the measure that matters to you. Click a country for its full breakdown. Scores and returns are in US dollars unless stated.</p></div>
+      <div class="controls"><label class="muted" for="metric" style="font-size:13px">Colour by</label>
+        <select id="metric" class="btn">${Object.entries(METRICS).map(([k,v])=>`<option value="${k}" ${S.metric===k?"selected":""}>${esc(v.label)}</option>`).join("")}</select></div></div>
+    <div class="mapwrap">
+      <div class="card mapbox"><div id="map"><p class="muted">Drawing the map…</p></div>
+        <div class="row" style="display:flex;align-items:center;gap:10px;margin-top:8px;font-size:12px" id="legend"></div></div>
+      <div class="card panel" style="display:grid;gap:14px;align-content:start">
+        <div><div class="eyebrow" style="margin-bottom:6px">Open right now (${open.length})</div>
+          <div class="chips">${open.map(r=>`<span class="chip" data-open="${r.code}" role="button" tabindex="0" style="cursor:pointer"><span class="open"></span>${esc(r.name)}</span>`).join("")||'<span class="muted" style="font-size:13px">All tracked markets are closed.</span>'}</div></div>
+        <div><div class="eyebrow" style="margin-bottom:4px">Today's moves (local index)</div>
+          ${[...movers.slice(0,4),...movers.slice(-4)].map(r=>`<div class="idea" data-open="${r.code}" role="button" tabindex="0"><span class="nm">${esc(r.name)} <span class="muted" style="font-weight:400;font-size:12.5px">${esc(r.index.name)}</span></span><span class="sc ${cls(r.local.r1d)}">${pct(r.local.r1d,2)}</span></div>`).join("")}</div>
+        <div class="muted" style="font-size:12.5px">World stocks (MSCI ACWI) today: <b class="${cls(D.world.m.r1d)}">${pct(D.world.m.r1d,2)}</b> · 1 year ${pct(D.world.m.r1y,1)}</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Global backdrop</div><h2>What today's conditions favour</h2>
+      <p>Countries react differently to the dollar, oil, metals and risk appetite. These transparent rules flag which kinds of market have a tailwind or a headwind right now.</p></div></div>
+    <div class="backdrop">
+      <div class="card cycle"><div class="rules">${D.rules.map(ruleHTML).join("")}</div></div>
+      <div class="macro">${macroTiles()}</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Shortlist</div><h2>Markets worth a closer look</h2>
+      <p>Momentum and trend (the score), valuation (the value score) and the backdrop, side by side. Read the <a href="#limits">limitations</a> before acting on it.</p>
+      ${btSummaryLine(D.backtest,"countries","world stocks")}</div></div>
+    <div class="ideas four">${ideas()}</div>
+  </section>
+
+  <section class="two">
+    <div class="card panel rrgbox">
+      <div class="sec-head"><div class="grow"><div class="eyebrow">Value vs momentum</div><h3>Cheap, expensive, rising, falling</h3>
+        <p style="font-size:13px">Left = cheaper than world stocks on P/E. Up = stronger score. Top-left markets are both cheap and in favour; bottom-right are pricey and out of favour.</p></div></div>
+      <div id="vm"></div>
+    </div>
+    <div class="card panel rrgbox">
+      <div class="sec-head"><div class="grow"><div class="eyebrow">Rotation map vs world stocks</div><h3>Who is gaining leadership?</h3>
+        <p style="font-size:13px">Right = beating world stocks in dollars. Up = that lead is growing. Tails show the last 6 weeks.</p></div>
+        <select id="rrgsel" class="btn" aria-label="Region for rotation map"><option value="all">All regions</option>${REGIONS.map(g=>`<option value="${g}" ${S.rrg===g?"selected":""}>${esc(g)}</option>`).join("")}</select></div>
+      <div id="rrg"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">By region</div><h2>Regional picture</h2></div></div>
+    <div class="regions">${REGIONS.map(regionCard).join("")}</div>
+  </section>
+
+  <section id="ranking">
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Full ranking</div><h2>Every market, scored</h2>
+      <p>Scores measure each country fund in US dollars against world stocks. Switch returns between the local index in its own currency and what a dollar investor actually got.</p></div>
+      <div class="controls">
+        <span class="seg" role="group" aria-label="Return basis" style="margin-left:0"><button type="button" data-basis="usd" aria-pressed="${S.basis==="usd"}">US dollars</button><button type="button" data-basis="local" aria-pressed="${S.basis==="local"}">Local index</button></span>
+        <div class="tabs" role="group" aria-label="Filter">${[["all","All"],["dm","Developed"],["em","Emerging"],...REGIONS.map(g=>[g,g==="Middle East & Africa"?"ME & Africa":g])].map(([id,l])=>
+          `<button class="tab" type="button" data-filter="${esc(id)}" aria-pressed="${S.filter===id}">${esc(l)}</button>`).join("")}</div>
+        <input class="search" id="search" type="search" placeholder="Search country, index or company (e.g. TSMC)" value="${esc(S.q)}" aria-label="Search">
+      </div></div>
+    <div class="tablebox" id="tablebox"></div>
+    <div class="legend-row">
+      <span><b>Today</b> the local index's move today; <span class="open"></span> = trading now</span>
+      <span><b>Currency 1Y</b> + means the local currency gained against the dollar</span>
+      <span><b>Value</b> 0–100, higher = cheaper P/E and higher dividend yield</span>
+      <span><b>Corr</b> correlation with world stocks; lower = better diversifier</span>
+      <span><b>Backdrop</b> tailwinds minus headwinds from the rules above</span>
+    </div>
+  </section>
+
+  ${backtestSection(D.backtest,{noun:"countries",benchWord:"world stocks (MSCI ACWI)"})}
+
+  <section>
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Method</div><h2>How to use this</h2></div></div>
+    <div class="method">
+      <div class="card"><h3>What is measured</h3>
+        <p>Each country has two lines: its headline index in local currency (what local investors see) and a US-listed country fund in US dollars, including dividends (what a global investor actually gets).</p>
+        <p>The score uses the same six ingredients as the Sectors page, measured on the dollar fund against MSCI ACWI:</p>
+        <ul>${Object.entries(D.weights).map(([k,w])=>`<li>${esc(partName(k))}: ${Math.round(w*100)}%</li>`).join("")}</ul></div>
+      <div class="card"><h3>Reading it</h3><ul>
+        <li><b>Score</b> describes trend and momentum. For countries the backtest found no reliable edge, so don't use it alone to pick winners.</li>
+        <li><b>Value score</b> ranks cheapness (60% P/E, 40% dividend yield). Cheap markets can stay cheap, but start from lower expectations.</li>
+        <li><b>Currency</b> can add or remove several percent a year for foreign investors. Compare the local and dollar views.</li>
+        <li><b>Backdrop</b> shows which kinds of market today's dollar, oil, metals and risk appetite tend to help.</li>
+        <li><b>Correlation</b> below 0.5 means a market has behaved quite differently from world stocks, which helps diversify.</li></ul></div>
+      <div class="card"><h3>What updates, and when</h3>
+        <p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): index levels, currencies, fund prices, returns, scores, score changes, open/closed status, the backdrop rules, the map and every verdict.</p>
+        <p><b>Once a day:</b> P/E, yield, fees and top holdings. <b>Once a month:</b> the backtest adds the latest completed month.</p>
+        <p class="muted" style="font-size:12.5px">${D.rows.length} markets · built in ${D.buildSeconds}s${D.errors.length?` · unavailable: ${esc(D.errors.join(", "))}`:""}</p></div>
+    </div>
+  </section>
+
+  <section id="limits">
+    <div class="sec-head"><div class="grow"><div class="eyebrow">Read before relying on it</div><h2>Limitations</h2>
+      <p>A screening and monitoring tool, not a forecast. Country investing adds currency, political and liquidity risks on top of market risk.</p></div></div>
+    <div class="method">
+      <div class="card"><h3>The data</h3><ul>
+        <li>Prices come from Yahoo Finance's free, unofficial feed, can be ~15 minutes delayed, and can have gaps or errors. Short glitches that snap back are filtered out.</li>
+        <li>Yahoo has no usable index history for Chile, Poland, Thailand, the Philippines, Vietnam or Saudi Arabia, so their "local index" is the US fund converted back into local currency. Egypt is not covered.</li>
+        <li>Most indices are price-only, but the DAX, Ibovespa, NZX 50 and Oslo benchmark include dividends, so their local returns look higher.</li>
+        <li>The headline index and the US fund don't hold identical companies. Hong Kong, China and Argentina differ the most (see each country's notes).</li>
+        <li>Open/closed status uses each exchange's regular session and ignores lunch breaks and holidays that Yahoo doesn't report.</li></ul></div>
+      <div class="card"><h3>The analysis</h3><ul>
+        <li>In the backtest, the momentum score had <b>no reliable edge</b> for choosing countries. See <a href="#track">the track record</a>.</li>
+        <li>Valuation uses each fund's trailing P/E. Markets with more banks and miners naturally trade on lower P/Es than tech-heavy ones, so cheap isn't the same as good value.</li>
+        <li>The value score and backdrop rules have not been backtested, because Yahoo doesn't provide historical P/E ratios.</li>
+        <li>The backdrop rules and the market traits (energy-heavy, tech-heavy and so on) are simplifications chosen for this tool.</li></ul></div>
+      <div class="card"><h3>Investing with it</h3><ul>
+        <li>Dollar returns suit a US-dollar investor. If you invest in pounds, euros or another currency, your own currency's moves against the dollar change the result.</li>
+        <li>Country funds carry fees, can trade thinly, and may not be available in your country or tax wrapper.</li>
+        <li>Smaller markets can be hit by capital controls, sanctions, index reclassifications or sudden political change.</li>
+        <li>Past performance does not guarantee future returns.</li></ul></div>
+    </div>
+    <p class="disclaimer">For research and education only. This is not personalised investment advice. Check a fund's costs, holdings, risks and suitability for you before investing, and consider speaking to a licensed adviser.</p>
+  </section>`;
+
+  renderTable(); renderMap(); renderRRG(); renderVM(); drawBacktest(D.backtest);
+  $("#metric").onchange=e=>{S.metric=e.target.value;store.set("metric",S.metric);renderMap();};
+  $("#rrgsel").onchange=e=>{S.rrg=e.target.value;store.set("rrg",S.rrg);renderRRG();};
+  $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
+  app.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;store.set("filter",S.filter);
+    app.querySelectorAll("[data-filter]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.filter===S.filter));renderTable();});
+  app.querySelectorAll("[data-basis]").forEach(b=>b.onclick=()=>{S.basis=b.dataset.basis;store.set("basis",S.basis);
+    app.querySelectorAll("[data-basis]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.basis===S.basis));renderTable();});
+  app.querySelectorAll(".ideas [data-open], .panel [data-open], .regions [data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
+}
+
+function ruleHTML(x){
+  const hit=rows().filter(r=>x.tail.some(t=>r.traits.includes(t))), hurt=rows().filter(r=>x.head.some(t=>r.traits.includes(t)));
+  const names=l=>l.map(r=>r.name).join(", ");
+  return `<div class="r"><div><b>${esc(x.name)}</b> ${x.active?"":'<span class="chip off">not active</span>'}</div><div class="muted" style="font-size:13.5px">${esc(x.note)}</div>
+    ${x.active&&hit.length?`<div style="font-size:13px"><span class="chip tail">Helps</span> ${esc(names(hit))}</div>`:""}
+    ${x.active&&hurt.length?`<div style="font-size:13px"><span class="chip head">Hurts</span> ${esc(names(hurt))}</div>`:""}</div>`;
+}
+function macroTiles(){
+  const M=S.data.macro;
+  const tiles=["DX-Y.NYB","^VIX","^TNX","CL=F","HG=F","GC=F"].map(sym=>{ const m=M[sym]; if(!m) return "";
+    const val= sym==="^TNX"? m.price.toFixed(2)+"%" : money(m.price);
+    return `<div class="tile"><span class="lab">${esc(m.label)}</span><span class="val">${val}</span>
+      <span class="chg"><span class="${cls(m.r1d)}">1D ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3M ${pct(m.r3m)}</span></span>
+      ${sparkSVG(m.spark,{w:200,h:30,color:sym==="^VIX"||sym==="^TNX"||sym==="DX-Y.NYB"?"var(--warn)":null})}<span class="hint">${esc(MACRO_HINT[sym]||"")}</span></div>`; });
+  const rel=(l,v,h)=>`<div class="tile"><span class="lab">${l}</span><span class="val ${cls(v)}">${pts(v,1)}</span><span class="chg"><span class="muted">vs world stocks, 3 months</span></span><span class="hint">${h}</span></div>`;
+  return tiles.join("")+rel("Chip stocks (SMH)",M.SMH_REL,"Leadership in semiconductors lifts Taiwan, Korea, the Netherlands and the US.")
+    +rel("Emerging markets (EEM)",M.EEM_REL,"Whether emerging markets as a group are beating the world.");
+}
+
+function ideaRow(r,extra){
+  return `<div class="idea" data-open="${r.code}" role="button" tabindex="0">
+    <span class="nm">${esc(r.name)} <span class="muted" style="font-weight:400;font-size:13px">${esc(r.index.name)}</span></span>
+    <span class="sc"><span class="pill ${sigClass(r.m.signal)}">${Math.round(r.m.score)}</span></span>
+    <span class="sub">${esc(extra||reasonShort(r))}</span></div>`;
+}
+function ideas(){
+  const rs=rows().filter(r=>r.m.score!=null);
+  const lead=rs.slice().sort((a,b)=>b.m.score-a.m.score).slice(0,5);
+  const turn=rs.filter(r=>r.m.quad==="Improving"&&r.m.rrg&&r.m.rrg.length>1)
+    .sort((a,b)=>(b.m.rrg.at(-1)[1]-b.m.rrg[0][1]+(b.m.d1m||0)/10)-(a.m.rrg.at(-1)[1]-a.m.rrg[0][1]+(a.m.d1m||0)/10)).slice(0,5);
+  const value=rs.filter(r=>(r.m.value??0)>=60&&r.m.score>=45).sort((a,b)=>(b.m.value+b.m.score)-(a.m.value+a.m.score)).slice(0,5);
+  const avoid=rs.slice().sort((a,b)=>a.m.score-b.m.score).slice(0,5);
+  const col=(title,color,desc,list,fx)=>`<div class="card idea-col"><h3><i class="sw" style="background:${color}"></i>${title}</h3><p>${desc}</p>${list.map(r=>ideaRow(r,fx&&fx(r))).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div>`;
+  return col("Strongest trends","var(--pos)","Highest scores in US-dollar terms.",lead)+
+    col("Cheap with momentum","var(--accent)","Value score 60+ and a score of at least 45.",value,r=>`value ${Math.round(r.m.value)} · P/E ${r.m.pe==null?"–":r.m.pe.toFixed(1)} · yield ${pct(r.m.yld,1,false)} · 1Y ${pct(r.m.r1y,0)}`)+
+    col("Turnaround watch","var(--info)","Lagging world stocks, but relative momentum has turned up.",turn)+
+    col("Weakest trends","var(--neg)","Lowest scores. Check whether cheapness or the backdrop offsets it.",avoid);
+}
+function regionCard(g){
+  const rs=rows().filter(r=>r.region===g); if(!rs.length) return "";
+  const avg=k=>rs.reduce((a,r)=>a+(r.m[k]||0),0)/rs.length, best=rs.slice().sort((a,b)=>b.m.score-a.m.score);
+  const s=avg("score");
+  return `<div class="card region"><div class="eyebrow">${esc(g)}</div><div class="big" style="color:${scoreColor(s)}">${Math.round(s)}<small style="font-size:14px;color:var(--muted);font-weight:500"> avg score</small></div>
+    <div>1 year in dollars <b class="${cls(avg("r1y"))}">${pct(avg("r1y"),1)}</b> · ${rs.filter(isOpen).length} of ${rs.length} open now</div>
+    <div class="idea" data-open="${best[0].code}" role="button" tabindex="0" style="padding:6px 0"><span class="nm">Strongest: ${esc(best[0].name)}</span><span class="sc"><span class="pill ${sigClass(best[0].m.signal)}">${Math.round(best[0].m.score)}</span></span></div>
+    <div class="idea" data-open="${best.at(-1).code}" role="button" tabindex="0" style="padding:6px 0"><span class="nm">Weakest: ${esc(best.at(-1).name)}</span><span class="sc"><span class="pill ${sigClass(best.at(-1).m.signal)}">${Math.round(best.at(-1).m.score)}</span></span></div></div>`;
+}
+
+/* ---------------------------------------------------------------- map + scatter */
+async function renderMap(){
+  const el=$("#map"), M=METRICS[S.metric];
+  if(!window.d3||!d3.geoNaturalEarth1||!window.topojson){ el.innerHTML='<p class="muted">The map library could not load. Check your connection; everything else still works.</p>'; return; }
+  try{ if(!TOPO) TOPO=await (await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json")).json(); }
+  catch(e){ el.innerHTML='<p class="muted">The map outline could not load. Everything else still works.</p>'; return; }
+  const W=Math.max(300,el.clientWidth||800), H=Math.round(W*0.48);
+  const feats=topojson.feature(TOPO,TOPO.objects.countries).features.filter(f=>f.id!=="010");
+  const proj=d3.geoNaturalEarth1().fitSize([W,H],{type:"FeatureCollection",features:feats}), path=d3.geoPath(proj);
+  const byIso=Object.fromEntries(rows().map(r=>[r.iso,r])), drawn=new Set();
+  let s=feats.map(f=>{ const r=byIso[f.id]; if(r) drawn.add(r.iso);
+    const v=r?M.get(r):null;
+    return `<path class="land ${r?"on":""}" d="${path(f)}" style="fill:${r?mixColor(v,M.center,M.cap):"var(--surface2)"}" ${r?`data-open="${r.code}" data-tip="${esc(r.name)}: ${esc(v==null?"–":M.fmt(v))}"`:""}></path>`; }).join("");
+  rows().filter(r=>!drawn.has(r.iso)).forEach(r=>{ const [x,y]=proj(r.ll); const v=M.get(r);
+    s+=`<circle class="land on" cx="${x}" cy="${y}" r="${Math.max(4,W/170)}" style="fill:${mixColor(v,M.center,M.cap)};stroke:var(--ink);stroke-width:.8" data-open="${r.code}" data-tip="${esc(r.name)}: ${esc(v==null?"–":M.fmt(v))}"></circle>`; });
+  rows().filter(isOpen).forEach(r=>{ const [x,y]=proj(r.ll); s+=`<circle cx="${x}" cy="${y-Math.max(6,W/120)}" r="2.6" fill="var(--pos)" pointer-events="none"></circle>`; });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="World map coloured by ${esc(M.label)}">${s}</svg>`;
+  el.querySelectorAll("[data-open]").forEach(n=>{ n.addEventListener("click",()=>openDetail(n.dataset.open));
+    n.addEventListener("mousemove",e=>{ $("#tip").textContent=n.dataset.tip; showTip(e); }); n.addEventListener("mouseleave",()=>$("#tip").hidden=true); });
+  const lo=M.center-M.cap, hi=M.center+M.cap;
+  $("#legend").innerHTML=`<span class="muted">${esc(M.fmt(lo))}</span><span class="legendbar" style="background:linear-gradient(90deg,${mixColor(lo,M.center,M.cap)},var(--surface2),${mixColor(hi,M.center,M.cap)})"></span><span class="muted">${esc(M.fmt(hi))}</span>
+    <span class="muted" style="margin-left:8px">${esc(M.label)} · <span class="open"></span> dot = trading now · grey = not tracked</span>`;
+}
+function renderVM(){
+  const el=$("#vm"), rs=rows().filter(r=>r.m.peRel!=null&&r.m.score!=null);
+  const W=Math.max(300,el.clientWidth||520), H=Math.round(Math.min(W*0.8,480)), P=36;
+  const ex=Math.max(.3,...rs.map(r=>Math.abs(r.m.peRel)))*1.1;
+  const X=v=>P+(v+ex)/(2*ex)*(W-2*P), Y=v=>H-P-v/100*(H-2*P), cx=X(0), cy=Y(50);
+  let s=`<rect x="${P}" y="${P}" width="${cx-P}" height="${cy-P}" fill="var(--pos)" fill-opacity=".07"/>
+    <rect x="${cx}" y="${cy}" width="${W-P-cx}" height="${H-P-cy}" fill="var(--neg)" fill-opacity=".07"/>
+    <line x1="${P}" x2="${W-P}" y1="${cy}" y2="${cy}" stroke="var(--line)"/><line x1="${cx}" x2="${cx}" y1="${P}" y2="${H-P}" stroke="var(--line)"/>
+    <text x="${P+6}" y="${P+16}" font-size="12" font-weight="600" fill="var(--pos)">CHEAP AND STRONG</text>
+    <text x="${W-P-6}" y="${P+16}" text-anchor="end" font-size="12" font-weight="600" fill="var(--warn)">EXPENSIVE AND STRONG</text>
+    <text x="${P+6}" y="${H-P-8}" font-size="12" font-weight="600" fill="var(--info)">CHEAP BUT WEAK</text>
+    <text x="${W-P-6}" y="${H-P-8}" text-anchor="end" font-size="12" font-weight="600" fill="var(--neg)">EXPENSIVE AND WEAK</text>
+    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">← cheaper   P/E vs world stocks   pricier →</text>
+    <text x="12" y="${H/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 12 ${H/2})">Score →</text>`;
+  const placed=[];
+  rs.slice().sort((a,b)=>b.m.score-a.m.score).forEach(r=>{ const x=X(r.m.peRel), y=Y(r.m.score);
+    s+=`<circle cx="${x}" cy="${y}" r="5" fill="${scoreColor(r.m.score)}" stroke="var(--surface)" stroke-width="1.5" data-open="${r.code}" style="cursor:pointer"><title>${esc(r.name)}: P/E ${pct(r.m.peRel,0)} vs world, score ${Math.round(r.m.score)}</title></circle>`;
+    // nudge labels apart so neighbouring countries stay readable
+    let ly=y+4; while(placed.some(p=>Math.abs(p.y-ly)<11&&Math.abs(p.x-x)<24)) ly+=11; placed.push({x,y:ly});
+    s+=`<text x="${x+7}" y="${ly}" font-size="11" fill="var(--ink)" data-open="${r.code}" style="cursor:pointer">${r.code}</text>`; });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Value versus momentum">${s}</svg>`;
+  el.querySelectorAll("[data-open]").forEach(n=>n.addEventListener("click",()=>openDetail(n.dataset.open)));
+}
+function renderRRG(){
+  rrgChart($("#rrg"), rows().filter(r=>(S.rrg==="all"||r.region===S.rrg)&&r.m.rrg&&r.m.rrg.length)
+    .map(r=>({key:r.code,label:S.rrg==="all"?r.code:r.name,title:r.name,rrg:r.m.rrg,quad:r.m.quad})), openDetail);
+}
+
+/* ---------------------------------------------------------------- table */
+function val(r,k){
+  const src=S.basis==="local"?r.local:r.m;
+  if(k==="name") return r.name; if(k==="today") return r.local.r1d; if(k==="fx") return r.fx?r.fx.y1:null;
+  if(k==="quad") return ["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad);
+  if(RET.some(c=>c.k===k)) return src[k];
+  return r.m[k];
+}
+function renderTable(){
+  const q=S.q.trim().toLowerCase();
+  const list=rows().filter(r=>(S.filter==="all"||(S.filter==="dm"&&r.dm)||(S.filter==="em"&&!r.dm)||r.region===S.filter) &&
+      (!q||(r.name+" "+r.code+" "+r.index.name+" "+r.etf+" "+r.region).toLowerCase().includes(q)||holdingMatch(r)))
+    .sort((a,b)=>{ const x=val(a,S.sort.k), y=val(b,S.sort.k); if(x==null) return 1; if(y==null) return -1;
+      return (typeof x==="string"?x.localeCompare(y):x-y)*S.sort.dir; });
+  const th=(k,l,c="",title="")=>`<th class="${c}" data-k="${k}" ${S.sort.k===k?`data-dir="${S.sort.dir>0?"▲":"▼"}"`:""} title="${esc(title)}">${l}</th>`;
+  const basis=S.basis==="local"?"local index":"US dollars";
+  $("#tablebox").innerHTML = list.length? `<table><thead><tr>
+    <th class="l" style="cursor:default">#</th>${th("name","Country","l sticky")}${th("score","Score &amp; signal","l","Composite 0–100, measured in US dollars vs world stocks")}${th("d1w","Δ 1W","","Change in score over the past week")}
+    ${th("today","Today","","Local index move today")}
+    ${RET.map(c=>th(c.k,c.l,"",`Return in ${basis}`)).join("")}${th("rs6m","vs World 6M","","6-month dollar return minus world stocks")}
+    ${th("fx","Currency 1Y","","Local currency vs the US dollar over 1 year")}${th("trend","Trend","","Trend checks passed in dollar terms, out of 4")}
+    ${th("rsi","RSI","","14-day RSI in dollar terms")}${th("pe","P/E","","Trailing P/E of the country fund")}${th("yld","Yield","","Dividend yield of the country fund")}
+    ${th("value","Value","","0–100, higher = cheaper")}${th("corr","Corr","","Correlation with world stocks, weekly, 1 year")}${th("fit","Backdrop","","Tailwinds minus headwinds")}
+    ${th("quad","Rotation","l")}<th class="l" style="cursor:default">Flags</th><th style="cursor:default">1Y</th>
+  </tr></thead><tbody>${list.map((r,i)=>{const m=r.m, src=S.basis==="local"?r.local:m, hit=holdingMatch(r); return `<tr data-open="${r.code}">
+    <td class="rank l">${i+1}</td>
+    <td class="l sticky"><div class="nmcell"><b>${esc(r.name)}</b><small>${esc(r.index.name)}${hit?` · holds ${esc(hit.name)} ${pct(hit.pct,1,false)}`:""}</small></div></td>
+    <td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${m.score==null?"–":Math.round(m.score)}</span>
+      <span class="bar"><i style="width:${m.score||0}%;background:${scoreColor(m.score)}"></i></span><span class="pill ${sigClass(m.signal)}">${esc(m.signal||"–")}</span></div></td>
+    <td>${delta(m.d1w,`Today ${m.d1??"–"} · 1 month ${m.d1m??"–"}`)}</td>
+    <td class="n" style="${heat(r.local.r1d,.02)}">${isOpen(r)?'<span class="open" title="Trading now"></span> ':""}${pct(r.local.r1d)}</td>
+    ${RET.map(c=>`<td class="n" style="${heat(src[c.k],c.cap)}">${pct(src[c.k])}</td>`).join("")}
+    <td class="n" style="${heat(m.rs6m,.2)}">${pct(m.rs6m)}</td>
+    <td class="n ${cls(r.fx&&r.fx.y1)}">${r.fx?pct(r.fx.y1,1):"–"}</td>
+    <td>${trendBars(m.trend)}</td>
+    <td class="n" style="${m.rsi>=70?"color:var(--warn)":m.rsi<=30?"color:var(--info)":""}">${m.rsi==null?"–":m.rsi.toFixed(0)}</td>
+    <td class="n" title="${m.peRel==null?"":esc(pct(m.peRel,0)+" vs world")}" style="${m.peRel==null?"":m.peRel>0.25?"color:var(--warn)":m.peRel<-0.2?"color:var(--info)":""}">${m.pe==null?"–":m.pe.toFixed(1)}</td>
+    <td class="n">${pct(m.yld,1,false)}</td>
+    <td class="n" style="${m.value==null?"":`color:${scoreColor(m.value)}`}">${m.value==null?"–":Math.round(m.value)}</td>
+    <td class="n">${m.corr==null?"–":m.corr.toFixed(2)}</td>
+    <td class="n ${cls(m.fit)}" title="${esc([...m.tail.map(t=>"+ "+t),...m.head.map(t=>"− "+t)].join("\n"))}">${m.fit>0?"+":""}${m.fit}</td>
+    <td class="l"><span class="q q-${m.quad}">${esc(m.quad||"–")}</span></td>
+    <td class="l">${flagsHTML(m)}</td>
+    <td>${sparkSVG(m.series.c.filter((_,j)=>j%3===0||j===m.series.c.length-1))}</td></tr>`;}).join("")}</tbody></table>`
+    : `<p class="loading">No markets match “${esc(S.q)}”.</p>`;
+  $("#tablebox").querySelectorAll("th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;
+    S.sort = S.sort.k===k? {k,dir:-S.sort.dir} : {k,dir:k==="name"?1:-1}; store.set("sort",S.sort); renderTable();});
+  $("#tablebox").querySelectorAll("tr[data-open]").forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.open));
+}
+function holdingMatch(r){
+  const q=S.q.trim().toLowerCase(); if(q.length<2||!r.holdings) return null;
+  return r.holdings.find(x=>x.name.toLowerCase().includes(q)||x.sym.toLowerCase()===q) || null;
+}
+
+/* ---------------------------------------------------------------- detail drawer */
+function openDetail(code){
+  const r=byCode(code); if(!r) return; S.sel=code;
+  const m=r.m, l=r.local, fx=r.fx, info=INFO[r.code]||{}, W=S.data.world;
+  const peers=rows().filter(x=>x.region===r.region&&x.code!==code).sort((a,b)=>b.m.score-a.m.score);
+  const when=r.status.mtime?new Date(r.status.mtime*1000).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}):"";
+  const rangeBtn=(k,lab)=>`<button type="button" data-range="${k}" aria-pressed="${S.range===k}">${lab}</button>`;
+  const two=(lab,u,lc)=>`<div><span>${lab}</span><b class="${cls(u)}">${pct(u)}</b><small class="muted" style="display:block;font-size:11.5px">local ${pct(lc)}</small></div>`;
+  const d=Drawer.open(r.name,`
+    <div class="hd"><div><div class="eyebrow">${esc(r.region)} · ${r.dm?"Developed":"Emerging"} market · ${esc(r.index.name)}</div><h2>${esc(r.name)}</h2>
+      <div style="margin-top:6px;display:flex;gap:16px;flex-wrap:wrap;align-items:baseline">
+        <span><span class="num" style="font-size:18px">${money(l.price)} ${esc(r.index.ccy)}</span> <span class="num ${cls(l.r1d)}">${pct(l.r1d,2)}</span> <span class="muted" style="font-size:12.5px">${r.index.proxy?"fund in local currency":esc(r.index.name)}</span></span>
+        <span><span class="num" style="font-size:15px">${esc(r.etf)} $${money(m.price)}</span> <span class="num ${cls(m.r1d)}">${pct(m.r1d,2)}</span></span>
+        ${isOpen(r)?'<span class="open">Trading now</span>':`<span class="closed">Closed · last trade ${esc(when)}</span>`}</div></div>
+      <button class="btn close" type="button" id="closeD" aria-label="Close">Close ✕</button></div>
+    <div class="dgrid">
+      <div class="card verdict"><div class="bigscore" style="color:${scoreColor(m.score)}">${m.score==null?"–":Math.round(m.score)}<small>/100</small></div>
+        <div><span class="pill ${sigClass(m.signal)}">${esc(m.signal)}</span> <span class="q q-${m.quad}" style="margin-left:6px">${esc(m.quad||"")}</span> ${flagsHTML(m)}
+          <p style="margin:8px 0 0;font-size:15px">${esc(verdict(m))}</p>
+          <p class="note">Value score ${m.value==null?"–":Math.round(m.value)}/100 · backdrop ${m.fit>0?"+":""}${m.fit}. For countries the score has had no reliable edge in the backtest, so weigh these too.</p>
+          ${automatedNote(S.data.generated)}</div></div>
+      <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">What drives the score (percentile vs all ${rows().length} markets)</div>
+        <div class="parts">${Object.entries(m.parts).map(([k,v])=>`<span>${esc(partName(k))}</span><span class="bar"><i style="width:${v??0}%;background:${scoreColor(v??50)}"></i></span><span class="num">${v??"–"}</span>`).join("")}</div></div>
+      ${scoreHistoryCard()}
+      <div class="card chartbox"><div class="row"><span class="eyebrow">${esc(r.index.name)} (${esc(r.index.ccy)})</span>
+        <span class="key"><i style="background:var(--ink)"></i>Index</span><span class="key"><i style="background:var(--accent)"></i>50-day</span><span class="key"><i style="background:var(--warn)"></i>200-day</span>
+        <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1Y")}${rangeBtn("5y","5Y")}${rangeBtn("10y","10Y")}</span></div><div id="pchart"></div></div>
+      <div class="card chartbox"><div class="row"><span class="eyebrow">Local currency vs US dollars, 1 year</span></div>
+        <div class="row"><span class="key"><i style="background:var(--muted)"></i>${esc(r.index.name)} in ${esc(r.index.ccy)}</span><span class="key"><i style="background:var(--accent)"></i>${esc(r.etf)} in US dollars</span></div>
+        <div id="uchart"></div><p class="note">Both rebased to 100 a year ago. The gap comes from the currency, dividends and differences between what the index and the fund hold.</p></div>
+      ${m.relSeries?`<div class="card chartbox"><div class="row"><span class="eyebrow">Relative to world stocks</span><span class="muted" style="font-size:12.5px">Rising line = beating MSCI ACWI in dollars.</span></div><div id="rchart"></div></div>`:""}
+      <div class="stats">${two("1 month",m.r1m,l.r1m)}${two("3 months",m.r3m,l.r3m)}${two("Year to date",m.ytd,l.ytd)}${two("1 year",m.r1y,l.r1y)}
+        ${two("3 years (per yr)",m.r3y,l.r3y)}${two("5 years (per yr)",m.r5y,l.r5y)}
+        <div><span>vs world 1Y</span><b class="${cls(m.rs1y)}">${pts(m.rs1y)}</b></div><div><span>Max drawdown 1Y</span><b class="neg">${pct(m.mdd)}</b></div>
+        <div><span>Volatility (3M)</span><b>${pct(m.vol,0,false)}</b></div><div><span>RSI (14d)</span><b>${m.rsi==null?"–":m.rsi.toFixed(0)}</b></div>
+        <div><span>Correlation to world</span><b>${m.corr==null?"–":m.corr.toFixed(2)}</b></div><div><span>Beta to world</span><b>${m.betaW==null?"–":m.betaW.toFixed(2)}</b></div></div>
+      ${fx?`<div class="card chartbox"><div class="row"><span class="eyebrow">The ${esc(r.index.ccy)} against the US dollar</span>
+          <span class="muted" style="font-size:12.5px">${money(fx.rate)} ${esc(r.index.ccy)} per dollar</span></div>
+        <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:8px">${[["Today",fx.d1],["1 month",fx.m1],["1 year",fx.y1],["3 years",fx.y3]].map(([lab,v])=>`<div><span>${lab}</span><b class="${cls(v)}">${pct(v,1)}</b></div>`).join("")}</div>
+        <div id="fchart"></div><p class="note">Rising line and + figures = the ${esc(r.index.ccy)} strengthening, which adds to returns for dollar investors.</p></div>`
+        :`<div class="card" style="padding:16px"><div class="eyebrow">Currency</div><p class="muted" style="margin:6px 0 0">${r.code==="US"?"US market: no currency conversion for dollar investors.":"No currency data."}</p></div>`}
+      <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">Backdrop for this market</div>
+        <div class="chips" style="margin-bottom:10px">${traitChips(r)}</div>
+        <div class="rules">${S.data.rules.filter(x=>x.active&&(x.tail.some(t=>r.traits.includes(t))||x.head.some(t=>r.traits.includes(t)))).map(x=>`<div class="r"><div><span class="chip ${x.tail.some(t=>r.traits.includes(t))?"tail":"head"}">${x.tail.some(t=>r.traits.includes(t))?"Tailwind":"Headwind"}</span> <b>${esc(x.name)}</b></div><div class="muted" style="font-size:13.5px">${esc(x.note)}</div></div>`).join("")||'<p class="muted" style="margin:0;font-size:13.5px">None of today\'s active backdrop rules affect this market directly.</p>'}</div></div>
+      ${factsCard(r.facts||{},{bf:W.facts||{},bn:"world stocks",title:`Valuation and fund facts (${r.etf})`,note:"From Yahoo Finance, checked daily. P/E and yield are for the US-listed country fund; world = MSCI ACWI."})}
+      ${holdingsCard(r,S.data.holdingsAt,r.etf)}
+      <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">The reasoning</div><ul class="why">${narrative(r).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <dl class="card primer"><dt>The market</dt><dd>${esc(info.market||"")}</dd><dt>Key drivers</dt><dd>${esc(info.drivers||"")}</dd><dt>Main risks</dt><dd>${esc(info.risks||"")}</dd>
+        <dt>Tracked with</dt><dd>${r.index.proxy?`Yahoo has no index history for ${esc(r.name)}, so the ${esc(r.etf)} fund converted into ${esc(r.index.ccy)} stands in for the local index.`:`${esc(r.index.name)} (${esc(r.index.symbol)}) in ${esc(r.index.ccy)}, and the ${esc(r.etf)} fund in US dollars.`}</dd></dl>
+      ${peers.length?`<div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:4px">Elsewhere in ${esc(r.region)}</div>
+        ${peers.map(p=>`<div class="idea" data-open="${p.code}" role="button" tabindex="0"><span class="nm">${esc(p.name)} <span class="muted" style="font-weight:400;font-size:13px">${esc(p.index.name)}</span></span>
+          <span class="sc"><span class="pill ${sigClass(p.m.signal)}">${Math.round(p.m.score)}</span></span></div>`).join("")}</div>`:""}
+    </div>`,()=>{S.sel=null;});
+  d.querySelectorAll("[data-range]").forEach(bt=>bt.onclick=()=>{S.range=bt.dataset.range;d.querySelectorAll("[data-range]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.range===S.range));drawPrice(r);});
+  d.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openDetail(el.dataset.open));
+  drawCharts(r);
+}
+function drawCharts(r){
+  const m=r.m, l=r.local;
+  drawPrice(r); drawScoreHistory(m,S.data.histCuts);
+  // align the local index onto the fund's dates (different exchange calendars)
+  const t=m.series.t, lt=l.series.t, lc=l.series.c, lv=[]; let j=0;
+  for(const ts of t){ while(j+1<lt.length&&lt[j+1]<=ts+43200) j++; lv.push(lt[j]<=ts+43200?lc[j]:null); }
+  const base=(a)=>{const b=a.find(v=>v!=null); return a.map(v=>v==null?null:v/b*100);};
+  lineChart($("#uchart"),{t,series:[{v:base(m.series.c),color:"var(--accent)",name:r.etf+" USD",w:1.8},{v:base(lv),color:"var(--muted)",name:"Local",w:1.4}],h:190,baseline:100,fmt:v=>v.toFixed(0)});
+  if(m.relSeries) lineChart($("#rchart"),{t:t.slice(-m.relSeries.length),series:[{v:m.relSeries,color:"var(--accent)",name:"Relative"}],h:160,baseline:100,fmt:v=>v.toFixed(1)});
+  if(r.fx&&$("#fchart")){ const sp=r.fx.spark, b=sp[0]; lineChart($("#fchart"),{t:t.slice(-sp.length),series:[{v:sp.map(v=>v/b*100),color:"var(--info)",name:r.index.ccy+" strength"}],h:140,baseline:100,fmt:v=>v.toFixed(1)}); }
+}
+function drawPrice(r){
+  const l=r.local, dp=l.price>=100?0:2;
+  if(S.range==="1y") return lineChart($("#pchart"),{t:l.series.t,series:[{v:l.series.c,color:"var(--ink)",name:"Index",w:1.8},{v:l.ma50,color:"var(--accent)",name:"50d",w:1.2},{v:l.ma200,color:"var(--warn)",name:"200d",w:1.2}],fmt:v=>v.toFixed(dp),area:1});
+  const n=S.range==="5y"?252:l.long.t.length;
+  lineChart($("#pchart"),{t:l.long.t.slice(-n),series:[{v:l.long.c.slice(-n),color:"var(--ink)",name:"Index",w:1.6}],fmt:v=>v.toFixed(dp),area:1});
+}
+
+/* ---------------------------------------------------------------- data loop */
+startLoop({url:"world", onData(data){
+  const reopen=S.sel, scrollY=window.scrollY;
+  data.rows.forEach(r=>{ r.m.top10 = r.holdings&&r.holdings.length ? r.holdings.reduce((a,x)=>a+x.pct,0) : null; });
+  S.data=data; render(); window.scrollTo(0,scrollY);
+  if(reopen) openDetail(reopen);
+}});
+let rt; addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{ if(!S.data) return; renderMap(); renderRRG(); renderVM(); drawBacktest(S.data.backtest);
+  const r=S.sel&&byCode(S.sel); if(r) drawCharts(r); },200);});
+</script>
+</body>
+</html>

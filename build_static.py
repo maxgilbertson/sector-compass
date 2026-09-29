@@ -1,10 +1,11 @@
-"""Build the static site GitHub Pages serves: site/index.html + site/api/data.json.
+"""Build the static site GitHub Pages serves: the pages plus site/api/data.json and site/api/world.json.
 
 GitHub Actions runs this every 15 minutes (see .github/workflows/deploy.yml).
-It exits with an error if the price fetch mostly failed, so the last good
+It exits with an error if a price fetch mostly failed, so the last good
 version stays online instead of being replaced by an empty page.
 """
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -12,17 +13,22 @@ import server
 
 HERE = Path(__file__).parent
 OUT = HERE / "site"
-
-body = server.get_data()
-data = json.loads(body)
-if len(data["rows"]) < 60:
-    sys.exit(f"Only {len(data['rows'])} funds loaded (missing: {data['errors']}); keeping the previous deploy.")
+MINIMUM = {"data": 60, "world": 25}  # fewer markets than this means the fetch failed
 
 (OUT / "api").mkdir(parents=True, exist_ok=True)
-(OUT / "api" / "data.json").write_bytes(body)
-html = (HERE / "index.html").read_text(encoding="utf-8")
+for name, need in MINIMUM.items():
+    body = server.get_data(name)
+    data = json.loads(body)
+    if len(data["rows"]) < need:
+        sys.exit(f"{name}: only {len(data['rows'])} markets loaded (missing: {data['errors']}); keeping the previous deploy.")
+    (OUT / "api" / f"{name}.json").write_bytes(body)
+    print(f"{name}: {len(data['rows'])} markets")
+
+for page in server.PAGES:
+    shutil.copy(HERE / page, OUT / page)
+js = (OUT / "common.js").read_text(encoding="utf-8")
 marker = "const STATIC = false;"
-assert marker in html, "static-mode marker missing from index.html"
-(OUT / "index.html").write_text(html.replace(marker, "const STATIC = true;", 1), encoding="utf-8")
+assert marker in js, "static-mode marker missing from common.js"
+(OUT / "common.js").write_text(js.replace(marker, "const STATIC = true;", 1), encoding="utf-8")
 (OUT / ".nojekyll").write_text("")
-print(f"Built site/ with {len(data['rows'])} funds.")
+print("Built site/")

@@ -1,8 +1,16 @@
 # Sector Compass
 
-A live tracker of 100+ sector, theme and country funds across the US, Europe, Japan, Canada and global markets.
-Each fund gets a 0–100 score from momentum, relative strength, trend, risk-adjusted return and drawdown,
-plus fund facts (net assets, P/E, yield, beta, fees), a business-cycle read, a rotation map, top-10 holdings and a plain-English verdict.
+Two live trackers on one site, sharing one scoring engine:
+
+- **Sectors** (`index.html`): 100+ sector, theme and country funds across the US, Europe, Japan, Canada and global markets,
+  each scored 0–100 against its own local benchmark, with a business-cycle read, rotation map, fund facts, top-10 holdings,
+  score history and a plain-English verdict.
+- **Countries** (`world.html`): 36 national stock markets, with each headline index in local currency and a US-listed country fund
+  in US dollars. Includes a world map, currency effects, valuation (P/E, yield, value score), correlation with world stocks,
+  a global-backdrop read (dollar, oil, metals, risk appetite) and open/closed market status.
+
+Both pages include a **backtest**: every month for the past ~9 years, every market is re-scored using only the data
+available at the time, and its next-month return is compared with its benchmark.
 
 **Live site:** https://maxgilbertson.github.io/sector-compass/ (updated every ~15 minutes by GitHub Actions)
 
@@ -18,10 +26,11 @@ py server.py --lan        # also reachable from phones on the same Wi-Fi
 
 ## Files
 
-- `universe.py`: the funds tracked and their benchmarks. Add or remove tickers here.
-- `server.py`: fetches prices from Yahoo Finance and computes every metric and score.
+- `engine.py`: fetching, point-in-time metrics, the score, score history and the backtest (shared by both pages).
+- `universe.py` + `sectors.py`: the sector funds and their benchmarks, and the sector page's data (including the cycle read).
+- `world.py`: the countries, their indices, funds and currencies, and the country page's data (including the backdrop rules).
 - `funddata.py`: top-10 holdings and fund facts (net assets, P/E, yield, beta, expense ratio), cached for a day.
-- `index.html`: the dashboard.
-- `build_static.py` + `.github/workflows/deploy.yml`: build and publish the GitHub Pages copy.
+- `index.html`, `world.html`, `common.css`, `common.js`: the two pages and what they share.
+- `server.py`: the local web server. `build_static.py` + `.github/workflows/deploy.yml`: build and publish the GitHub Pages copy.
 
 For research and education only; not investment advice.
