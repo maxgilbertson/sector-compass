@@ -1,6 +1,6 @@
 """Tracking over time: daily score snapshots, a log of signal changes, and practice portfolios.
 
-The files live in the repository (history/, paper/) and are written by the daily
+The files live in the repository (data/history/, data/paper/) and are written by the daily
 GitHub Action (snapshot.py), so the record builds up whether or not a PC is on.
 A backtest can be tuned until it looks good; this live record can't, because each
 month's picks are saved before anyone knows how they'll do.
@@ -13,9 +13,9 @@ from pathlib import Path
 
 import engine
 
-HERE = Path(__file__).parent
-HISTORY = HERE / "history"
-PAPER = HERE / "paper"
+DATA = Path(__file__).parent.parent / "data"
+HISTORY = DATA / "history"
+PAPER = DATA / "paper"
 START_VALUE = 10_000
 
 
@@ -28,26 +28,33 @@ def _day_end(key):
 
 # ---------------------------------------------------------------- daily snapshots
 
+def _read_lines(path):
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines() if path.exists() else []:
+        try:
+            out.append(json.loads(line))
+        except ValueError:
+            continue
+    return out
+
+
 def write_snapshot(page, rows, key, extra=None, date=None):
-    """One compact file per page per day: {market: [score, signal, price]} plus page-level context."""
+    """One line per day in a yearly file per page (e.g. sectors-2026.jsonl):
+    {date, rows: {market: [score, signal, price]}, plus page-level context}. Re-running a day replaces its line."""
     date = date or today_key()
-    path = HISTORY / page / f"{date}.json"
+    path = HISTORY / f"{page}-{date[:4]}.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     snap = {r[key]: [r["m"]["score"], r["m"]["signal"], None if r["m"].get("price") is None else round(r["m"]["price"], 4)]
             for r in rows}
-    path.write_text(json.dumps({"date": date, "rows": snap, **(extra or {})}, separators=(",", ":")), encoding="utf-8")
+    days = [d for d in _read_lines(path) if d.get("date") != date] + [{"date": date, "rows": snap, **(extra or {})}]
+    path.write_text("".join(json.dumps(d, separators=(",", ":")) + "\n" for d in sorted(days, key=lambda d: d["date"])),
+                    encoding="utf-8")
     return path
 
 
 def load_history(page):
-    folder = HISTORY / page
-    out = []
-    for f in sorted(folder.glob("*.json")) if folder.exists() else []:
-        try:
-            out.append(json.loads(f.read_text(encoding="utf-8")))
-        except (OSError, ValueError):
-            continue
-    return out
+    days = [d for f in sorted(HISTORY.glob(f"{page}-*.jsonl")) for d in _read_lines(f) if "date" in d]
+    return sorted(days, key=lambda d: d["date"])
 
 
 def signal_log(page, rows, key):

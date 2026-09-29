@@ -1,9 +1,9 @@
 """Weekly briefing: gather the week's facts from both pages and write a factual draft.
 
 Run by .github/workflows/briefing.yml every Saturday morning. It saves
-  briefings/facts/<date>.json  - every number the briefing may use
-  briefings/<date>.md          - a plain factual draft (published straight away)
-  briefings/index.json         - the archive list the site reads
+  data/briefings/facts/<date>.json  - every number the briefing may use
+  data/briefings/<date>.md          - a plain factual draft (published straight away)
+  data/briefings/index.json         - the archive list the site reads
 A weekly scheduled Claude task then rewrites the draft into a proper briefing
 using only those facts (see BRIEFING_PROMPT.md). If that doesn't run, the draft stays up.
 """
@@ -16,7 +16,7 @@ import sectors
 import world
 
 HERE = Path(__file__).parent
-OUT = HERE / "briefings"
+OUT = HERE.parent / "data" / "briefings"
 
 
 def pctw(v, dp=1):

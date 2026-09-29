@@ -12,7 +12,7 @@ from pathlib import Path
 import server
 
 HERE = Path(__file__).parent
-OUT = HERE / "site"
+OUT = HERE.parent / "site"
 MINIMUM = {"data": 60, "world": 25}  # fewer markets than this means the fetch failed
 
 (OUT / "api").mkdir(parents=True, exist_ok=True)
@@ -30,7 +30,7 @@ js = (OUT / "common.js").read_text(encoding="utf-8")
 marker = "const STATIC = false;"
 assert marker in js, "static-mode marker missing from common.js"
 (OUT / "common.js").write_text(js.replace(marker, "const STATIC = true;", 1), encoding="utf-8")
-if (HERE / "briefings").exists():
-    shutil.copytree(HERE / "briefings", OUT / "briefings", dirs_exist_ok=True)
+if (HERE.parent / "data" / "briefings").exists():
+    shutil.copytree(HERE.parent / "data" / "briefings", OUT / "briefings", dirs_exist_ok=True)
 (OUT / ".nojekyll").write_text("")
 print("Built site/")

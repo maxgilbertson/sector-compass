@@ -1,6 +1,6 @@
 """Sector Compass + World Compass: live global sector and country trackers.
 
-Run:  py server.py   then open http://localhost:8765   (add --lan to reach it from phones on your Wi-Fi)
+Run:  py app/server.py   then open http://localhost:8765   (add --lan to reach it from phones on your Wi-Fi)
 Prices come from Yahoo Finance's public chart API and are cached for
 CACHE_SECONDS so open pages can poll without hammering it.
 """
@@ -55,8 +55,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, get_data(key, force="force" in parse_qs(u.query)), "application/json")
             elif name in PAGES:
                 self._send(200, (HERE / name).read_bytes(), TYPES[Path(name).suffix])
-            elif name.startswith("briefings/") and ".." not in name and Path(name).suffix in (".json", ".md")                     and (HERE / name).is_file():
-                self._send(200, (HERE / name).read_bytes(), TYPES[Path(name).suffix])
+            elif name.startswith("briefings/") and ".." not in name and Path(name).suffix in (".json", ".md")                     and (HERE.parent / "data" / name).is_file():
+                self._send(200, (HERE.parent / "data" / name).read_bytes(), TYPES[Path(name).suffix])
             else:
                 self._send(404, b"not found", "text/plain")
         except Exception as e:  # noqa: BLE001

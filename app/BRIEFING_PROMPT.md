@@ -1,7 +1,7 @@
 # How Claude writes the weekly briefing
 
-Every Saturday the GitHub job `briefing.yml` saves `briefings/facts/<date>.json` (every number
-the briefing may use) and a plain factual draft `briefings/<date>.md`. Claude then rewrites the
+Every Saturday the GitHub job `briefing.yml` saves `data/briefings/facts/<date>.json` (every number
+the briefing may use) and a plain factual draft `data/briefings/<date>.md`. Claude then rewrites the
 draft into the finished briefing, following these rules.
 
 ## Who it's for

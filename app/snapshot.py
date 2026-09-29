@@ -1,7 +1,7 @@
 """Daily snapshot: save every score, and make the monthly practice-portfolio picks.
 
 Run by .github/workflows/daily.yml after the US close each weekday; the workflow
-commits history/ and paper/ back to the repository so the record is permanent.
+commits data/history/ and data/paper/ back to the repository so the record is permanent.
 """
 import sys
 

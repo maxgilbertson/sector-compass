@@ -453,7 +453,7 @@ function startLoop({url,onData}){
       $("#dot").className="dot";
     }catch(e){
       $("#dot").className="dot err";
-      if(!L.data) $("#app").innerHTML=`<div class="loading err">Couldn't load prices: ${esc(e.message)}.<br>${STATIC?"Check your connection, then press Reload.":"Make sure <code>py server.py</code> is running, then press Refresh."}</div>`;
+      if(!L.data) $("#app").innerHTML=`<div class="loading err">Couldn't load prices: ${esc(e.message)}.<br>${STATIC?"Check your connection, then press Reload.":"Make sure <code>py app/server.py</code> is running, then press Refresh."}</div>`;
     }finally{ btn.disabled=false; btn.textContent=STATIC?"Reload":"Refresh now"; L.nextAt=Date.now()+REFRESH_MS; stamp(); }
   }
   function stamp(){

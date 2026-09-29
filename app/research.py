@@ -1,6 +1,6 @@
 """Test alternative score recipes the careful way, without touching the live one.
 
-    py research.py
+    py app/research.py
 
 Each candidate recipe is backtested and judged on the FIRST half of the period only.
 A change is worth adopting only if it beats the current recipe there AND still beats it

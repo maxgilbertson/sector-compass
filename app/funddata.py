@@ -10,7 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-CACHE = Path(__file__).parent / "fund_cache.json"
+CACHE = Path(__file__).parent.parent / "data" / "fund_cache.json"
 CACHE_HOURS = 24
 
 
