@@ -23,7 +23,7 @@
   </div>
 </header>
 
-<main class="wrap" id="app"><div class="loading">Fetching live prices for 100+ sector funds across 7 regions…</div></main>
+<main class="wrap" id="app"><div class="loading">Fetching live prices for sector and theme funds across 6 regions…</div></main>
 <div class="tip" id="tip" hidden></div>
 
 <script src="common.js"></script>
@@ -75,10 +75,6 @@ const SECTORS = {
            drivers:"Advertising spending, subscriber growth, the cost of content, spending on mobile and fibre networks.",
            rates:"Some. Telecoms behave like bonds; online platforms behave like tech.",
            risks:"Advertising slumps, competition cases against big platforms, heavy network spending."},
-  country:{name:"Country fund", kind:"Broad market", what:"A whole national stock market in one fund, with all sectors mixed together.",
-           drivers:"The country's economic growth, its central bank's interest rates, its currency, which sectors dominate its stock market.",
-           rates:"Depends on the country; returns are in US dollars, so currency moves count.",
-           risks:"Political and policy changes, currency swings, a few big companies dominating. See the Countries page for the full picture."},
 };
 const PHASE_COLORS = {"Early cycle":"var(--info)","Mid cycle":"var(--pos)","Late cycle":"var(--warn)","Contraction":"var(--neg)"};
 const PHASE_PLAIN = {"Early cycle":"recovery","Mid cycle":"steady growth","Late cycle":"late expansion","Contraction":"recession"};
@@ -109,14 +105,14 @@ const S = {data:null, region:store.get("region","all"), q:"", sort:store.get("so
            rrg:store.get("rrg","us"), sel:null, range:"1y"};
 const grp = id => (S.data.groups.find(g=>g.id===id)||{});
 const groupName = id => grp(id).name||id;
-const groupShort = id => ({us:"US",global:"Global",europe:"Europe",japan:"Japan",canada:"Canada",themes:"Theme",countries:"Country"})[id]||id;
+const groupShort = id => ({us:"US",global:"Global",europe:"Europe",japan:"Japan",canada:"Canada",themes:"Theme"})[id]||id;
 // what each fund is compared with, in plain words ("the whole US market (S&P 500)") and short ("S&P 500")
 const benchPlain = id => grp(id).plain||"its region's whole market";
 const benchShort = id => grp(id).short||"the whole market";
 const REGION_MKT = "the whole stock market of its region";
 function vsListText(){ // "US sectors and themes vs the S&P 500, ..." built from the data so it stays in sync with universe.py
   const g=id=>grp(id).bench_name;
-  return `US sectors and themes vs the ${g("us")}, European vs the ${g("europe")}, Japanese vs ${g("japan")}, Canadian vs the ${g("canada")}, and global and country funds vs all world stocks (${g("global")})`;
+  return `US sectors and themes vs the ${g("us")}, European vs the ${g("europe")}, Japanese vs ${g("japan")}, Canadian vs the ${g("canada")}, and global sector funds vs all world stocks (${g("global")})`;
 }
 
 /* ---------------------------------------------------------------- narrative */
@@ -148,7 +144,7 @@ function narrative(r){
     else if(m.rsi<=30) out.push(`Timing: its recent losses have been much bigger than its recent gains (RSI ${m.rsi.toFixed(0)}; 30 or under is called 'oversold'). Short bounces are common, but it can keep falling, so wait for the trend to turn.`);
     else out.push(`Timing: RSI ${m.rsi.toFixed(0)}: it has not risen or fallen unusually fast lately.`); }
   const cyc=S.data.cycle, fav=cyc.favoured, phase=phaseMix(cyc);
-  if(r.key!=="country") out.push(fav.includes(r.key) ? `Economic cycle: our US market signals point to ${phase} (see the top of the page), and this sector has tended to do well then.`
+  out.push(fav.includes(r.key) ? `Economic cycle: our US market signals point to ${phase} (see the top of the page), and this sector has tended to do well then.`
                                                     : `Economic cycle: our US market signals point to ${phase} (see the top of the page), when this sector has not usually led.`);
   return out;
 }
@@ -177,10 +173,13 @@ function sorted(rows){
 function render(){
   const D=S.data, app=$("#app");
   const cyc=D.cycle, fav=cyc.favoured, n=D.rows.length;
+  // a remembered tab from an older version (e.g. the removed "Countries" group) falls back to a valid one
+  if(S.region!=="all"&&!D.groups.some(g=>g.id===S.region)) S.region="all";
+  if(!D.groups.some(g=>g.id===S.rrg)) S.rrg="us";
   app.innerHTML = `
   <section>
     <div class="card howto"><div class="eyebrow">How to read this page</div>
-      <p>Each sector fund is compared with <b>the whole stock market of its own region</b>. For example, US Technology is compared with the S&amp;P 500, the 500 biggest US companies across every sector. "Ahead" means the sector did better than simply owning that whole market; "behind" means it did worse.</p>
+      <p>This page covers <b>sectors and themes only</b>; whole countries are on the <a href="world.html">Countries page</a>. Each sector fund is compared with <b>the whole stock market of its own region</b>. For example, US Technology is compared with the S&amp;P 500, the 500 biggest US companies across every sector. "Ahead" means the sector did better than simply owning that whole market; "behind" means it did worse.</p>
       <p>Each fund also gets a <b>score from 0 to 100</b> that ranks it against the other ${n-1}: 50 is the middle, 60 or more is favoured, under 40 is weak. Everything is based on past prices, so it describes what has been happening, not what will happen.</p></div>
   </section>
 
@@ -228,7 +227,7 @@ function render(){
       <p>Click any row for the full breakdown, chart and reasoning. Click a column header to sort. Returns include dividends and are in each fund's own currency (dollars for US funds, euros for European, yen for Japanese, Canadian dollars for Canadian).</p></div>
       <div class="controls">
         <div class="tabs" role="group" aria-label="Region">${[["all","All"],...D.groups.map(g=>[g.id,groupShort(g.id)])].map(([id,l])=>
-          `<button class="tab" type="button" data-region="${id}" aria-pressed="${S.region===id}">${esc(l==="Theme"?"Themes":l==="Country"?"Countries":l)}</button>`).join("")}</div>
+          `<button class="tab" type="button" data-region="${id}" aria-pressed="${S.region===id}">${esc(l==="Theme"?"Themes":l)}</button>`).join("")}</div>
         <input class="search" id="search" type="search" placeholder="Search sector, ticker or company (e.g. Nvidia)" value="${esc(S.q)}" aria-label="Search">
       </div></div>
     <div class="tablebox" id="tablebox"></div>
@@ -374,7 +373,7 @@ function renderTable(){
     <td class="l"><span class="q q-${m.quad}" title="${esc(m.quad?`${QUAD_PLAIN[m.quad]} vs ${bp}`:"")}">${esc(m.quad||"–")}</span></td>
     <td class="l">${topCell(r)}</td>
     <td class="l">${flagsHTML(m)}</td>
-    <td>${r.key!=="country"&&fav.includes(r.key)?'<span class="fit" title="This sector has usually done well in the economy\'s current phase">✓</span>':""}</td>
+    <td>${fav.includes(r.key)?'<span class="fit" title="This sector has usually done well in the economy\'s current phase">✓</span>':""}</td>
     <td>${sparkSVG(m.series.c.filter((_,j)=>j%3===0||j===m.series.c.length-1))}</td></tr>`;}).join("")}</tbody></table>`
     : `<p class="loading">No sectors match “${esc(S.q)}”.</p>`;
   $("#tablebox").querySelectorAll("th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;
@@ -397,7 +396,7 @@ function renderRRG(){
 }
 
 function matrix(){
-  const regs=["us","global","europe","japan","canada","themes"], keys=Object.keys(SECTORS).filter(k=>k!=="country");
+  const regs=["us","global","europe","japan","canada","themes"], keys=Object.keys(SECTORS);
   const fav=S.data.cycle.favoured;
   const cell=(k,g)=>{ const rs=S.data.rows.filter(r=>r.key===k&&r.group===g&&r.m.score!=null);
     if(!rs.length) return `<td class="cell empty" title="No fund for this sector here">·</td>`;
@@ -412,8 +411,8 @@ function matrix(){
 function band(v,cuts,words){ for(let i=0;i<cuts.length;i++) if(v>=cuts[i]) return words[i]; return words[words.length-1]; }
 function openDetail(sym){
   const r=S.data.rows.find(x=>x.symbol===sym); if(!r) return; S.sel=sym;
-  const m=r.m, sec=SECTORS[r.key]||SECTORS.country, b=S.data.benches[r.group]||{}, bp=benchPlain(r.group), bs=benchShort(r.group), n=S.data.rows.length;
-  const peers=S.data.rows.filter(x=>x.key===r.key&&x.symbol!==sym&&r.key!=="country").sort((a,b)=>b.m.score-a.m.score).slice(0,8);
+  const m=r.m, sec=SECTORS[r.key], b=S.data.benches[r.group]||{}, bp=benchPlain(r.group), bs=benchShort(r.group), n=S.data.rows.length;
+  const peers=S.data.rows.filter(x=>x.key===r.key&&x.symbol!==sym).sort((a,b)=>b.m.score-a.m.score).slice(0,8);
   const rangeBtn=(k,l)=>`<button type="button" data-range="${k}" aria-pressed="${S.range===k}">${l}</button>`;
   const tile=(l,v,c,tip="")=>`<div title="${esc(tip)}"><span>${l}</span><b class="${c==null?"":cls(c)}">${v}</b></div>`;
   const br=m.r1y!=null&&m.rs1y!=null?m.r1y-m.rs1y:null, bv=(b.m||{}).vol;

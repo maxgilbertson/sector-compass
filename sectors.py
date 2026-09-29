@@ -1,4 +1,4 @@
-"""Sector Compass data: sector, theme and country funds, each scored against its local benchmark."""
+"""Sector Compass data: sector and theme funds, each scored against its own region's whole stock market."""
 import time
 
 import engine

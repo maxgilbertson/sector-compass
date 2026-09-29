@@ -1,4 +1,6 @@
-"""The tracked universe: every sector, theme and country fund, grouped by region.
+"""The Sectors page universe: every sector and theme fund, grouped by region.
+
+Whole-country funds are deliberately not here: they live on the Countries page (world.py).
 
 Each group is measured against its own local benchmark so relative strength is
 apples-to-apples (same exchange, same currency, same trading calendar).
@@ -121,26 +123,6 @@ GROUPS = [
             ("GDX", "Gold Miners", "mat"),
             ("COPX", "Copper Miners", "mat"),
             ("LIT", "Lithium & Batteries", "mat"),
-        ],
-    },
-    {
-        "id": "countries", "plain": "all world stocks (MSCI ACWI)", "short": "world stocks", "name": "Countries", "bench": "ACWI", "bench_name": "MSCI ACWI", "ccy": "USD",
-        "funds": [
-            ("SPY", "United States", "country"),
-            ("VGK", "Europe", "country"),
-            ("EWU", "United Kingdom", "country"),
-            ("EWG", "Germany", "country"),
-            ("EWQ", "France", "country"),
-            ("EWJ", "Japan", "country"),
-            ("MCHI", "China", "country"),
-            ("INDA", "India", "country"),
-            ("EWY", "South Korea", "country"),
-            ("EWT", "Taiwan", "country"),
-            ("EWA", "Australia", "country"),
-            ("EWC", "Canada", "country"),
-            ("EWZ", "Brazil", "country"),
-            ("EWW", "Mexico", "country"),
-            ("EEM", "Emerging Markets", "country"),
         ],
     },
 ]

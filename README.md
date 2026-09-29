@@ -2,7 +2,7 @@
 
 Two live trackers on one site, sharing one scoring engine:
 
-- **Sectors** (`index.html`): 100+ sector, theme and country funds across the US, Europe, Japan, Canada and global markets,
+- **Sectors** (`index.html`): 86 sector and theme funds across the US, Europe, Japan, Canada and global markets (no whole-country funds),
   each scored 0–100 against its own local benchmark, with a business-cycle read, rotation map, fund facts, top-10 holdings,
   score history and a plain-English verdict.
 - **Countries** (`world.html`): 36 national stock markets, with each headline index in local currency and a US-listed country fund
