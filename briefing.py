@@ -169,11 +169,11 @@ def draft(f):
 def main():
     facts = gather()
     date = facts["weekEnding"]
-    (OUT / "facts").mkdir(parents=True, exist_ok=True)
-    (OUT / "facts" / f"{date}.json").write_text(json.dumps(engine.clean(facts), indent=1), encoding="utf-8")
     md = OUT / f"{date}.md"
     written_by_claude = md.exists() and "author: Claude" in md.read_text(encoding="utf-8")[:300]
-    if not written_by_claude:  # never overwrite a finished briefing with a draft
+    if not written_by_claude:  # once Claude has written the week up, its facts and text stay as they are
+        (OUT / "facts").mkdir(parents=True, exist_ok=True)
+        (OUT / "facts" / f"{date}.json").write_text(json.dumps(engine.clean(facts), indent=1), encoding="utf-8")
         md.write_text(draft(facts), encoding="utf-8")
     index_path = OUT / "index.json"
     index = json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else []
