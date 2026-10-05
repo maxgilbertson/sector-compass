@@ -84,6 +84,100 @@ function partTip(k,vs="the whole market"){ return {
   sharpe:"Sharpe ratio: the past year's return minus today's US cash rate (3-month Treasury bill), divided by how much the price swung over the year. Higher = more reward for the risk taken.",
   mdd:"Its largest fall from a high point to a later low in the past 12 months, ranked across all of them: the shallower the fall, the higher the rank."}[k]||""; }
 
+/* ---------------------------------------------------------------- browsing: icons, section tabs, dropdowns */
+const ICON = {
+  overview:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  rankings:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h1M4 12h1M4 18h1"/>',
+  maps:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8z"/>',
+  conditions:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+  record:'<path d="M4 4v16h16"/><path d="m8 14 3.5-3.5 3 3L20 8"/>',
+  guide:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>',
+  up:'<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
+  down:'<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>',
+  gauge:'<path d="M4.6 18a9 9 0 1 1 14.8 0"/><path d="m12 14 4-4"/>',
+  trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  award:'<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/>',
+  bars:'<path d="M5 20v-5M10 20v-9M15 20v-13M20 20v-7"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.7 0-2.8.8-2.8 1.9 0 2.7 5.6 1.4 5.6 4.2 0 1.1-1.1 1.9-2.8 1.9-1.4 0-2.4-.5-2.9-1.3M12 6.5v1.5M12 16v1.5"/>',
+};
+const icon = (k,s=16) => `<svg class="ico" width="${s}" height="${s}" style="width:${s}px;height:${s}px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]||""}</svg>`;
+
+/* Dropdowns. Which ones are open survives the automatic refresh, which redraws the page. */
+const OPEN = new Map();
+document.addEventListener("toggle",e=>{ const d=e.target; if(d.tagName==="DETAILS"&&d.dataset.k) OPEN.set(d.dataset.k,d.open); },true);
+function restoreOpen(root=document){ root.querySelectorAll("details[data-k]").forEach(d=>{ if(OPEN.has(d.dataset.k)) d.open=OPEN.get(d.dataset.k); }); }
+// a small "How this works" pill that opens an explanation in place (body is HTML)
+const more = (k,body,label="How this works") => `<details class="more" data-k="${esc(k)}"><summary>${icon("info",14)}<span>${label}</span></summary><div class="more-body">${body}</div></details>`;
+// a full-width card that folds open (title and body are HTML)
+const fold = (k,title,body,open=false) => `<details class="fold" data-k="${esc(k)}"${open?" open":""}><summary>${title}</summary><div class="fold-body">${body}</div></details>`;
+function secHead({eyebrow="",title,h="h2",lead="",right=""}){
+  return `<div class="sec-head"><div class="grow">${eyebrow?`<div class="eyebrow">${eyebrow}</div>`:""}<${h}>${title}</${h}>${lead?`<p>${lead}</p>`:""}</div>${right}</div>`; }
+
+/* Section tabs. Each page's content is split into views (<div class="view" data-view="...">) shown one at a time;
+   the address bar remembers the open one (#rankings), and a link to anything inside a view opens that view. */
+const Views = {
+  names:[], draw:{}, cur:null,
+  init(names,draw={}){
+    this.names=names; this.draw=draw; const h=location.hash.slice(1); this.cur=names.includes(h)?h:names[0];
+    document.querySelectorAll("#views [data-view]").forEach(b=>{ b.insertAdjacentHTML("afterbegin",icon(b.dataset.view,17)); b.onclick=()=>this.go(b.dataset.view,true); });
+    addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(this.names.includes(h)&&h!==this.cur) this.go(h,true); });
+    document.addEventListener("click",e=>{ const a=e.target.closest('a[href^="#"]'); if(!a) return; const id=a.getAttribute("href").slice(1);
+      if(this.names.includes(id)){ e.preventDefault(); Drawer.close(); this.go(id,true); return; }
+      const el=id&&document.getElementById(id), v=el&&el.closest("[data-view]"); if(!v) return;
+      e.preventDefault(); Drawer.close(); this.go(v.dataset.view,false); requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"})); });
+    this.mark();
+  },
+  mark(){ document.querySelectorAll("#views [data-view]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===this.cur)); },
+  // after a redraw: show only the current view, then draw its charts (they measure their width, so only once visible)
+  apply(){ document.querySelectorAll("#app [data-view]").forEach(v=>v.hidden=v.dataset.view!==this.cur); this.mark();
+    this.draw[this.cur]?.(); },
+  go(name,toTop){ this.cur=name; history.replaceState(null,"","#"+name); this.apply(); if(toTop) scrollTo({top:0}); },
+};
+
+/* ---------------------------------------------------------------- picture cards: score rings, signal mix, stat tiles */
+const SIG_ORDER = ["Strong overweight","Overweight","Neutral","Underweight","Avoid"];
+// one diverging scale: green for favoured, grey in the middle, red for weak
+const SIG_FILL = {"Strong overweight":"var(--pos)","Overweight":"color-mix(in oklab,var(--pos) 50%,var(--surface2))",
+  "Neutral":"color-mix(in oklab,var(--faint) 55%,var(--surface2))","Underweight":"color-mix(in oklab,var(--neg) 50%,var(--surface2))","Avoid":"var(--neg)"};
+function ring(score,{size=46,stroke=5}={}){
+  const r=(size-stroke)/2, c=2*Math.PI*r, v=score==null?0:Math.max(0,Math.min(100,score)), mid=size/2, col=score==null?"var(--line)":scoreColor(score);
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Score ${score==null?"not available":Math.round(score)+" out of 100"}">
+    <circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="color-mix(in oklab,${col} 18%,var(--surface2))" stroke-width="${stroke}"/>
+    ${v?`<circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${(c*v/100).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 ${mid} ${mid})"/>`:""}
+    <text x="${mid}" y="${mid}" text-anchor="middle" dominant-baseline="central" font-size="${Math.round(size*.36)}" fill="var(--ink)">${score==null?"–":Math.round(score)}</text></svg>`;
+}
+// how many markets sit in each signal, as one bar with a legend
+function sigDist(sigs){
+  const n=sigs.length, c=Object.fromEntries(SIG_ORDER.map(k=>[k,sigs.filter(s=>s===k).length]));
+  return `<div class="sigbar" role="img" aria-label="${esc(SIG_ORDER.map(k=>`${k} ${c[k]}`).join(", "))}">${SIG_ORDER.filter(k=>c[k]).map(k=>`<i style="flex:${c[k]};background:${SIG_FILL[k]}" title="${esc(`${k}: ${c[k]} of ${n}`)}"></i>`).join("")}</div>
+    <div class="siglegend">${SIG_ORDER.map(k=>`<span title="${esc(SIGNAL_HELP[k]||"")}"><i class="sw" style="background:${SIG_FILL[k]}"></i>${esc(k)}<b>${c[k]}</b></span>`).join("")}</div>`;
+}
+const meter = (f,col="var(--pos)") => `<div class="meter" style="background:color-mix(in oklab,${col} 16%,var(--surface2))"><i style="width:${Math.round(Math.max(0,Math.min(1,f||0))*100)}%;background:${col}"></i></div>`;
+const tag = (html,tone="",attrs="") => `<span class="tag ${tone}" ${attrs}>${html}</span>`;
+const QUAD_TONE = {Leading:"pos",Weakening:"warn",Lagging:"neg",Improving:"info"};
+// a stat tile: label, value, optional extra body and a short line under it; open = a market to open, href = a link
+function stat({label,ico="",value="",tone="",sub="",body="",open="",href=""}){
+  const el=href?"a":"div", attrs=open?` data-open="${esc(open)}" role="button" tabindex="0"`:href?` href="${esc(href)}"`:"";
+  return `<${el} class="stat${open||href?" click":""}"${attrs}><div class="stat-lab">${ico?icon(ico,14):""}<span>${label}</span></div>
+    ${value!==""?`<div class="stat-val ${tone}">${value}</div>`:""}${body}${sub?`<div class="stat-sub">${sub}</div>`:""}</${el}>`;
+}
+// a row of stat tiles, laid out so it always splits evenly (6 → 6 or 3+3 or 2+2+2)
+const heroGrid = cards => { const c=cards.filter(Boolean); return `<div class="hero n${c.length}">${c.join("")}</div>`; };
+const ringRow = (score,name,sub) => `<div class="stat-row">${ring(score,{size:48})}<div><div class="stat-val sm">${esc(name)}</div>${sub?`<div class="stat-sub">${sub}</div>`:""}</div></div>`;
+// one shortlist card: score ring, name, a few tags, past-year sparkline
+function pickCard({key,name,sub,score,tags=[],spark="",title=""}){
+  return `<div class="pick" data-open="${esc(key)}" role="button" tabindex="0" title="${esc(title)}">${ring(score,{size:44,stroke:4.5})}
+    <div class="pick-main"><div class="pick-name">${esc(name)}</div><div class="pick-sub">${esc(sub)}</div>${tags.length?`<div class="pick-tags">${tags.join("")}</div>`:""}</div>${spark}</div>`;
+}
+// how far to trust the score, from the test on past data; links to the full test
+function trustBadge(bt){ if(!bt) return ""; const st=btStrength(bt);
+  return `<a class="trust ${st.cls}" href="#track" title="${esc(`Tested on the past (${monthYear(bt.from)} to ${monthYear(bt.to)}): the top-scored 20% went on to ${beatTrail(bt.topAnn,"their market",true)}; the lowest-scored 20% ${beatTrail(bt.botAnn,"it")}. Click for the full test.`)}">${icon("record",14)}Tested on the past: ${esc(st.label.toLowerCase())}</a>`; }
+const niceDate = (iso,year=false) => new Date(iso+"T12:00:00Z").toLocaleDateString(undefined,{day:"numeric",month:"short",...(year?{year:"numeric"}:{})});
+const cap = s => s? s[0].toUpperCase()+s.slice(1) : s;
+
 /* ---------------------------------------------------------------- svg helpers */
 function sparkSVG(vals,{w=96,h=24,color}={}){
   const v = vals.filter(x=>x!=null); if(v.length<2) return "";
@@ -113,7 +207,10 @@ function lineChart(el,{t,series,h=240,fmt=v=>v.toFixed(2),baseline=null,baseline
     <text x="${W-R+6}" y="${Y(v)+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">${fmt(v)}</text>`).join("");
   const span = (t[t.length-1]-t[0])/86400, years = span>800, short = span<150;
   const seen=new Set(); let xl="";
-  t.forEach((ts,i)=>{ const d=new Date(ts*1000); const key = years? d.getFullYear() : short? d.getFullYear()+"-"+d.getMonth()+"-"+(d.getDate()<15) : d.getFullYear()+"-"+d.getMonth();
+  // a few weeks of data (the practice portfolios early on): label individual days instead of months
+  if(span<45){ const step=Math.max(1,Math.ceil(t.length/6));
+    t.forEach((ts,i)=>{ if(i%step) return; xl+=`<text x="${X(i)}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="${i===0?"start":"middle"}">${new Date(ts*1000).toLocaleDateString(undefined,{day:"numeric",month:"short"})}</text>`; }); }
+  else t.forEach((ts,i)=>{ const d=new Date(ts*1000); const key = years? d.getFullYear() : short? d.getFullYear()+"-"+d.getMonth()+"-"+(d.getDate()<15) : d.getFullYear()+"-"+d.getMonth();
     if(!seen.has(key)){ seen.add(key); if(i<2) return;
       if(years && span>2500 && d.getFullYear()%2) return;
       if(!years && !short && d.getMonth()%2) return;
@@ -147,7 +244,8 @@ function showTip(e){ const tip=$("#tip"); tip.hidden=false;
 /* Diverging horizontal bars: items [{label, v, sub}] */
 function barsSVG(items,{fmt=v=>pct(v,1)}={}){
   const W=560, rowH=30, L=150, R=70, H=items.length*rowH+8;
-  const mx=Math.max(0.001,...items.map(x=>Math.abs(x.v??0))), zero=L+(W-L-R)/2, scale=(W-L-R)/2/mx;
+  // the longest bar stops short of the labels on either side, leaving room for its value
+  const mx=Math.max(0.001,...items.map(x=>Math.abs(x.v??0))), zero=L+(W-L-R)/2, scale=((W-L-R)/2-46)/mx;
   const rows=items.map((x,i)=>{ const y=4+i*rowH, v=x.v??0, w=Math.abs(v)*scale, x0=v>=0?zero:zero-w;
     return `<text x="0" y="${y+18}" font-size="12.5" fill="var(--ink)">${esc(x.label)}</text>
       ${x.sub?`<text x="${L-8}" y="${y+18}" font-size="11" fill="var(--faint)" text-anchor="end">${esc(x.sub)}</text>`:""}
@@ -157,7 +255,7 @@ function barsSVG(items,{fmt=v=>pct(v,1)}={}){
 }
 
 /* Relative rotation graph. items: [{key, label, title, rrg:[[x,y]...], quad}]; vs = short name of what they're compared with */
-function rrgChart(el,items,onOpen,{vs="the market"}={}){
+function rrgChart(el,items,{vs="the market"}={}){
   const W=Math.max(300,el.clientWidth||520), H=Math.round(Math.min(W*0.85,520)), P=34;
   const all=items.flatMap(r=>r.rrg); if(!all.length){el.innerHTML='<p class="muted">Not enough history.</p>';return;}
   const ext=a=>Math.max(...a.map(v=>Math.abs(v-100)))*1.12||2;
@@ -189,7 +287,6 @@ function rrgChart(el,items,onOpen,{vs="the market"}={}){
   labels.forEach(l=>{ let y=l.y-8; while(placed.some(p=>Math.abs(p.y-y)<12&&Math.abs(p.x-l.x)<(l.t.length*6.5+10))) y+=12; placed.push({x:l.x,y});
     const right=l.x>W-130; s+=`<text x="${l.x+(right?-8:8)}" y="${y}" text-anchor="${right?"end":"start"}" font-size="11.5" fill="var(--ink)" data-open="${esc(l.key)}" style="cursor:pointer">${esc(l.t)}</text>`; });
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rotation map">${s}</svg>`;
-  el.querySelectorAll("[data-open]").forEach(n=>n.addEventListener("click",()=>onOpen(n.dataset.open)));
 }
 
 /* ---------------------------------------------------------------- shared verdict + cards */
@@ -276,17 +373,12 @@ function btAdvice(bt,noun){
 // base=true gives the form used after "went on to" ("trail", "roughly match")
 function beatTrail(v,what,base=false){ return near0(v)? `roughly ${base?"match":"matched"} ${what}` : `${v>0?"beat":base?"trail":"trailed"} ${what} by ${pct(Math.abs(v),1,false)} a year on average`; }
 const extra10k = v => `about ${per10k(v)} a year ${v>0?"more":"less"} than just holding it, per $10,000`;
-function btSummaryLine(bt,{noun,vs}){
-  if(!bt) return "";
-  return `<p class="summary-line"><b>Tested on the past (${esc(monthYear(bt.from))}–${esc(monthYear(bt.to))}):</b> each month, the 20% of ${esc(noun)} with the highest scores went on to ${esc(beatTrail(bt.topAnn,vs,true))}; the lowest-scored 20% ${esc(beatTrail(bt.botAnn,"it"))}. That is ${esc(btStrength(bt).word)}. <a href="#track">See the full test</a>.</p>`;
-}
 /* noun: what is scored ("funds"/"countries"); one: singular; vs: long comparison; vsShort: for tight labels;
    vsList: optional sentence listing each region's comparison */
 function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
-  if(!bt) return `<section id="track"><div class="sec-head"><div class="grow"><div class="eyebrow">Testing the score on the past</div><h2>Has the score worked?</h2>
-    <p>There isn't enough price history yet to check how the score would have done.</p></div></div></section>`;
+  if(!bt) return `<section id="track">${secHead({eyebrow:"Testing the score on the past",title:"Has the score worked?",lead:"There isn't enough price history yet to check how the score would have done."})}</section>`;
   const st=btStrength(bt), years=Math.round((bt.to-bt.from)/31557600), group=Math.max(1,Math.round(bt.avgFunds/5));
-  const b=bt.bands, order=["Strong overweight","Overweight","Neutral","Underweight","Avoid"];
+  const b=bt.bands, order=SIG_ORDER;
   const vals=order.map(k=>b[k]&&b[k].ann), ordered=vals.every((v,i)=>i===0||v==null||vals[i-1]==null||vals[i-1]>=v-0.005);
   const won=Math.round(bt.hit*bt.months), wonRecent=Math.round(bt.recentHit*12);
   // are the top group's winning months bigger than its losing months? (checked from the data, not assumed)
@@ -301,60 +393,61 @@ function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
     `while the lowest-scored group ${beatTrail(bt.botAnn,"it")}. ${gapSentence} `+
     `That is ${st.word}: our reliability check (a t-statistic, which compares the average gap with how much it wobbled month to month) came out at ${bt.spreadT==null?"–":tval(bt.spreadT)}, and 2 or more would be convincing. `+
     `The top group beat the bottom group in ${won} of ${bt.months} months${size}. `+
-    `${ordered?"Higher ratings were generally followed by better results, from Strong overweight at the top to Avoid at the bottom.":"The ratings did not line up: a higher rating was not reliably followed by a better result."} ${btAdvice(bt,noun)}`;
-  const kpi=(l,v,s,c="",tip="")=>`<div class="kpi" title="${esc(tip)}"><span>${l}</span><b class="${c}">${v}</b><small>${s}</small></div>`;
+    `${ordered?"Higher ratings were generally followed by better results, from Strong overweight at the top to Avoid at the bottom.":"The ratings did not line up: a higher rating was not reliably followed by a better result."}`;
   const effect=t=>t==null?["eff-none","–"]:t>=2?["eff-help","Helped (reliable)"]:t>=1?["eff-help","Possibly helped"]:t<=-2?["eff-hurt","Hurt (reliable)"]:t<=-1?["eff-hurt","Possibly hurt"]:["eff-none","No clear effect"];
   const comp=Object.entries(bt.components).map(([k,v])=>{ const e=effect(v.t);
     return `<tr><td title="${esc(partTip(k,vsShort))}">${esc(partName(k,vsShort))}</td><td>${Math.round((engineWeights[k]||0)*100)}%</td><td class="${e[0]}">${e[1]}</td><td>${confText(v.t)}</td></tr>`; }).join("");
   const c=bt.curves, end=k=>Math.round(c[k][c[k].length-1]*100);
   const worst=bt.worstMonth, strongHit=b["Strong overweight"]&&b["Strong overweight"].hit;
+  const vsWord=esc(vsShort);
   return `<section id="track">
-    <div class="sec-head"><div class="grow"><div class="eyebrow" title="Often called a 'backtest': replaying the past to see how the score's picks would have done">Testing the score on the past · ${bt.months} months (about ${years} years) · about ${Math.round(bt.avgFunds)} ${esc(noun)} each month</div><h2>Has the score worked?</h2>
-      <p>We replayed the past. At the end of every month since ${esc(monthYear(bt.from))}, we scored every one of the ${esc(noun)} using only the prices known at the time, with the same recipe as today. Then we checked whether each did better or worse over the next month than ${esc(vs)}${vsList?`: ${esc(vsList)}`:""}. This is a simulation, not a record of real trades.</p></div></div>
+    ${secHead({eyebrow:`Testing the score on the past · ${years} years · ${bt.months} months`,title:"Has the score worked?",
+      lead:`Replaying the past month by month, the top-scored 20% of ${esc(noun)} went on to ${esc(beatTrail(bt.topAnn,vsShort,true))}, while the lowest-scored 20% ${esc(beatTrail(bt.botAnn,"it"))}.`})}
     <div class="bt-grid">
-      <div class="card bt-verdict"><span class="badge ${st.cls}">${st.label}</span><div>${esc(text)}</div></div>
-      <div class="kpis">
-        ${kpi("Top-scored 20%, per year",aheadBehind(bt.topAnn),`${relPrep(bt.topAnn)}${esc(vsShort)}, on average${near0(bt.topAnn)?"":` · ${extra10k(bt.topAnn)}`}`,cls(bt.topAnn),"Average monthly result × 12, compared with the market it was measured against")}
-        ${kpi("Lowest-scored 20%, per year",aheadBehind(bt.botAnn),`${relPrep(bt.botAnn)}${esc(vsShort)}, on average${near0(bt.botAnn)?"":` · ${extra10k(bt.botAnn)}`}`,cls(bt.botAnn),"Average monthly result × 12, compared with the market it was measured against")}
-        ${kpi("Top group vs lowest group, per year",betterWorse(bt.spreadAnn),`on average. Reliability: ${confText(bt.spreadT)}; 2 or more means unlikely to be luck.`,cls(bt.spreadAnn),"The reliability check is a t-statistic: how big the average gap is compared with its month-to-month wobble.")}
-        ${kpi("Months the top group beat the lowest group",`${won} of ${bt.months}`,"A coin toss would win about half the months.")}
-        ${kpi("Last 12 months, top vs lowest group",betterWorse(bt.recentSpreadAnn),`in total. The top group beat the lowest group in ${wonRecent} of 12 months. One year is too short to judge.`,cls(bt.recentSpreadAnn))}
-        ${kpi("Swapped each month",pct(bt.turnover,0,false),`of the top group changes each month (about ${Math.round(bt.turnover*group)} of ${group}). Real trading costs would eat into any gain; they aren't included.`)}
+      <div class="card bt-verdict"><span class="badge ${st.cls}">${st.label}</span><div>${esc(btAdvice(bt,noun))}</div></div>
+      <div class="hero n6">
+        ${stat({label:"Top-scored 20%, per year",ico:"up",value:aheadBehind(bt.topAnn),tone:cls(bt.topAnn),sub:`${relPrep(bt.topAnn)}${vsWord}, on average`})}
+        ${stat({label:"Lowest-scored 20%, per year",ico:"down",value:aheadBehind(bt.botAnn),tone:cls(bt.botAnn),sub:`${relPrep(bt.botAnn)}${vsWord}, on average`})}
+        ${stat({label:"Gap between them, per year",ico:"bars",value:betterWorse(bt.spreadAnn),tone:cls(bt.spreadAnn),sub:`Reliability: ${confText(bt.spreadT)}. 2 or more means unlikely to be luck.`})}
+        ${stat({label:"Months the top group won",ico:"award",value:`${won} of ${bt.months}`,body:meter(bt.hit,"var(--accent)"),sub:"A coin toss would win about half."})}
+        ${stat({label:"After trading costs, per year",ico:"trend",value:aheadBehind(bt.topNetAnn),tone:cls(bt.topNetAnn),sub:`top group ${relPrep(bt.topNetAnn)}${vsWord}, paying ${pct(bt.costPerTrade,2,false)} per trade`})}
+        ${stat({label:"Last 12 months, top vs lowest",value:betterWorse(bt.recentSpreadAnn),tone:cls(bt.recentSpreadAnn),sub:`in total; the top group won ${wonRecent} of 12 months. One year is too short to judge.`})}
       </div>
-      ${strictChecks(bt,vsShort)}
       <div class="two">
-        <div class="card chartbox"><div class="row"><span class="eyebrow">Top vs lowest group, relative to the market (100 = level with it)</span></div>
+        <div class="card chartbox"><div class="row"><span class="eyebrow">Top vs lowest group, relative to the market</span></div>
           <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored 20%</span><span class="key"><i style="background:var(--faint)"></i>All ${esc(noun)} (average)</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored 20%</span></div>
-          <div id="btchart"></div><p class="note">These lines track performance compared with ${esc(vs)}, not the value of an investment (which also rose and fell with the market). Each group's monthly result against the market is compounded, starting from 100. By ${esc(monthYear(bt.to))} the top group was at ${end("top")} (${aheadBehind(end("top")/100-1,0)} ${relPrep(end("top")/100-1)}the market over the whole period), the lowest group at ${end("bot")}, and the average of all ${esc(noun)} at ${end("mid")}${end("mid")<100?", so the typical one lagged the market over this period":""}. Groups re-picked every month; no trading costs or taxes.</p></div>
-        <div class="card panel"><div class="eyebrow" style="margin-bottom:8px">How each rating did next (per year, vs ${esc(vsShort)})</div>
+          <div id="btchart"></div>${more("bt-chart",`<p>These lines track performance compared with ${esc(vs)}, not the value of an investment (which also rose and fell with the market). Each group's monthly result against the market is compounded, starting from 100.</p><p>By ${esc(monthYear(bt.to))} the top group was at ${end("top")} (${aheadBehind(end("top")/100-1,0)} ${relPrep(end("top")/100-1)}the market over the whole period), the lowest group at ${end("bot")}, and the average of all ${esc(noun)} at ${end("mid")}${end("mid")<100?", so the typical one lagged the market over this period":""}. Groups were re-picked every month, with no trading costs or taxes.</p>`,"How to read this chart")}</div>
+        <div class="card panel"><div class="eyebrow" style="margin-bottom:8px">How each rating did next (per year, vs ${vsWord})</div>
           <div class="bars">${barsSVG(order.map(k=>({label:k,v:b[k].ann,sub:`${b[k].n.toLocaleString()} cases`})),{fmt:v=>Math.abs(v)<0.0005?"0.0%":pct(v,1)})}</div>
-          <p class="note">Every time a ${esc(one)} had that rating, we measured how it did over the next month compared with ${esc(vs)}, then scaled the average up to a yearly rate (monthly average × 12). + = ahead, − = behind.${strongHit!=null?` Even "Strong overweight" ${esc(noun)} were ahead in only ${pct(strongHit,0,false)} of those cases.`:""}</p></div>
+          ${more("bt-bars",`<p>Every time a ${esc(one)} had that rating, we measured how it did over the next month compared with ${esc(vs)}, then scaled the average up to a yearly rate (monthly average × 12). + = ahead, − = behind.${strongHit!=null?` Even "Strong overweight" ${esc(noun)} were ahead in only ${pct(strongHit,0,false)} of those cases.`:""}</p>`,"How to read this chart")}</div>
       </div>
-      <div class="card panel"><div class="eyebrow" style="margin-bottom:6px">Which parts of the score helped?</div>
-        <div style="overflow-x:auto"><table class="comp"><thead><tr><th>Part of the score</th><th>Share of score</th><th>Effect on the next month</th><th title="A t-statistic: how sure we can be the effect isn't luck">Reliability</th></tr></thead><tbody>${comp}</tbody></table></div>
-        <p class="note">Reliability (t): under 1 = no sign of an effect, 1–2 = weak, 2 or more = convincing. We fixed these shares before running the test and did not adjust them to fit the results: tuning them to the past would make this test look better without making the score any better at predicting the future.</p></div>
-      <div class="card panel"><div class="eyebrow" style="margin-bottom:6px">Read this test with care</div><ul class="caveats">
-        <li>We picked these ${esc(noun)} in 2026, with hindsight: any that closed along the way are missing, and popular themes were chosen knowing they survived. That can make the results look different from what someone would really have experienced.</li>
-        <li>The test swaps holdings every month for free: no trading fees, no gap between buying and selling prices, and no tax. With ${pct(bt.turnover,0,false)} of the top group changing each month, real costs would eat into any gain.</li>
-        <li>${bt.months} months (about ${years} years) is not long for a test like this, and one unusual year (such as 2020) can sway the average.</li>
-        <li>Worst single month (${esc(monthYear(worst.t+86400))}): the top group did ${pct(Math.abs(worst.spread),1,false)} ${worst.spread<0?"worse":"better"} than the lowest group.</li>
-        <li>Holding longer: over the following 3 months the top group ${near0(bt.fwd3)?"roughly matched":bt.fwd3>0?"beat":"trailed"} the lowest group${near0(bt.fwd3)?"":` by ${pct(Math.abs(bt.fwd3),1,false)}`} on average, and over the following 6 months it ${near0(bt.fwd6)?"roughly matched it":`${bt.fwd6>0?"beat":"trailed"} it by ${pct(Math.abs(bt.fwd6),1,false)}`} on average (totals, not yearly rates).</li>
-        <li>Past results do not guarantee future ones, especially once many investors start following the same pattern.</li></ul></div>
+      <div class="acc">
+        ${fold("bt-how",`How the test works`,`<p>We replayed the past. At the end of every month since ${esc(monthYear(bt.from))}, we scored every one of the ${esc(noun)} using only the prices known at the time, with the same recipe as today. Then we checked whether each did better or worse over the next month than ${esc(vs)}${vsList?`: ${esc(vsList)}`:""}. This is a simulation, not a record of real trades. About ${Math.round(bt.avgFunds)} ${esc(noun)} were in the test each month.</p>`)}
+        ${fold("bt-full",`The full result, in words`,`<p>${esc(text)}</p><p>About ${pct(bt.turnover,0,false)} of the top group changed each month (about ${Math.round(bt.turnover*group)} of ${group}).</p>`)}
+        ${fold("bt-strict",`Stricter checks <small>first half against second half, and after trading costs</small>`,strictChecks(bt,vsShort))}
+        ${fold("bt-parts",`Which parts of the score helped?`,`<div style="overflow-x:auto"><table class="comp"><thead><tr><th>Part of the score</th><th>Share of score</th><th>Effect on the next month</th><th title="A t-statistic: how sure we can be the effect isn't luck">Reliability</th></tr></thead><tbody>${comp}</tbody></table></div>
+          <p class="note">Reliability (t): under 1 = no sign of an effect, 1–2 = weak, 2 or more = convincing. We fixed these shares before running the test and did not adjust them to fit the results: tuning them to the past would make this test look better without making the score any better at predicting the future.</p>`)}
+        ${fold("bt-care",`Read this test with care`,`<ul>
+          <li>We picked these ${esc(noun)} in 2026, with hindsight: any that closed along the way are missing, and popular themes were chosen knowing they survived. That can make the results look different from what someone would really have experienced.</li>
+          <li>${bt.months} months (about ${years} years) is not long for a test like this, and one unusual year (such as 2020) can sway the average.</li>
+          <li>Worst single month (${esc(monthYear(worst.t+86400))}): the top group did ${pct(Math.abs(worst.spread),1,false)} ${worst.spread<0?"worse":"better"} than the lowest group.</li>
+          <li>Holding longer: over the following 3 months the top group ${near0(bt.fwd3)?"roughly matched":bt.fwd3>0?"beat":"trailed"} the lowest group${near0(bt.fwd3)?"":` by ${pct(Math.abs(bt.fwd3),1,false)}`} on average, and over the following 6 months it ${near0(bt.fwd6)?"roughly matched it":`${bt.fwd6>0?"beat":"trailed"} it by ${pct(Math.abs(bt.fwd6),1,false)}`} on average (totals, not yearly rates).</li>
+          <li>Past results do not guarantee future ones, especially once many investors start following the same pattern.</li></ul>`)}
+      </div>
     </div></section>`;
 }
 function strictChecks(bt,vsShort){
-  const hs=(bt.halves||[]).filter(Boolean); if(!hs.length) return "";
+  const hs=(bt.halves||[]).filter(Boolean); if(!hs.length) return "<p>Not available yet.</p>";
   const row=(label,h,from,to)=>`<tr><td>${label}<br><small class="muted">${esc(monthYear(from))} – ${esc(monthYear(to))}</small></td>
     <td class="${cls(h.topAnn)}">${aheadBehind(h.topAnn)}</td><td class="${cls(h.botAnn)}">${aheadBehind(h.botAnn)}</td>
     <td class="${cls(h.spreadAnn)}">${betterWorse(h.spreadAnn)}</td><td>${confText(h.spreadT)}</td><td>${Math.round(h.hit*h.months)} of ${h.months}</td></tr>`;
   const both = hs.length===2 && hs.every(h=>h.spreadAnn>0), weaker = hs.length===2 && hs[1].spreadAnn < hs[0].spreadAnn/2;
-  return `<div class="card panel"><div class="eyebrow" style="margin-bottom:6px">Stricter checks</div>
-    <div style="overflow-x:auto"><table class="comp"><thead><tr><th>Period</th><th>Top-scored 20%, per year</th><th>Lowest-scored 20%, per year</th><th>Top vs lowest</th><th>Reliability</th><th>Months top won</th></tr></thead><tbody>
+  return `<div style="overflow-x:auto"><table class="comp"><thead><tr><th>Period</th><th>Top-scored 20%, per year</th><th>Lowest-scored 20%, per year</th><th>Top vs lowest</th><th>Reliability</th><th>Months top won</th></tr></thead><tbody>
       ${hs[0]?row("First half",hs[0],hs[0].from,hs[0].to+86400):""}${hs[1]?row("Second half",hs[1],hs[1].from,hs[1].to+86400):""}
       ${row("Whole period",bt,bt.from,bt.to)}</tbody></table></div>
     <p class="note">${both?`The top group did better than the lowest group in both halves${weaker?", but the gap shrank a lot in the more recent half":""}.`:"The result did not hold up in both halves, which is a warning sign that it may be luck."}
       After estimated trading costs (${pct(bt.costPerTrade,2,false)} per trade, about ${pct(bt.costAnn,1,false)} a year at this level of swapping), the top-scored group was ${aheadBehind(bt.topNetAnn)} ${relPrep(bt.topNetAnn)}${esc(vsShort)} a year on average.
-      Any future change to the score's recipe has to beat the current one on the first half and then again on the second half, which it never saw, before it is adopted.</p></div>`;
+      Any future change to the score's recipe has to beat the current one on the first half and then again on the second half, which it never saw, before it is adopted.</p>`;
 }
 let engineWeights = {};
 function drawBacktest(bt){
@@ -370,31 +463,32 @@ const moneyIn = (v,cur) => v==null? "–" : CUR[cur].sign+Math.round(v).toLocale
 const lastVal = a => { for(let i=(a||[]).length-1;i>=0;i--) if(a[i]!=null) return a[i]; return null; };
 /* nameOf(key) -> display name; mkt: short name for "the picks' own markets" (null when that's just world stocks) */
 function paperSection(p,{noun,nameOf,mkt,cur="gbp"}){
-  if(!p) return `<section id="paper"><div class="sec-head"><div class="grow"><div class="eyebrow">Live test</div><h2>Practice portfolios</h2>
-    <p>The practice portfolios start with the first daily snapshot. Check back tomorrow.</p></div></div></section>`;
+  if(!p) return `<section id="paper">${secHead({eyebrow:"Live test",title:"Practice portfolios",lead:"The practice portfolios start with the first daily snapshot. Check back tomorrow."})}</section>`;
   const L=p[cur], v=g=>lastVal(L[g]), start=10000, days=p.t.length, chg=g=>v(g)==null?null:v(g)/start-1;
-  const kpi=(l,g,sub)=>`<div class="kpi"><span>${l}</span><b class="${cls(chg(g))}">${moneyIn(v(g),cur)}</b><small>${esc(upDown(chg(g)))} since ${esc(p.started)}${sub?` · ${sub}`:""}</small></div>`;
+  const k=(label,g,ico,sub="")=>stat({label,ico,value:moneyIn(v(g),cur),sub:`<span class="${cls(chg(g))}">${esc(cap(upDown(chg(g))))}</span> since ${esc(niceDate(p.started))}${sub?` · ${sub}`:""}`});
   const list=(rows,title)=>`<div class="card panel"><div class="eyebrow" style="margin-bottom:4px">${title}</div>
-    ${rows.map(h=>`<div class="idea" data-open="${esc(h.key)}" role="button" tabindex="0"><span class="nm">${esc(nameOf(h.key))}</span><span class="sc ${cls(h.sinceGbp)}">${pct(h.sinceGbp,1)}</span></div>`).join("")}
-    <p class="note">Change in pounds since the latest monthly picks (${esc(p.rebalances[p.rebalances.length-1].date)}).</p></div>`;
+    ${rows.map(h=>`<div class="idea" data-open="${esc(h.key)}" role="button" tabindex="0"><span class="nm">${esc(nameOf(h.key))}</span><span class="sc ${cls(h.sinceGbp)}">${pct(h.sinceGbp,1)}</span></div>`).join("")}</div>`;
+  const last=p.rebalances[p.rebalances.length-1];
+  const seg=`<span class="seg" role="group" aria-label="Portfolio currency" style="margin-left:0"><button type="button" data-pcur="gbp" aria-pressed="${cur==="gbp"}">£</button><button type="button" data-pcur="usd" aria-pressed="${cur==="usd"}">$</button></span>`;
   return `<section id="paper">
-    <div class="sec-head"><div class="grow"><div class="eyebrow">Live test · started ${esc(p.started)} · day ${days}</div><h2>Practice portfolios</h2>
-      <p>A test on past data can be tuned until it looks good; this can't. At the start of each month we save the 20% of ${esc(noun)} with the highest scores and the 20% with the lowest, then track what ${CUR[cur].sign}10,000 in each would do. No real money is involved; trading costs (${pct(p.costPerTrade,2,false)} per trade) are included. Next picks: ${esc(p.nextRebalance)}.</p></div>
-      <span class="seg" role="group" aria-label="Portfolio currency" style="margin-left:0"><button type="button" data-pcur="gbp" aria-pressed="${cur==="gbp"}">£</button><button type="button" data-pcur="usd" aria-pressed="${cur==="usd"}">$</button></span></div>
+    ${secHead({eyebrow:`Live test · day ${days}`,title:"Practice portfolios",lead:`Pretend ${CUR[cur].sign}10,000 in the top-scored 20% of ${esc(noun)}, and the same in the lowest-scored 20%, re-picked at the start of each month. Next picks: ${esc(niceDate(p.nextRebalance))}.`,right:seg})}
+    ${more("paper-how",`<p>A test on past data can be tuned until it looks good; this can't, because each month's picks are saved before anyone knows how they'll do. No real money is involved, and trading costs (${pct(p.costPerTrade,2,false)} per trade) are included.</p><p>Early days: a few weeks tells you almost nothing, because short-term moves are mostly noise. Judge it after 6–12 months.</p>`)}
     <div class="bt-grid">
-      <div class="kpis">
-        ${kpi("Top-scored portfolio","top")}
-        ${kpi("Lowest-scored portfolio","bottom","for comparison")}
-        ${mkt?kpi("Same money in the picks' own markets","mkt",esc(mkt)):""}
-        ${kpi("World stocks (MSCI ACWI)","world","a simple benchmark")}
+      <div class="hero n${mkt?4:3}">
+        ${k("Top-scored portfolio","top","up")}
+        ${k("Lowest-scored portfolio","bottom","down","for comparison")}
+        ${mkt?k("Same money in their markets","mkt","bars",esc(mkt)):""}
+        ${k("World stocks (MSCI ACWI)","world","globe","a simple benchmark")}
       </div>
-      <div class="card chartbox"><div class="row"><span class="eyebrow">Value of ${CUR[cur].sign}10,000 since ${esc(p.started)} (in ${CUR[cur].word})</span></div>
-        <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored</span>${mkt?`<span class="key"><i style="background:var(--accent)"></i>Picks' own markets</span>`:""}<span class="key"><i style="background:var(--faint)"></i>World stocks</span></div>
-        <div id="paperchart"></div>
-        <p class="note">Early days: a few weeks tells you almost nothing, because short-term moves are mostly noise. Judge it after 6–12 months.</p></div>
-      <div class="two">${list(p.holdings,`Top-scored holdings (${p.holdings.length})`)}${list(p.bottomHoldings||[],`Lowest-scored holdings (${(p.bottomHoldings||[]).length})`)}</div>
-      <details class="card panel"><summary class="eyebrow" style="cursor:pointer">Every monthly pick so far (${p.rebalances.length})</summary>
-        ${p.rebalances.slice().reverse().map(r=>`<p style="font-size:13.5px;margin:10px 0 0"><b>${esc(r.date)}</b><br><span class="pos">Top:</span> ${esc(r.top.map(nameOf).join(", "))}<br><span class="neg">Lowest:</span> ${esc(r.bottom.map(nameOf).join(", "))}</p>`).join("")}</details>
+      <div class="card chartbox"><div class="row"><span class="eyebrow">Value of ${CUR[cur].sign}10,000 since ${esc(niceDate(p.started,true))} (in ${CUR[cur].word})</span></div>
+        <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored</span>${mkt?`<span class="key"><i style="background:var(--accent)"></i>Their markets</span>`:""}<span class="key"><i style="background:var(--faint)"></i>World stocks</span></div>
+        <div id="paperchart"></div></div>
+      <div class="acc">
+        ${fold("paper-hold",`Current holdings <small>${p.holdings.length} top-scored and ${(p.bottomHoldings||[]).length} lowest-scored, picked ${esc(niceDate(last.date))}</small>`,
+          `<div class="two">${list(p.holdings,`Top-scored (${p.holdings.length})`)}${list(p.bottomHoldings||[],`Lowest-scored (${(p.bottomHoldings||[]).length})`)}</div><p class="note" style="margin:0">Each holding's change in pounds since the latest monthly picks. Click one for its full breakdown.</p>`)}
+        ${fold("paper-picks",`Every monthly pick so far <small>${p.rebalances.length}</small>`,
+          p.rebalances.slice().reverse().map(r=>`<p style="font-size:13.5px"><b>${esc(niceDate(r.date,true))}</b><br><span class="pos">Top:</span> ${esc(r.top.map(nameOf).join(", "))}<br><span class="neg">Lowest:</span> ${esc(r.bottom.map(nameOf).join(", "))}</p>`).join(""))}
+      </div>
     </div></section>`;
 }
 function drawPaper(p,cur,mkt){
@@ -405,15 +499,21 @@ function drawPaper(p,cur,mkt){
   s.push({v:L.world,color:"var(--faint)",name:"World",w:1.4});
   lineChart(el,{t:p.t,series:s,h:220,baseline:10000,fmt:v=>moneyIn(v,cur)});
 }
-/* Signal changes recorded from the daily snapshots */
+/* Signal changes recorded from the daily snapshots: the latest few as cards, the rest folded away */
 function changesSection(ch,{nameOf,noun}){
-  const list=(ch&&ch.changes||[]).slice().reverse().slice(0,40);
-  const byDate={}; list.forEach(c=>(byDate[c.date]=byDate[c.date]||[]).push(c));
-  return `<section id="changes"><div class="sec-head"><div class="grow"><div class="eyebrow">Signal changes</div><h2>What changed recently</h2>
-    <p>Recorded from a snapshot of every score taken each weekday after the US market closes${ch&&ch.since?`, starting ${esc(ch.since)}`:""}. Today's entries are live and can still change before the close.</p></div></div>
-    <div class="card panel">${list.length?Object.entries(byDate).map(([d,cs])=>`<div style="margin-bottom:10px"><div class="eyebrow" style="margin-bottom:2px">${esc(d)}${cs[0].live?" · live":""}</div>
-      ${cs.map(c=>`<div class="idea" data-open="${esc(c.key)}" role="button" tabindex="0"><span class="nm">${esc(nameOf(c.key))}</span><span class="sc">${sigPill(c.from)} → ${sigPill(c.to)}</span></div>`).join("")}</div>`).join("")
-      :`<p class="muted" style="margin:0">No signal changes recorded yet. The record started ${esc(ch&&ch.since||"today")}; changes to any of the ${esc(noun)} will appear here as they happen.</p>`}</div></section>`;
+  const list=(ch&&ch.changes||[]).slice().reverse().slice(0,80), rank=s=>SIG_ORDER.indexOf(s);
+  const ups=list.filter(c=>rank(c.to)<rank(c.from)).length, downs=list.length-ups, since=ch&&ch.since;
+  const row=c=>{ const up=rank(c.to)<rank(c.from);
+    return `<div class="chcard" data-open="${esc(c.key)}" role="button" tabindex="0" title="${esc(SIGNAL_HELP[c.to]||"")}"><span class="chcard-ico ${up?"pos":"neg"}">${icon(up?"up":"down",15)}</span>
+      <span class="chcard-nm"><b>${esc(nameOf(c.key))}</b><small>${esc(niceDate(c.date))}${c.live?" · today, can still change":""}</small></span>
+      <span class="chcard-sig">${sigPill(c.from)}<span class="muted">→</span>${sigPill(c.to)}</span></div>`; };
+  const head=secHead({eyebrow:"Signal changes",title:"What changed recently",
+    lead: list.length? `${list.length} change${list.length>1?"s":""} since daily snapshots began on ${esc(niceDate(since))}: ${ups} up a band, ${downs} down.` : `Daily snapshots began on ${esc(since?niceDate(since):"today")}.`});
+  const how=more("changes-how",`<p>Recorded from a snapshot of every score, taken each weekday after the US market closes. A change means the ${esc(noun.replace(/s$/,""))} moved into a different signal band (for example from Neutral to Overweight). Today's entries are live and can still change before the close. Click any card for the full breakdown.</p>`);
+  if(!list.length) return `<section id="changes">${head}${how}<div class="card panel"><p class="muted" style="margin:0">No signal changes recorded yet; changes to any of the ${esc(noun)} will appear here as they happen.</p></div></section>`;
+  const first=list.slice(0,8), rest=list.slice(8);
+  return `<section id="changes">${head}${how}<div class="chglist">${first.map(row).join("")}</div>
+    ${rest.length?`<div class="acc" style="margin-top:10px">${fold("changes-all",`Earlier changes <small>${rest.length}</small>`,`<div class="chglist">${rest.map(row).join("")}</div>`)}</div>`:""}</section>`;
 }
 function signalHistoryCard(ch,key){
   const mine=(ch&&ch.changes||[]).filter(c=>c.key===key).slice().reverse();
@@ -437,6 +537,15 @@ const Drawer = {
   close(silent){ $("#scrim")?.remove(); $("#drawer")?.remove(); const t=$("#tip"); if(t) t.hidden=true; document.body.style.overflow="";
     if(!silent&&this.onClose) this.onClose(); },
 };
+// tabs inside the detail panel; onShow(name) draws that tab's charts once it is visible
+function dTabs(tabs,cur){ return `<div class="dtabs" role="group" aria-label="Detail sections">${tabs.map(([k,l])=>`<button type="button" data-dtab="${k}" aria-pressed="${k===cur}">${esc(l)}</button>`).join("")}</div>`; }
+function bindDTabs(d,cur,onShow){
+  const bar=d.querySelector(".dtabs");
+  const show=k=>{ d.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==k);
+    d.querySelectorAll("[data-dtab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.dtab===k)); onShow(k); };
+  d.querySelectorAll("[data-dtab]").forEach(b=>b.onclick=()=>{ show(b.dataset.dtab); if(bar&&d.scrollTop>bar.offsetTop) d.scrollTop=bar.offsetTop; });
+  show(cur);
+}
 function automatedNote(generated){ return `<p class="muted" style="margin:6px 0 0;font-size:12px">Written automatically by fixed rules from prices as of ${esc(new Date(generated*1000).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}))}, and updated as prices change. Not advice; see the <a href="#limits">limitations</a>.</p>`; }
 
 /* ---------------------------------------------------------------- live data loop */
@@ -471,6 +580,8 @@ function startLoop({url,onData}){
     $("#stamp").textContent=`Live · prices checked ${gen.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})} · last trade ${last} · next check in ${mm?mm+" min":ss+" s"}`;
   }
   $("#refresh").onclick=()=>load(true);
+  // anything marked data-open (cards, table rows, map dots, peers in the panel) opens that market's details
+  document.addEventListener("click",e=>{ const t=e.target.closest("[data-open]"); if(t&&typeof openDetail==="function") openDetail(t.dataset.open); });
   setInterval(()=>{ stamp(); if(L.nextAt && Date.now()>=L.nextAt) load(false); },1000);
   document.addEventListener("keydown",e=>{ if(e.key==="Escape") Drawer.close();
     if((e.key==="Enter"||e.key===" ")&&e.target.matches?.("[data-open][role=button]")){e.preventDefault();e.target.click();} });

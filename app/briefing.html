@@ -13,20 +13,26 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-.brief{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start;margin-top:28px}
-.doc{padding:28px 32px;font-size:16px;line-height:1.65}
-.doc h1{font-size:34px;line-height:1.1;margin:0 0 6px}
-.doc h2{font-size:24px;margin:26px 0 8px}
-.doc h3{font-size:19px;margin:20px 0 6px}
-.doc p,.doc ul{max-width:70ch;margin:0 0 12px}
-.doc ul{padding-left:20px;display:grid;gap:6px}
-.doc em{color:var(--muted)}
-.byline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;font-size:13px;color:var(--muted)}
-.archive{padding:16px;position:sticky;top:90px}
+.brief{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start;margin-top:24px}
+.doc{display:grid;gap:14px;min-width:0}
+.doc-head{padding:22px 26px}
+.doc-head h1{font-size:34px;line-height:1.1;margin:0 0 6px}
+.doc-head p{margin:6px 0 0;color:var(--muted);max-width:80ch}
+.byline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:13px;color:var(--muted)}
+.inbrief{padding:18px 22px;border-radius:12px;background:color-mix(in oklab,var(--accent) 7%,var(--surface));border:1px solid color-mix(in oklab,var(--accent) 22%,var(--line))}
+.inbrief ul{margin:8px 0 0;padding-left:20px;display:grid;gap:8px;font-size:15.5px;line-height:1.55}
+.doc-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.doc .fold-body{font-size:15.5px;line-height:1.65}
+.doc .fold-body h3{font-size:19px;margin:6px 0 0}
+.doc .fold-body ul{gap:6px}
+.doc .fold-body em{color:var(--muted)}
+.archive{padding:16px;position:sticky;top:16px}
 .archive a{display:block;padding:7px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
 .archive a[aria-current="true"]{color:var(--accent);font-weight:600}
 .archive small{display:block;color:var(--faint);font-size:11.5px}
-@media (max-width:900px){.brief{grid-template-columns:1fr}.archive{position:static}.doc{padding:20px 18px}}
+.doc .hero.n4,.doc .hero.n5,.doc .hero.n6{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.brief{grid-template-columns:1fr}.archive{position:static}.doc-head{padding:18px}}
+@media (max-width:720px){.doc .hero.n4,.doc .hero.n5,.doc .hero.n6{grid-template-columns:repeat(2,minmax(0,1fr))}.doc-head h1{font-size:27px}}
 </style>
 </head>
 <body>
@@ -42,16 +48,16 @@
 <script>
 "use strict";
 // A small, safe Markdown renderer: everything is escaped first, then headings, lists, bold, italics and links are added.
+const inline=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<em>$1</em>")
+  .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|[\w./#-]+)\)/g,'<a href="$2">$1</a>');
 function md(text){
-  const inline=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<em>$1</em>")
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|[\w./#-]+)\)/g,'<a href="$2">$1</a>');
   const out=[]; let list=null, para=[];
   const flush=()=>{ if(para.length){ out.push(`<p>${inline(para.join(" "))}</p>`); para=[]; } if(list){ out.push(`<ul>${list.join("")}</ul>`); list=null; } };
-  for(const raw of text.replace(/<!--[\s\S]*?-->/g,"").split(/\r?\n/)){
+  for(const raw of text.split(/\r?\n/)){
     const line=raw.trimEnd();
     if(!line.trim()){ flush(); continue; }
-    const h=line.match(/^(#{1,3})\s+(.*)$/);
-    if(h){ flush(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
+    const h=line.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ flush(); out.push(`<h3>${inline(h[2])}</h3>`); continue; }
     const li=line.match(/^\s*[-*]\s+(.*)$/);
     if(li){ if(para.length){ out.push(`<p>${inline(para.join(" "))}</p>`); para=[]; } (list=list||[]).push(`<li>${inline(li[1])}</li>`); continue; }
     if(list){ flush(); }
@@ -59,6 +65,33 @@ function md(text){
   }
   flush();
   return out.join("");
+}
+// split the briefing into its title, the text before the first section, its "##" sections, and a closing italic line
+function parse(text){
+  const lines=text.replace(/<!--[\s\S]*?-->/g,"").split(/\r?\n/); let title="", pre=[], secs=[], cur=null;
+  for(const l of lines){
+    const h1=l.match(/^#\s+(.*)$/), h2=l.match(/^##\s+(.*)$/);
+    if(h1&&!title){ title=h1[1]; continue; }
+    if(h2){ cur={title:h2[1],lines:[]}; secs.push(cur); continue; }
+    (cur?cur.lines:pre).push(l);
+  }
+  let foot="";
+  const last=secs[secs.length-1];
+  if(last){ const body=last.lines.join("\n").trimEnd(), m=body.match(/\n\s*(\*[^*\n][^\n]*\*)\s*$/); if(m){ foot=m[1]; last.lines=body.slice(0,m.index).split("\n"); } }
+  return {title, pre:pre.join("\n"), secs:secs.map(s=>({title:s.title, body:s.lines.join("\n")})), foot};
+}
+// headline numbers from the week's facts file, as picture cards
+function factCards(f){
+  const S=f.sectors||{}, C=f.countries||{}, ws=f.worldStocks||{}, us=f.usMarket||{}, pp=f.practicePortfolios||{}, er=f.economicRead||{};
+  const topS=(S.highestScores||[])[0], topC=(C.highestScores||[])[0], ps=pp.sectors&&pp.sectors.valueGbp;
+  return heroGrid([
+    ws.weekGbp!=null&&stat({label:"World stocks this week",ico:"globe",value:pct(ws.weekGbp,1),tone:cls(ws.weekGbp),sub:`in pounds · ${pct(ws.weekUsd,1)} in US dollars`}),
+    us.weekGbp!=null&&stat({label:"US market (S&P 500) this week",ico:"trend",value:pct(us.weekGbp,1),tone:cls(us.weekGbp),sub:`in pounds · ${pct(us.weekUsd,1)} in US dollars`}),
+    er.phase&&stat({label:"Economic read",ico:"conditions",value:esc(er.phase),sub:"from US market signals"}),
+    topS&&stat({label:"Highest-scoring sector",ico:"award",body:ringRow(topS.score,topS.name,esc(`${topS.region} · ${topS.signal}`))}),
+    topC&&stat({label:"Highest-scoring country",ico:"award",body:ringRow(topC.score,topC.name,esc(`${topC.index} · ${topC.signal}`))}),
+    ps&&stat({label:"Sector practice portfolios",ico:"record",value:moneyIn(ps.top,"gbp"),sub:`top-scored · lowest-scored ${moneyIn(ps.bottom,"gbp")} · each started at £10,000`}),
+  ]);
 }
 const base = STATIC ? "briefings/" : "/briefings/";
 async function show(){
@@ -68,13 +101,28 @@ async function show(){
     if(!index.length) throw new Error("No briefings yet");
     const want=location.hash.slice(1), entry=index.find(e=>e.date===want)||index[0];
     const text=await (await fetch(base+entry.file+"?t="+Date.now(),{cache:"no-store"})).text();
-    const byClaude=/author:\s*Claude/.test(text.slice(0,300));
+    let facts=null; try{ facts=await (await fetch(base+"facts/"+entry.date+".json?t="+Date.now(),{cache:"no-store"})).json(); }catch(e){}
+    const byClaude=/author:\s*Claude/.test(text.slice(0,300)), B=parse(text);
+    const brief=B.secs.find(s=>/^in brief/i.test(s.title)), rest=B.secs.filter(s=>s!==brief);
     app.innerHTML=`<div class="brief">
-      <article class="card doc"><div class="byline">${byClaude?'<span class="chip tail">Written by Claude from this week\'s data</span>':'<span class="chip">Automatic factual draft</span>'}
-        <span>Every number comes from the Sectors and Countries pages. Not investment advice.</span></div>${md(text)}</article>
+      <article class="doc">
+        <div class="card doc-head"><div class="byline">${byClaude?'<span class="chip tail">Written by Claude from this week\'s data</span>':'<span class="chip">Automatic factual draft</span>'}
+          <span>Every number comes from the Sectors and Countries pages. Not investment advice.</span></div>
+          <h1>${inline(B.title||entry.title)}</h1>${B.pre.trim()?`<div>${md(B.pre)}</div>`:""}</div>
+        ${facts?factCards(facts):""}
+        ${brief?`<div class="inbrief"><div class="eyebrow">In brief</div>${md(brief.body)}</div>`:""}
+        ${rest.length?`<div class="doc-tools"><span class="eyebrow">The full briefing</span><button class="btn" type="button" id="toggleAll">Open all sections</button></div>
+          <div class="acc">${rest.map((s,i)=>fold(`b-${entry.date}-${i}`,inline(s.title),md(s.body))).join("")}</div>`:""}
+        ${B.foot?`<p class="disclaimer" style="margin:0">${inline(B.foot.replace(/^\*|\*$/g,""))}</p>`:""}
+      </article>
       <aside class="card archive"><div class="eyebrow" style="margin-bottom:6px">All briefings</div>
         ${index.map(e=>`<a href="#${esc(e.date)}" aria-current="${e.date===entry.date}">${esc(e.title)}<small>${e.author==="Claude"?"Written by Claude":"Draft"}</small></a>`).join("")}
         <p class="note">A fresh briefing appears every Saturday morning (UK time). GitHub gathers the week's numbers first; Claude then writes them up in plain English.</p></aside></div>`;
+    restoreOpen(app);
+    const btn=$("#toggleAll");
+    if(btn){ const folds=()=>[...app.querySelectorAll(".acc details")], sync=()=>btn.textContent=folds().every(d=>d.open)?"Close all sections":"Open all sections";
+      btn.onclick=()=>{ const open=!folds().every(d=>d.open); folds().forEach(d=>d.open=open); sync(); };
+      folds().forEach(d=>d.addEventListener("toggle",sync)); sync(); }
   }catch(e){
     app.innerHTML=`<div class="loading">No briefing is available yet. The first one appears on Saturday morning.</div>`;
   }
