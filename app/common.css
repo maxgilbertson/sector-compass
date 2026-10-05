@@ -166,8 +166,8 @@ th.sticky{z-index:3}
 
 /* drawer */
 .scrim{position:fixed;inset:0;background:rgba(6,10,9,.45);z-index:40}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(780px,100%);background:var(--bg);z-index:41;overflow-y:auto;box-shadow:var(--shadow);border-left:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 18px) 22px calc(env(safe-area-inset-bottom,0px) + 30px)}
-.drawer .hd{display:flex;gap:12px;align-items:flex-start}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(780px,100%);background:var(--bg);z-index:41;overflow-y:auto;box-shadow:var(--shadow);border-left:1px solid var(--line);padding:env(safe-area-inset-top,0px) 22px calc(env(safe-area-inset-bottom,0px) + 30px)}
+.drawer .hd{display:flex;gap:12px;align-items:flex-start;padding-top:18px}
 .drawer .hd h2{font-size:34px;line-height:1.05}
 .drawer .close{margin-left:auto}
 .dgrid{display:grid;gap:14px;margin-top:14px}
@@ -394,10 +394,10 @@ details.fold>summary:hover{color:var(--accent)}
 .rule-lab.pos{color:var(--pos)}.rule-lab.neg{color:var(--neg)}
 
 /* detail panel tabs */
-.dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:14px -22px 0;padding:0 22px;border-bottom:1px solid var(--line);position:sticky;z-index:3;background:var(--bg);
-  /* the panel has 18px of top padding (plus any phone notch); sticking 18px "above" it puts the tabs flush with the top edge,
-     and the shadow paints over the notch strip so nothing shows through above them */
-  top:-18px;box-shadow:0 calc(-1 * env(safe-area-inset-top,0px)) 0 var(--bg)}
+.dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:14px -22px 0;padding:0 22px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--bg);
+  /* the panel has no top padding (the header carries it), so top:0 is flush in every browser; on phones with a notch
+     the shadow paints over the notch strip so nothing shows through above the tabs */
+  box-shadow:0 calc(-1 * env(safe-area-inset-top,0px)) 0 var(--bg)}
 .dtabs::-webkit-scrollbar{display:none}
 .dtabs button{flex:none;border:0;background:none;margin:0 0 -1px;padding:12px 12px 10px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
 .dtabs button:hover{color:var(--ink)}

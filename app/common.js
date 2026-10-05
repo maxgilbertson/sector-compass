@@ -3,6 +3,7 @@
 // build_static.py flips this to true for the GitHub Pages copy, which reads data files
 // that GitHub Actions regenerates every ~15 minutes instead of calling the local server.
 const STATIC = false;
+const SITE_VERSION = "dev";  // build_static.py stamps each published build, so open pages can tell when a newer one is live
 const REFRESH_MS = 5*60*1000;
 
 /* ---------------------------------------------------------------- basics */
@@ -549,6 +550,15 @@ function bindDTabs(d,cur,onShow){
 function automatedNote(generated){ return `<p class="muted" style="margin:6px 0 0;font-size:12px">Written automatically by fixed rules from prices as of ${esc(new Date(generated*1000).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}))}, and updated as prices change. Not advice; see the <a href="#limits">limitations</a>.</p>`; }
 
 /* ---------------------------------------------------------------- live data loop */
+// A newer version of the site has been published since this page loaded: reload once to pick up its design.
+// At most once per version every 15 minutes, in case GitHub's cache still serves the old page for a few minutes.
+function newerSite(v){
+  if(!STATIC||!v||SITE_VERSION==="dev"||v===SITE_VERSION) return false;
+  try{ const last=JSON.parse(sessionStorage.getItem("siteReload")||"{}");
+    if(last.v===v&&Date.now()-last.at<15*60*1000) return false;
+    sessionStorage.setItem("siteReload",JSON.stringify({v,at:Date.now()})); }catch(e){ return false; }
+  return true;
+}
 function startLoop({url,onData}){
   const L={lastOk:0,nextAt:0,data:null};
   async function load(force){
@@ -557,6 +567,7 @@ function startLoop({url,onData}){
       const res=await fetch(STATIC ? `api/${url}.json?t=${Date.now()}` : `/api/${url}${force?"?force=1":""}`,{cache:"no-store"});
       if(!res.ok) throw new Error("Server replied "+res.status);
       const data=await res.json(); if(data.error) throw new Error(data.error);
+      if(newerSite(data.site)){ location.reload(); return; }
       engineWeights=data.weights||{};
       L.data=data; L.lastOk=Date.now(); onData(data);
       $("#dot").className="dot";
