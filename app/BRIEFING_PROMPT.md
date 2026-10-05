@@ -28,6 +28,8 @@ without a glossary.
    describes past price behaviour; the test on past data found only a possible edge for sectors
    and none for countries, so frame high scores as "worth a closer look", not "buy".
 6. **Plain, calm, British English.** Short sentences. No hype, no exclamation marks.
+7. **Metric units.** If a quantity ever needs a unit, use metric (litres, grams, kilograms), as the site does:
+   oil per litre, gold per gram, copper per kilogram. Never barrels, ounces or pounds of weight.
 
 ## Structure (about 700 to 1,000 words)
 

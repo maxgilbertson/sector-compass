@@ -133,8 +133,8 @@ MACRO = [
     ("^TNX", "US 10-year interest rate"),
     ("^IRX", "US 3-month interest rate"),
     ("DX-Y.NYB", "US dollar vs major currencies"),
-    ("CL=F", "Crude oil ($ a barrel)"),
-    ("GC=F", "Gold ($ an ounce)"),
-    ("HG=F", "Copper ($ a pound)"),
+    ("CL=F", "Crude oil ($ a litre)"),
+    ("GC=F", "Gold ($ a gram)"),
+    ("HG=F", "Copper ($ a kilogram)"),
     ("BTC-USD", "Bitcoin ($)"),
 ]

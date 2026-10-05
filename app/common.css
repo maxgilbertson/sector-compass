@@ -394,7 +394,10 @@ details.fold>summary:hover{color:var(--accent)}
 .rule-lab.pos{color:var(--pos)}.rule-lab.neg{color:var(--neg)}
 
 /* detail panel tabs */
-.dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:14px -22px 0;padding:0 22px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--bg)}
+.dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:14px -22px 0;padding:0 22px;border-bottom:1px solid var(--line);position:sticky;z-index:3;background:var(--bg);
+  /* the panel has 18px of top padding (plus any phone notch); sticking 18px "above" it puts the tabs flush with the top edge,
+     and the shadow paints over the notch strip so nothing shows through above them */
+  top:-18px;box-shadow:0 calc(-1 * env(safe-area-inset-top,0px)) 0 var(--bg)}
 .dtabs::-webkit-scrollbar{display:none}
 .dtabs button{flex:none;border:0;background:none;margin:0 0 -1px;padding:12px 12px 10px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
 .dtabs button:hover{color:var(--ink)}

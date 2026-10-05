@@ -85,9 +85,9 @@ const MACRO_HINT = {
   "DX-Y.NYB":"The dollar against the euro, yen, pound and others; watch the direction. A rising dollar shrinks gains made abroad for dollar investors and hurts emerging markets that borrowed in dollars.",
   "^VIX":"How big a swing investors expect in US shares over the next month. 18 or less = low (the rule for 'investors confident'), 25 or more = stressed. Stress hits emerging markets hardest.",
   "^TNX":"What the US government pays to borrow for 10 years. When it rises, money tends to flow back to the US and borrowing gets dearer worldwide.",
-  "CL=F":"Helps markets full of oil companies (Norway, Saudi Arabia, Canada, Brazil); a cost for big importers (India, Japan, Korea, Turkey).",
-  "HG=F":"Copper goes into almost everything that gets built, so it is a rough gauge of industrial demand. Matters most for mining-heavy markets (Chile, Australia, South Africa).",
-  "GC=F":"Bought as a safe haven in worrying times; supports gold-mining companies in South Africa and Australia.",
+  "CL=F":"Helps markets full of oil companies (Norway, Saudi Arabia, Canada, Brazil); a cost for big importers (India, Japan, Korea, Turkey). Usually quoted per barrel (159 litres); shown here per litre.",
+  "HG=F":"Copper goes into almost everything that gets built, so it is a rough gauge of industrial demand. Matters most for mining-heavy markets (Chile, Australia, South Africa). Usually quoted per pound (0.45 kg); shown here per kilogram.",
+  "GC=F":"Bought as a safe haven in worrying times; supports gold-mining companies in South Africa and Australia. Usually quoted per troy ounce (31.1 grams); shown here per gram.",
 };
 const METRICS = {
   score:{label:"Score (0–100)",get:r=>r.m.score,center:50,cap:50,fmt:v=>v.toFixed(0),tip:v=>`score ${v.toFixed(0)} of 100`},
@@ -292,7 +292,7 @@ function macroTiles(){
   const M=S.data.macro, DOLLAR=new Set(["CL=F","HG=F","GC=F"]);
   const before=(m,dp,u="")=>`prev close ${(m.price/(1+m.r1d)).toFixed(dp)}${u} · 3 mo ago ${(m.price/(1+m.r3m)).toFixed(dp)}${u}`;
   const tiles=MACRO_ORDER.map(sym=>{ const m=M[sym]; if(!m) return "";
-    const val= sym==="^TNX"? m.price.toFixed(2)+"%" : (DOLLAR.has(sym)?"$":"")+money(m.price);
+    const val= sym==="^TNX"? m.price.toFixed(2)+"%" : sym==="CL=F"? "$"+m.price.toFixed(3) : (DOLLAR.has(sym)?"$":"")+money(m.price);
     const chg= sym==="^TNX"? `<span class="muted">${before(m,2,"%")}</span>` : sym==="^VIX"? `<span class="muted">${before(m,1)}</span>`
       : `<span class="${cls(m.r1d)}">Latest ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3 mo ${pct(m.r3m)}</span>`;
     return `<div class="tile" title="${esc(MACRO_HINT[sym]||"")}"><span class="lab">${esc(m.label)}</span><span class="val">${val}</span>

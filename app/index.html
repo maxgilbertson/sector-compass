@@ -91,9 +91,9 @@ const MACRO_HINT = {
   "^TNX":"What the US government pays to borrow for 10 years. When it rises, tech, utility and property shares usually suffer.",
   "CURVE":"How much more the US government pays to borrow for 10 years than for 3 months. Below zero ('inverted') has come before most US recessions.",
   "DX-Y.NYB":"The dollar against the euro, yen, pound and others; watch the direction. A strong dollar hurts US companies that sell abroad, commodities and emerging markets.",
-  "CL=F":"Drives energy shares; a cost for airlines and chemical makers.",
-  "GC=F":"Bought as a safe haven in worrying times.",
-  "HG=F":"Copper goes into almost everything that gets built, so its price is a rough gauge of industrial demand.",
+  "CL=F":"Drives energy shares; a cost for airlines and chemical makers. Usually quoted per barrel (159 litres); shown here per litre.",
+  "GC=F":"Bought as a safe haven in worrying times. Usually quoted per troy ounce (31.1 grams); shown here per gram.",
+  "HG=F":"Copper goes into almost everything that gets built, so its price is a rough gauge of industrial demand. Usually quoted per pound (0.45 kg); shown here per kilogram.",
   "BTC-USD":"A gauge of how much risk investors are willing to take.",
 };
 const COLS = [
@@ -290,7 +290,7 @@ function macroTiles(){
       const v=a.price-b.price; return `<div class="tile" title="${esc(MACRO_HINT.CURVE)}"><span class="lab">Yield curve (long minus short rates)</span><span class="val ${v<0?"neg":""}">${v>0?"+":""}${v.toFixed(2)}%</span>
         <span class="chg"><span class="muted">10-yr ${a.price.toFixed(2)}% vs 3-mo ${b.price.toFixed(2)}%</span></span></div>`; }
     const m=M[sym]; if(!m) return "";
-    const val = sym==="^TNX"? m.price.toFixed(2)+"%" : (DOLLAR.has(sym)?"$":"")+money(m.price);
+    const val = sym==="^TNX"? m.price.toFixed(2)+"%" : sym==="CL=F"? "$"+m.price.toFixed(3) : (DOLLAR.has(sym)?"$":"")+money(m.price);
     const chg = sym==="^TNX"? `<span class="muted">${before(m,2,"%")}</span>`
               : sym==="^VIX"? `<span class="muted">${before(m,1)}</span>`
               : `<span class="${cls(m.r1d)}">Today ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3 mo ${pct(m.r3m)}</span>`;

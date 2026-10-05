@@ -419,19 +419,23 @@ def flags(m):
     return [{"label": a, "tone": b, "tip": c} for a, b, c in f]
 
 
+# Commodity futures are quoted per barrel, troy ounce and pound; the pages show them per litre, gram and kilogram.
+METRIC = {"CL=F": 1 / 158.987294928, "GC=F": 1 / 31.1034768, "HG=F": 1 / 0.45359237}
+
+
 def macro_block(raw, items):
-    """Macro gauges: level, changes and a 6-month sparkline. Keeps `c` for rule-based reads."""
+    """Macro gauges: level, changes and a 6-month sparkline. Keeps `c` (as quoted) for rule-based reads."""
     out = {}
     for sym, label in items:
         d = raw.get(sym)
         if not usable(d):
             continue
-        tr, c = Track(d), d["c"]
+        tr, c, k = Track(d), d["c"], METRIC.get(sym, 1)
         i = tr.n - 1
-        out[sym] = {"label": label, "price": d["price"], "c": c[-260:],
+        out[sym] = {"label": label, "price": d["price"] * k, "c": c[-260:],
                     "r1d": tr.ret(i, 1), "r1m": tr.ret(i, 21), "r3m": tr.ret(i, 63), "r1y": tr.ret(i, 252),
                     "vs200": c[i] / tr.sma(i, 200) - 1 if tr.sma(i, 200) else None,
-                    "spark": [round(v, 4) for v in c[-126:]]}
+                    "spark": [round(v * k, 5) for v in c[-126:]]}
     return out
 
 
