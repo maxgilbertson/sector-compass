@@ -64,7 +64,7 @@ TRAITS = {
 
 MACRO = [
     ("DX-Y.NYB", "US dollar vs major currencies"), ("^VIX", "Fear gauge (VIX)"), ("^TNX", "US 10-year interest rate"),
-    ("CL=F", "Crude oil ($ a litre)"), ("HG=F", "Copper ($ a kilogram)"), ("GC=F", "Gold ($ a gram)"),
+    ("CL=F", "Crude oil ($ a litre)"), ("HG=F", "Copper ($ a tonne)"), ("GC=F", "Gold ($ a gram)"),
 ]
 EXTRA = ["^IRX", "SMH", "EEM"]  # rates for Sharpe; semis and EM to read tech and EM leadership
 

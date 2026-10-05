@@ -135,6 +135,6 @@ MACRO = [
     ("DX-Y.NYB", "US dollar vs major currencies"),
     ("CL=F", "Crude oil ($ a litre)"),
     ("GC=F", "Gold ($ a gram)"),
-    ("HG=F", "Copper ($ a kilogram)"),
+    ("HG=F", "Copper ($ a tonne)"),
     ("BTC-USD", "Bitcoin ($)"),
 ]

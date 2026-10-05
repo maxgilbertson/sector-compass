@@ -419,8 +419,8 @@ def flags(m):
     return [{"label": a, "tone": b, "tip": c} for a, b, c in f]
 
 
-# Commodity futures are quoted per barrel, troy ounce and pound; the pages show them per litre, gram and kilogram.
-METRIC = {"CL=F": 1 / 158.987294928, "GC=F": 1 / 31.1034768, "HG=F": 1 / 0.45359237}
+# Commodity futures are quoted per barrel, troy ounce and pound; the pages show them per litre, gram and tonne (1,000 kg).
+METRIC = {"CL=F": 1 / 158.987294928, "GC=F": 1 / 31.1034768, "HG=F": 1000 / 0.45359237}
 
 
 def macro_block(raw, items):
