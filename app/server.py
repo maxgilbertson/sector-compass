@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+import cycles
 import engine
 import sectors
 import world
@@ -21,7 +22,7 @@ PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 8765)
 CACHE_SECONDS = 300
 HERE = Path(__file__).parent
 PAGES = {"index.html", "world.html", "briefing.html", "common.css", "common.js"}  # the files the site is made of
-BUILDS = {"data": sectors.build, "world": world.build}
+BUILDS = {"data": sectors.build, "world": world.build, "cycles": cycles.build}
 TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
          ".json": "application/json", ".md": "text/markdown; charset=utf-8"}
 

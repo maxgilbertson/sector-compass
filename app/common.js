@@ -92,6 +92,7 @@ const ICON = {
   maps:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8z"/>',
   conditions:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',
   record:'<path d="M4 4v16h16"/><path d="m8 14 3.5-3.5 3 3L20 8"/>',
+  cycles:'<path d="M2 12c2.6-7.5 5.4-7.5 8 0s5.4 7.5 8 0"/><path d="M18 12h4"/>',
   guide:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>',
   up:'<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',

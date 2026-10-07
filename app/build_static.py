@@ -1,4 +1,4 @@
-"""Build the static site GitHub Pages serves: the pages plus site/api/data.json and site/api/world.json.
+"""Build the static site GitHub Pages serves: the pages plus site/api/data.json, world.json and cycles.json.
 
 GitHub Actions runs this every 15 minutes (see .github/workflows/deploy.yml).
 It exits with an error if a price fetch mostly failed, so the last good
@@ -8,6 +8,7 @@ import hashlib
 import json
 import shutil
 import sys
+import time
 from pathlib import Path
 
 import server
@@ -29,6 +30,16 @@ for name, need in MINIMUM.items():
     data["site"] = VERSION
     (OUT / "api" / f"{name}.json").write_text(json.dumps(data, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     print(f"{name}: {len(data['rows'])} markets")
+
+# The cyclical indices come from a different source (CNBC). If it fails, publish the rest anyway, with the Cycles tab
+# saying the indices are unavailable, rather than holding back every other update.
+try:
+    cyc = json.loads(server.get_data("cycles"))
+except Exception as e:  # noqa: BLE001
+    cyc = {"rows": [], "errors": [f"cycles: {e}"], "generated": time.time()}
+cyc["site"] = VERSION
+(OUT / "api" / "cycles.json").write_text(json.dumps(cyc, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+print(f"cycles: {len(cyc['rows'])} indices{'; missing: ' + ', '.join(cyc['errors']) if cyc.get('errors') else ''}")
 
 for page in server.PAGES:
     text = (HERE / page).read_text(encoding="utf-8")

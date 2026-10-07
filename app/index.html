@@ -26,6 +26,7 @@
   <button type="button" data-view="overview">Overview</button>
   <button type="button" data-view="rankings">Rankings</button>
   <button type="button" data-view="maps">Maps</button>
+  <button type="button" data-view="cycles">Cycles</button>
   <button type="button" data-view="record">Track record</button>
   <button type="button" data-view="guide">Guide</button>
 </div></nav>
@@ -110,7 +111,8 @@ const COLS = [
 const store = makeStore("sc.");
 const S = {data:null, region:store.get("region","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}),
            rrg:store.get("rrg","us"), sel:null, range:"1y", cur:store.get("cur","local"), pcur:store.get("pcur","gbp"),
-           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false)};
+           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false),
+           cyc:null, creg:store.get("creg","all"), crange:"all", ctab:"cycle", csel:null};
 // returns in the chosen currency: each fund's own currency, or converted into pounds
 const rv = (r,k) => S.cur==="gbp" ? (r.gbp||{})[k] : r.m[k];
 const curWord = () => S.cur==="gbp" ? "in pounds" : "in each fund's own currency";
@@ -200,7 +202,7 @@ function render(){
     <section>${secHead({eyebrow:"Shortlist",title:"What the data favours today",lead:`The strongest, the improving and the weakest of all ${n} funds. Click a card for the full breakdown.`,right:trustBadge(D.backtest)})}
       ${more("shortlist",`<p>The score combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop.</p><p><b>Turnaround watch</b> lists funds that have been behind their region's market lately but are improving; this list hasn't been tested on past data on its own. Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
       <div class="picks">${ideas()}</div></section>
-    <section id="economy">${secHead({eyebrow:"Economic backdrop",title:"Where is the economy in its cycle?",lead:"An automatic read of US market signals. Different sectors have tended to do best in different phases."})}
+    <section id="economy">${secHead({eyebrow:"Economic backdrop",title:"Where is the economy in its cycle?",lead:`An automatic read of US market signals. Different sectors have tended to do best in different phases. For single cyclical indices, such as FTSE 350 Mining, and where each is in its own cycle, see the <a href="#cycles">Cycles tab</a>.`})}
       ${more("cycle-how",`<p>Economies move through phases: recovery, steady growth, late expansion and recession. This read combines the gap between long- and short-term interest rates, oil, copper against gold, how nervous investors are, and the US stock market's trend.</p>`)}
       <div class="backdrop">${cycleCard()}<div class="macro">${macroTiles()}</div></div>
       <div style="margin-top:10px">${more("macro-how",macroHints(),"What these measures mean")}</div></section>
@@ -233,6 +235,8 @@ function render(){
         <div style="overflow-x:auto">${matrix()}</div></div>
     </div></section>
   </div>
+
+  <div class="view" data-view="cycles"><div id="cycbox"></div></div>
 
   <div class="view" data-view="record">
     ${paperSection(D.paper,{noun:"sector funds",nameOf:fundName,mkt:"each holding's own regional market",cur:S.pcur})}
@@ -490,6 +494,12 @@ function guide(n){
       ${fold("g-ibkr","Buying on IBKR",`<p>UK rules require a key information document for funds sold to ordinary investors. US, Japanese and Canadian funds don't publish one, so IBKR blocks them for UK retail accounts. European UCITS funds (like the iShares STOXX Europe 600 sector funds) can be bought directly.</p>
         <p>Many of the blocked US funds have a <b>UCITS twin</b> listed in London. "Same index" twins track exactly the index of the fund scored here, so they move almost identically; "similar index" twins track a close one (for example, developed markets only), so check the difference shown. The scores stay based on the original funds, which have longer price histories.</p>
         <p>${S.data.rows.filter(r=>r.buy).length} of the ${S.data.rows.length} funds can be bought this way. All the Japanese and most Canadian sector funds, and US airlines, software, medical devices, regional banks and homebuilders, have no UCITS version. Every ticker was checked in IBKR's contract search on 7 Oct 2026; "Only ones I can buy on IBKR" in the Rankings tab hides the rest.</p>`)}
+      ${fold("g-cycles","The Cycles tab <small>cyclical indices, and buying the dip</small>",`<p>The <b>Cycles</b> tab follows about two dozen stock-market <b>indices</b>, not funds, for industries that rise and fall with the economy and with commodity prices: in the UK, FTSE 350 sector indices such as FTSE 350 Mining; in Europe, STOXX Europe 600 sector indices; in the US, indices such as the PHLX Semiconductor and KBW Bank indices.</p>
+        <ul><li><b>From its 5-year high:</b> how far an index is below its highest close of the past five years. 30% or more is a <b>deep dip</b>.</li>
+          <li><b>Phase:</b> below its 5-year average = low in its recent cycle, above = high; above its 200-day average = rising lately, below = falling. Together: ${Object.keys(PHASE_TONE).map(p=>phaseTag(p)).join(" ")}</li>
+          <li><b>Big falls:</b> every fall from a peak to a bottom at least as large as the index's usual yearly swing (and never under 20%), with how long it took, the year after the bottom, and when it got back to the peak. A fall counts as over only once the index has climbed one and a half times that swing from its low, so a short rally inside a long slump doesn't split it in two.</li>
+          <li><b>Tested:</b> buying deep dips, and buying once a dipped index turned up, were each tested on every month-end since the late 1980s, fixed in advance and run once, with a fairness check against reshuffled histories. The results are in the tab ("Does buying the dip pay?"), whatever they show.</li></ul>
+        <p><b>The data:</b> daily closes from CNBC. These are price indices, so dividends are left out. Three fixes to CNBC's history were found and made before the test ran: the FTSE 350 Mining history before 24 March 2021 is filed under another code and is joined on; the UK housebuilders index starts in March 2021, because before then it mostly followed Reckitt; and the PHLX Housing index's levels before February 2006 are halved to match Yahoo Finance's copy. An index can't be bought directly; each one's panel says what can be bought on IBKR.</p>`)}
       ${fold("g-updates","What updates, and when",`<p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): returns, trend, heat, swings, every score and signal, score changes and history, flags, the rotation map, the economic read, the shortlists and every written verdict. Scores use the latest trade price. Open pages pick up new data by themselves.</p>
         <p><b>Every weekday after the US close:</b> a snapshot of every score is saved, which feeds "What changed recently". <b>At the start of each month:</b> the practice portfolios are re-picked, and the test on past data adds the month just finished.</p>
         <p><b>Once a day:</b> top-10 holdings, fund size, P/E, dividend yield, beta and fees. <b>Fixed:</b> the sector descriptions and which sectors suit which economic phase.</p>
@@ -526,6 +536,7 @@ function guide(n){
 const DTABS=[["summary","Summary"],["history","History"],["fund","Inside the fund"],["background","Background"]];
 function band(v,cuts,words){ for(let i=0;i<cuts.length;i++) if(v>=cuts[i]) return words[i]; return words[words.length-1]; }
 function openDetail(sym){
+  if(String(sym).startsWith("cyc:")) return openCycle(sym.slice(4));
   const r=S.data.rows.find(x=>x.symbol===sym); if(!r) return;
   // a different fund opens on its summary; the same one (re-opened after a data refresh) keeps its tab
   if(sym!==S.sel||!DTABS.some(([k])=>k===S.dtab)) S.dtab="summary"; S.sel=sym;
@@ -607,9 +618,291 @@ function drawPrice(r){
   lineChart($("#pchart"),{t:m.long.t.slice(-k),series:[{v:m.long.c.slice(-k),color:"var(--ink)",name:"Price",w:1.6}],fmt:v=>v.toFixed(dp),area:1});
 }
 
+/* ---------------------------------------------------------------- cycles: cyclical indices (cycles.py), loaded when the tab opens */
+const PHASE_TONE = {"Down and still falling":"neg","Down but turning up":"info","Up and still rising":"pos","Up but turning down":"warn"};
+const PHASE_SHORT = {"Down and still falling":"Falling","Down but turning up":"Turning up","Up and still rising":"Rising","Up but turning down":"Turning down"};
+const PHASE_HELP = {
+  "Down and still falling":"Below its 5-year average and its 200-day average: low in its recent cycle and still heading down.",
+  "Down but turning up":"Below its 5-year average but back above its 200-day average: low in its recent cycle, and has started to recover.",
+  "Up and still rising":"Above its 5-year average and its 200-day average: high in its recent cycle and still heading up.",
+  "Up but turning down":"Above its 5-year average but below its 200-day average: high in its recent cycle, and has started to slip."};
+const PHASE_COL = p => `var(--${PHASE_TONE[p]||"muted"})`;
+const phaseTag = p => p? tag(esc(p),PHASE_TONE[p]||"",`title="${esc(PHASE_HELP[p]||"")}"`) : "";
+const dipLine = () => (S.cyc&&S.cyc.dipLine)||-0.3;
+const isDeep = r => r.dd5!=null && r.dd5<=dipLine();
+const dipTag = r => isDeep(r)? tag("Deep dip","dip",`title="${esc(`${pct(Math.abs(r.dd5),0,false)} below its highest close of the past 5 years (30% or more counts as a deep dip)`)}"`) : "";
+const lvl = v => v==null? "–" : v>=1000? Math.round(v).toLocaleString() : v.toFixed(2);
+const dayStr = ts => new Date(ts*1000).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+const yearOf = ts => new Date(ts*1000).getUTCFullYear();
+const regName = r => ((S.cyc.regions||{})[r.region]||{}).name||r.region;
+const fallsOf = r => (r.falls||[]).map(f=>f.fall);
+const medianOf = a => { const s=a.slice().sort((x,y)=>x-y); return s.length? s[Math.floor(s.length/2)] : null; };
+const belowHigh = (v,dp=0) => v>-0.005? "at its 5-year high" : `${pct(Math.abs(v),dp,false)} below its 5-year high`;
+const vtag = v => tag(esc(v), v==="Probably worked"?"pos":v==="Possibly worked"?"warn":"neg");
+const pval = p => p==null? "–" : p<0.001? "under 0.1%" : pct(p,1,false);
+const monthsWord = m => m>=24? `${(m/12).toFixed(1).replace(/\.0$/,"")} years` : `${Math.max(1,Math.round(m))} month${Math.round(m)===1?"":"s"}`;
+// month-end closes for the long chart: from the first full month, plus today
+const longSeries = r => { const d=new Date(r.long.ym0*1000), n=r.long.c.length;
+  return {t:r.long.c.map((_,i)=>i===n-1? r.at : Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+i+1,0)/1000), c:r.long.c}; };
+
+async function loadCycles(){
+  if(S.cycLoading) return; S.cycLoading=true; S.cycTried=Date.now();
+  try{ const res=await fetch(STATIC?`api/cycles.json?t=${Date.now()}`:"/api/cycles",{cache:"no-store"});
+    if(!res.ok) throw new Error("Server replied "+res.status);
+    S.cyc=await res.json(); S.cycAt=Date.now(); S.cycErr=null;
+  }catch(e){ S.cycErr=e.message; }
+  finally{ S.cycLoading=false; }
+  if(Views.cur==="cycles") drawCycles();
+}
+function drawCycles(){
+  const box=$("#cycbox"); if(!box) return;
+  const stale=!S.cyc||Date.now()-(S.cycAt||0)>15*60*1000;
+  if(stale&&!S.cycLoading&&Date.now()-(S.cycTried||0)>60*1000) loadCycles();
+  if(!S.cyc){ box.innerHTML=S.cycErr?`<div class="loading err">Couldn't load the cyclical indices: ${esc(S.cycErr)}.</div>`:'<div class="loading">Loading the cyclical indices…</div>'; return; }
+  if(!S.cyc.rows.length){ box.innerHTML=`<div class="loading err">The cyclical indices are unavailable right now${S.cyc.errors&&S.cyc.errors.length?` (${esc(S.cyc.errors.join(", "))})`:""}. They come from CNBC; the next update will try again.</div>`; return; }
+  box.innerHTML=cyclesHTML(); restoreOpen(box);
+  box.querySelectorAll("[data-creg]").forEach(b=>b.onclick=()=>{ S.creg=b.dataset.creg; store.set("creg",S.creg); drawCycles(); });
+  cycleClock($("#cyclock"),cycRows());
+}
+const cycRows = () => S.cyc.rows.filter(r=>S.creg==="all"||r.region===S.creg).sort((a,b)=>a.dd5-b.dd5);
+
+// how far below its 5-year high: right end = at the high, left end = 90% below; shaded = the deep-dip zone
+const DIP_SCALE = 0.9;
+function dipBar(r,big=false){
+  const x = v => (Math.min(DIP_SCALE,Math.abs(v))/DIP_SCALE*100).toFixed(1), fs=fallsOf(r), typ=medianOf(fs), worst=fs.length?Math.min(...fs):null, d=r.dd5;
+  const col = d<=dipLine()? "var(--accent)" : d<=-0.1? "var(--warn)" : "var(--faint)";
+  return `<div class="dipbar${big?" big":""}" role="img" aria-label="${esc(belowHigh(d))}">
+    <i class="zone" style="right:${x(dipLine())}%"></i>
+    <i class="fill" style="width:calc(${x(d)}% - 2px);background:${col}"></i>
+    ${typ!=null?`<i class="typ" style="right:${x(typ)}%" title="${esc(`Its typical big fall: ${pct(Math.abs(typ),0,false)} (the median of ${fs.length})`)}"></i>`:""}
+    ${worst!=null?`<i class="worst" style="right:${x(worst)}%" title="${esc(`Its worst fall: ${pct(Math.abs(worst),0,false)}`)}"></i>`:""}</div>`;
+}
+const dipLegend = () => `<div class="diplegend"><span><i class="lg-fill"></i>How far below its 5-year high today</span><span><i class="lg-zone"></i>Deep-dip zone (30% or more below)</span>
+  <span><i class="lg-typ"></i>Its typical big fall</span><span><i class="lg-worst"></i>Its worst fall</span></div>`;
+function dipRow(r){
+  const sp=sparkSVG(r.long.c.slice(-61),{w:84,h:28});
+  return `<div class="diprow" data-open="cyc:${esc(r.key)}" role="button" tabindex="0" title="${esc(PHASE_HELP[r.phase]||"")}">
+    <div class="dr-name"><b>${esc(r.name)} <span class="dr-reg">${esc(regName(r))}</span></b><span class="dr-sub">${esc(r.full)}</span><span class="dr-tags">${phaseTag(r.phase)}${dipTag(r)}</span></div>
+    <div class="dr-bar">${dipBar(r)}<div class="dr-meta"><span>vs its 5-yr average <b class="${cls(r.vs5y)}">${pct(r.vs5y,0)}</b></span><span>vs 200-day avg <b class="${cls(r.vs200)}">${pct(r.vs200,0)}</b></span><span>1 yr <b class="${cls(r.r1y)}">${pct(r.r1y,0)}</b></span></div></div>
+    <div class="dr-val"><b class="${r.dd5<=dipLine()?"dip":""}">${r.dd5>-0.005?"0%":pct(r.dd5,0)}</b><small>from its 5-yr high</small></div>${sp}</div>`;
+}
+
+function cyclesHTML(){
+  const C=S.cyc, T=C.test, A=T&&T.rules.dip, rows=cycRows(), all=C.rows, deep=all.filter(isDeep).sort((a,b)=>a.dd5-b.dd5);
+  const mk=C.markets||{}, near=all.filter(r=>r.dd5>-0.1).length;
+  const regTabs=`<div class="tabs" role="group" aria-label="Region">${[["all","All"],["uk","UK"],["europe","Europe"],["us","US"]].map(([k,l])=>
+    `<button class="tab" type="button" data-creg="${k}" aria-pressed="${S.creg===k}">${l}</button>`).join("")}</div>`;
+  const tiles=[
+    stat({label:"In a deep dip now",ico:"down",value:`${deep.length} <small class="of">of ${all.length}</small>`,
+      body:deep.length?`<div class="pick-tags">${deep.slice(0,5).map(r=>tag(esc(`${r.name} (${regName(r)}) ${pct(r.dd5,0)}`),"dip",`data-open="cyc:${esc(r.key)}"`)).join("")}</div>`:"",
+      sub:"30% or more below their highest close of the past 5 years"}),
+    A?stat({label:"Buying deep dips: tested",ico:"record",href:"#cyctest",value:`${pct(A.edge,1)} <small class="of">a year</small>`,tone:A.edge>0?"pos":"neg",
+      body:`<div>${vtag(A.verdict)}</div>`,sub:`Better than buying the same index at any time, over the next 12 months (${yearOf(T.from)}–${yearOf(T.to)}, after a fairness check)`}):"",
+    A?stat({label:"The catch",ico:"gauge",value:`1 in ${Math.max(1,Math.round(1/A.fellMore20))}`,
+      sub:`deep-dip buys first fell another 20% or more; the worst, a further ${pct(Math.abs(A.worstLow),0,false)}`}):"",
+    stat({label:"Whole markets",ico:"globe",body:`<div class="mklist">${["uk","europe","us"].filter(k=>mk[k]).map(k=>`<div><span>${esc(mk[k].name)}</span><b class="${mk[k].dd5<=-0.1?"neg":""}">${mk[k].dd5>-0.005?"0%":pct(mk[k].dd5,0)}</b></div>`).join("")}</div>`,
+      sub:`From their 5-year highs. ${near} of the ${all.length} cyclical indices are within 10% of theirs.`}),
+  ];
+  return `<div class="intro">${icon("cycles",17)}<span><b>Indices, not funds:</b> ${all.length} stock-market indices for industries that boom and bust with the economy and with commodity prices, such as mining, oil, banks, chips and housebuilding. See how far each is below its recent peak, whether it is still falling or turning up, and how its past dips played out. Click any index for its full history.</span></div>
+  <section>${secHead({eyebrow:"Cycles",title:"Where is each cyclical index in its cycle?"})}${heroGrid(tiles)}</section>
+  <section>${secHead({eyebrow:"Dip meter",title:"How far below its peak",lead:"Deepest first. The bar runs from the 5-year high (right) to 90% below it (left).",right:regTabs})}
+    ${more("dip-how",`<p><b>From its 5-year high:</b> how far the index is below its highest close of the past five years. Cyclical industries often fall 40% or more in a downturn; the markers show how deep this index's own past big falls went.</p>
+      <p><b>Deep dip</b> = 30% or more below. Buying at that depth has beaten buying at any time on average in our test (below), but often only after falling further first.</p>
+      <p><b>The phase</b> combines two simple measures. Below its <b>5-year average</b> = low in its recent cycle; above = high. Above its <b>200-day average</b> (about 10 months) = rising lately; below = falling. ${Object.keys(PHASE_TONE).map(p=>phaseTag(p)).join(" ")}</p>`,"How to read the dip meter")}
+    ${dipLegend()}<div class="diplist">${rows.map(dipRow).join("")}</div></section>
+  <section><div class="card panel">${secHead({eyebrow:"Cycle clock",title:"Low or high in the cycle, falling or rising",h:"h3"})}
+    ${more("clock-how",`<p>Left of centre = below its 5-year average (low in its recent cycle); right = above it. Above centre = above its 200-day average (rising lately); below = falling. Indices tend to go round clockwise: <b>turning up</b> (top left) → <b>rising</b> (top right) → <b>turning down</b> (bottom right) → <b>falling</b> (bottom left). The big dot is today; the tail shows the last 6 month-ends. Click a dot for its history.</p>`,"How to read the clock")}
+    <div id="cyclock"></div></div></section>
+  ${cycleTestSection(T)}`;
+}
+
+/* where each index sits: x = vs its 5-year average, y = vs its 200-day average (both on a ratio scale) */
+function cycleClock(el,rows){
+  if(!el) return;
+  const W=Math.max(300,el.clientWidth||560), H=Math.round(Math.min(Math.max(W*0.62,300),500)), PL=40, PR=14, PT=12, PB=38, lg=v=>Math.log(1+v);
+  // very far from average (chips at +150%) is drawn at the edge, so the rest stay readable
+  const CX=[lg(-0.6),lg(1)], CY=[lg(-0.3),lg(0.3)], clamp=(v,[a,b])=>Math.max(a,Math.min(b,v));
+  const trails=rows.map(r=>r.trail.slice(-4).map(p=>[clamp(lg(p[0]),CX),clamp(lg(p[1]),CY)]));
+  const all=trails.flat(); if(!all.length){ el.innerHTML='<p class="muted">No indices to show.</p>'; return; }
+  const x0=Math.min(-0.2,...all.map(p=>p[0]))-0.05, x1=Math.max(0.2,...all.map(p=>p[0]))+0.05;
+  const y0=Math.min(-0.1,...all.map(p=>p[1]))-0.03, y1=Math.max(0.1,...all.map(p=>p[1]))+0.03;
+  const X=v=>PL+(v-x0)/(x1-x0)*(W-PL-PR), Y=v=>PT+(1-(v-y0)/(y1-y0))*(H-PT-PB), cx=X(0), cy=Y(0), bot=H-PB;
+  const corner=(x,y,anchor,p,sub,below)=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="12" font-weight="600" fill="${PHASE_COL(p)}">${esc(PHASE_SHORT[p].toUpperCase())}</text>
+    <text x="${x}" y="${below?y+13:y-14}" text-anchor="${anchor}" font-size="10.5" fill="${PHASE_COL(p)}" fill-opacity=".85">${esc(sub)}</text>`;
+  let s=`<rect x="${PL}" y="${PT}" width="${cx-PL}" height="${cy-PT}" fill="var(--info)" fill-opacity=".06"/>
+    <rect x="${cx}" y="${PT}" width="${W-PR-cx}" height="${cy-PT}" fill="var(--pos)" fill-opacity=".06"/>
+    <rect x="${cx}" y="${cy}" width="${W-PR-cx}" height="${bot-cy}" fill="var(--warn)" fill-opacity=".06"/>
+    <rect x="${PL}" y="${cy}" width="${cx-PL}" height="${bot-cy}" fill="var(--neg)" fill-opacity=".06"/>
+    <line x1="${PL}" x2="${W-PR}" y1="${cy}" y2="${cy}" stroke="var(--line)"/><line x1="${cx}" x2="${cx}" y1="${PT}" y2="${bot}" stroke="var(--line)"/>
+    ${corner(PL+6,PT+16,"start","Down but turning up","low in its cycle, rising",true)}
+    ${corner(W-PR-6,PT+16,"end","Up and still rising","high in its cycle, rising",true)}
+    ${corner(W-PR-6,bot-8,"end","Up but turning down","high in its cycle, slipping",false)}
+    ${corner(PL+6,bot-8,"start","Down and still falling","low in its cycle, falling",false)}`;
+  [-0.5,-0.4,-0.2,0,0.25,0.5,1].forEach(v=>{ const x=lg(v); if(x<x0||x>x1) return;
+    s+=`<line x1="${X(x)}" x2="${X(x)}" y1="${bot}" y2="${bot+4}" stroke="var(--faint)"/><text x="${X(x)}" y="${bot+15}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${v>=1?"≥ +100%":v?pct(v,0):"5-yr avg"}</text>`; });
+  [-0.2,-0.1,0.1,0.2].forEach(v=>{ const y=lg(v); if(y<y0||y>y1) return;
+    s+=`<line x1="${PL-4}" x2="${PL}" y1="${Y(y)}" y2="${Y(y)}" stroke="var(--faint)"/><text x="${PL-6}" y="${Y(y)+3.5}" text-anchor="end" font-size="10.5" fill="var(--muted)">${pct(v,0)}</text>`; });
+  s+=`<text x="${(PL+W-PR)/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--muted)">vs its 5-year average →</text>
+    <text x="11" y="${(PT+bot)/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 11 ${(PT+bot)/2})">vs its 200-day average →</text>`;
+  const dots=trails.map(tl=>[X(tl[tl.length-1][0]),Y(tl[tl.length-1][1])]);
+  rows.forEach((r,i)=>{ const tl=trails[i].map(p=>[X(p[0]),Y(p[1])]), c=PHASE_COL(r.phase);
+    s+=`<polyline points="${tl.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}" fill="none" stroke="${c}" stroke-opacity=".35" stroke-width="1.3"/>`;
+    tl.slice(0,-1).forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="${c}" fill-opacity=".4"/>`); });
+  rows.forEach((r,i)=>{ const [x,y]=dots[i];
+    s+=`<circle cx="${x}" cy="${y}" r="5.5" fill="${PHASE_COL(r.phase)}" stroke="var(--surface)" stroke-width="1.5" data-open="cyc:${esc(r.key)}" style="cursor:pointer"><title>${esc(`${r.name} (${regName(r)}): ${r.phase}. ${pct(r.vs5y,0)} vs its 5-year average, ${pct(r.vs200,0)} vs its 200-day average.`)}</title></circle>`; });
+  // labels next to their dot where there is room; an index without room keeps its dot and hover text
+  const boxes=[], free=(x,y,w)=>x>PL+2&&x+w<W-PR-2&&y-11>PT&&y+2<bot&&!boxes.some(b=>x<b.x+b.w&&x+w>b.x&&y-11<b.y+2&&y+2>b.y-11)
+    &&!dots.some(([dx,dy])=>dx+6>x&&dx-6<x+w&&dy+6>y-11&&dy-6<y+2);
+  [[PL+4,PT+16],[PL+4,PT+29],[W-PR-156,PT+16],[W-PR-156,PT+29],[PL+4,bot-8],[PL+4,bot-22],[W-PR-156,bot-8],[W-PR-156,bot-22]].forEach(([x,y])=>boxes.push({x,y,w:152}));  // the corner names
+  rows.map((r,i)=>({r,i})).sort((a,b)=>Math.abs(b.r.dd5)-Math.abs(a.r.dd5)).forEach(({r,i})=>{
+    const t=`${r.name.length>18?r.name.slice(0,17)+"…":r.name} ${({uk:"UK",europe:"EU",us:"US"})[r.region]||""}`, w=t.length*6.1, [dx,dy]=dots[i];
+    const spot=[[8,4],[-8-w,4],[8,-8],[-8-w,-8],[8,16],[-8-w,16],[-w/2,-10],[-w/2,20]].map(([ox,oy])=>[dx+ox,dy+oy]).find(([x,y])=>free(x,y,w));
+    if(!spot) return; boxes.push({x:spot[0],y:spot[1],w});
+    s+=`<text x="${spot[0]}" y="${spot[1]}" font-size="11.5" fill="var(--ink)" data-open="cyc:${esc(r.key)}" style="cursor:pointer">${esc(t)}</text>`; });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cycle clock">${s}</svg>`;
+}
+
+function cycleTestSection(T){
+  if(!T) return `<section id="cyctest">${secHead({eyebrow:"Tested on the past",title:"Does buying the dip pay?"})}<p class="muted">The test needs more history.</p></section>`;
+  const A=T.rules.dip, B=T.rules.turn, span=`${monthYear(T.from)} to ${monthYear(T.to)}`;
+  const DEPTH_SHORT=["Within 10% of its high","10–20% below","20–30% below","30–50% below","Over 50% below"];
+  const bars=(items,labels)=>barsSVG(items.map((r,i)=>({label:labels[i],v:r.edge})),{fmt:v=>pct(v,1)});
+  const half=(h,i)=>`${i?"since":"up to"} ${monthYear(i?h.from:h.to)}: ${pct(h.edge,1)} a year (p = ${pval(h.p)})`;
+  return `<section id="cyctest">${secHead({eyebrow:"Tested on the past",title:"Does buying the dip pay?",
+      lead:`Every month-end from ${span}, in ${T.indices} of these indices: what happened over the next 12 months after each kind of moment, compared with buying the same index at any time. Fixed in advance and run once.`})}
+    ${heroGrid([
+      stat({label:"Buying deep dips",ico:"down",value:`${pct(A.edge,1)} <small class="of">a year</small>`,tone:A.edge>0?"pos":"neg",body:`<div>${vtag(A.verdict)}</div>`,
+        sub:`Bought 30% or more below the 5-year high: ${A.episodes} separate dips. ${A.verdict==="Possibly worked"?"Some evidence, not proof":A.verdict==="Probably worked"?"Convincing evidence":"No reliable gain"} (p = ${pval(A.p)}).`}),
+      stat({label:"Waiting for the turn up",ico:"up",value:`${pct(B.edge,1)} <small class="of">a year</small>`,tone:B.edge>0?"pos":"neg",body:`<div>${vtag(B.verdict)}</div>`,
+        sub:`Bought below the 5-year average once back above the 10-month average: ${B.episodes} separate times (p = ${pval(B.p)}).`}),
+      stat({label:"Higher a year later",ico:"trend",value:pct(A.up,0,false),sub:`of deep-dip buys, against ${pct(A.upAll,0,false)} of all month-ends. They rose ${pct(A.avg,0)} on average, against ${pct(A.avgAll,0)}.`}),
+      stat({label:"Fell further first",ico:"gauge",value:`1 in ${Math.max(1,Math.round(1/A.fellMore20))}`,sub:`deep-dip buys dropped another 20% or more before the year was out (worst: a further ${pct(Math.abs(A.worstLow),0,false)}).`})])}
+    <div class="two" style="margin-top:14px">
+      <div class="card chartbox"><div class="row"><span class="eyebrow">By how far below its 5-year high</span></div><div class="barwrap">${bars(T.depths,DEPTH_SHORT)}</div>
+        <p class="note">Next 12 months against buying the same index at any time, after the fairness check. Deeper dips were followed by better years on average. Only the 30%+ rule was tested in advance; this split is shown for context.</p></div>
+      <div class="card chartbox"><div class="row"><span class="eyebrow">By phase</span></div><div class="barwrap">${bars(T.phases,T.phases.map(p=>PHASE_SHORT[p.label]||p.label))}</div>
+        <p class="note">The same, by phase. Waiting until a dipped index turned up did not help: its best years often began while it was still falling.</p></div></div>
+    <div style="margin-top:10px">${more("cyctest-how",`<p><b>The rules</b> were fixed before the test ran: a <b>deep dip</b> is 30% or more below the highest month-end close of the past 5 years; <b>turning up</b> is below the 5-year average but above the 10-month average. Each was compared with buying the same index at any month-end, over the following 12 months.</p>
+      <p><b>The fairness check:</b> comparing with an average that includes the dips themselves flatters dip-buying even when there is nothing to find (on made-up random prices it showed about +2% a year). So the real result was compared with 1,000 reshuffled histories, the same monthly moves in a random order. The figures shown are the real result minus the reshuffles' average, and "p" is the share of reshuffles that did at least as well: under 2.5% would be convincing, under 16% is some evidence.</p>
+      <p><b>Deep dips in detail:</b> before the check, the next 12 months were ${pct(A.ex,1)} better than buying at any time. Over 3 years the check gives ${pct(A.edge3,1)} (p = ${pval(A.p3)}). Against simply buying the region's whole market at the same moment: ${pct(A.edgeMkt,1)} a year (p = ${pval(A.pMkt)}). In each half of the period: ${A.halves.map(half).join("; ")}, so the gain came mostly from the second half.</p>
+      <p><b>Weaknesses:</b> dips bunch together in a few crises (1990–92, 2000–03, 2008–09, 2015–16, 2020, 2022), so ${A.episodes} dips are far fewer independent chances than they sound. The indices were picked today, knowing they are cyclical. They are price indices, so dividends are left out. And an index can't be bought directly: a fund charges a fee, and no fund tracks the UK FTSE 350 sector indices. Not advice.</p>`,"How the test worked, and its weaknesses")}</div></section>`;
+}
+
+/* ---------------------------------------------------------------- one index's detail panel */
+const CTABS=[["cycle","Cycle"],["falls","Past falls"],["dips","Its dips"],["about","About & buying"]];
+function cycleText(r){
+  const fs=fallsOf(r), typ=medianOf(fs), worst=fs.length?Math.min(...fs):null, low=r.vs5y<0, up=r.vs200>0;
+  const where=low? `${pct(Math.abs(r.vs5y),0,false)} below its 5-year average, so low in its recent cycle` : `${pct(r.vs5y,0,false)} above its 5-year average, so high in its recent cycle`;
+  const dir=low? (up?"it has started to recover":"it is still falling") : (up?"it is still rising":"it has started to slip");
+  let s=`${r.name} (${regName(r)}) is ${belowHigh(r.dd5)} (${dayStr(r.hi5At)}) and ${where}. It is ${up?"above":"below"} its 200-day average (${pct(r.vs200,0)}), so ${dir}.`;
+  if(typ!=null) s+=` Its ${fs.length} big fall${fs.length>1?"s":""} since ${yearOf(r.since)} (${pct(r.swing,0,false)} or more) went ${fs.length>1?`a median ${pct(Math.abs(typ),0,false)} deep, the worst ${pct(Math.abs(worst),0,false)}`:`${pct(Math.abs(typ),0,false)} deep`}.`;
+  if(isDeep(r)) s+=` At this depth it is in a deep dip: in our test, buying at such moments beat buying at any time over the next year on average, but about a quarter of those buys fell another 20% or more first.`;
+  return s;
+}
+function openCycle(key){
+  const C=S.cyc, r=C&&C.rows.find(x=>x.key===key); if(!r) return;
+  S.sel=null; if(key!==S.csel||!CTABS.some(([k])=>k===S.ctab)) S.ctab="cycle"; S.csel=key;
+  const tile=(l,v,c,tip="")=>`<div title="${esc(tip)}"><span>${l}</span><b class="${c==null?"":cls(c)}">${v}</b></div>`;
+  const rangeBtn=(k,l)=>`<button type="button" data-crange="${k}" aria-pressed="${S.crange===k}">${l}</button>`;
+  const fs=(r.falls||[]).slice().reverse(), o=r.own, n=r.now;
+  const nowLine = !n? "" : n.kind==="fall"? `<p><b>Now:</b> ${pct(Math.abs(n.now),0,false)} below its peak of ${dayStr(n.from)} (${monthsWord(n.months)} ago). Its lowest point since was ${pct(Math.abs(n.low),0,false)} below, on ${dayStr(n.lowAt)}.</p>`
+    : `<p><b>Now:</b> ${pct(n.now,0)} since its low of ${dayStr(n.from)} (${monthsWord(n.months)} ago)${n.now<n.high-0.02?`, having been up ${pct(n.high,0)} at its best on ${dayStr(n.highAt)}`:""}. No fall of ${pct(r.swing,0,false)} or more since then.</p>`;
+  const ownCard=(k,title)=>{ const x=o&&o[k]; if(!x) return "";
+    if(!x.months) return `<div class="card" style="padding:14px 16px"><div class="eyebrow">${title}</div><p style="margin:6px 0 0">Not once between ${monthYear(o.from)} and ${monthYear(o.to)}.</p></div>`;
+    return `<div class="card" style="padding:14px 16px;display:grid;gap:10px"><div class="eyebrow">${title}</div>
+      <div class="stats">${tile("Times",`${x.episodes} <small class="muted">(${x.months} month-ends)</small>`,null,"Separate dips: a run of consecutive month-ends counts once")}
+        ${tile("Next 12 months, average",pct(x.avg,0),x.avg,`Against ${pct(o.avgAll,0)} from any month-end`)}
+        ${tile("Higher a year later",pct(x.up,0,false),null,`Against ${pct(o.upAll,0,false)} from any month-end`)}
+        ${tile("Worst further fall",pct(x.worstLow,0),x.worstLow,"The deepest it then fell within the year, at a month-end")}</div>
+      <p class="note" style="margin:0">From any month-end: ${pct(o.avgAll,0)} on average, higher ${pct(o.upAll,0,false)} of the time. Latest one counted: ${monthYear(x.last)}.</p></div>`; };
+  const buy = r.buy? `${r.region==="uk"?`<p style="margin:0">No fund tracks the FTSE 350 sector indices. The nearest fund:</p>`:""}${buyLineHTML(r.buy,r.full)}${r.buy.match==="similar"?`<p class="note" style="margin:0">Tracks ${esc(r.buy.differs)}.</p>`:""}${r.region==="uk"&&r.includes?`<p style="margin:0">Or buy its biggest companies' shares in London (${esc(r.includes)}), which IBKR sells.</p>`:""}`
+    : r.region==="uk"? `<p style="margin:0">No fund tracks the FTSE 350 sector indices. Its companies are shares listed in London${r.includes?` (${esc(r.includes)})`:""}, which IBKR sells.</p>`
+    : `<p style="margin:0">No UCITS fund tracks this index, so a UK investor can't buy one on IBKR. Its companies are US-listed shares${r.includes?` (${esc(r.includes)})`:""}, which IBKR sells.</p>`;
+  const d=Drawer.open(r.name,`
+    <div class="hd"><div><div class="eyebrow">${esc(regName(r))} · ${esc(r.full)}</div><h2>${esc(r.name)}</h2>
+      <div class="muted" style="font-size:13px">${esc(r.what)}</div>
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px"><span class="num" style="font-size:18px">${lvl(r.level)}</span><span class="muted" style="font-size:12.5px">on ${dayStr(r.at)}</span>${phaseTag(r.phase)}${dipTag(r)}</div></div>
+      <button class="btn close" type="button" id="closeD" aria-label="Close">Close ✕</button></div>
+    ${dTabs(CTABS,S.ctab)}
+    <div class="dgrid" data-pane="cycle">
+      <div class="card" style="padding:16px;display:grid;gap:12px"><div class="eyebrow">Where it is now</div>${dipBar(r,true)}${dipLegend()}
+        <p style="margin:0;font-size:15px">${esc(cycleText(r))}</p></div>
+      <div class="stats">${[
+        tile("From its 5-yr high",pct(r.dd5,0),r.dd5,`Its highest close of the past 5 years: ${lvl(r.hi5)} on ${dayStr(r.hi5At)}`),
+        tile("From its 5-yr low",pct(r.level/r.lo5-1,0),1,`Its lowest close of the past 5 years: ${lvl(r.lo5)} on ${dayStr(r.lo5At)}`),
+        tile("vs its 5-yr average",pct(r.vs5y,0),r.vs5y,"Below = low in its recent cycle; above = high"),
+        tile("vs its 200-day avg",pct(r.vs200,0),r.vs200,"Above = rising lately; below = falling"),
+        tile("1 week",pct(r.r1w,1),r.r1w),tile("3 months",pct(r.r3m,1),r.r3m),tile("1 year",pct(r.r1y,1),r.r1y),
+        tile("Usual yearly swing",pct(r.swing,0,false),null,"How much it typically moves in a year (volatility); big falls are counted from this size up")].join("")}</div>
+      <div class="card chartbox"><div class="row"><span class="eyebrow">Level</span><span class="key cr-ma"><i style="background:var(--warn)"></i>200-day average</span><span class="key cr-falls"><i style="background:color-mix(in oklab,var(--neg) 35%,transparent)"></i>Big falls</span>
+        <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("all","All")}</span></div>
+        <div id="cchart"></div><p class="note" id="cnote"></p></div>
+    </div>
+    <div class="dgrid" data-pane="falls">
+      <div class="card" style="padding:16px;display:grid;gap:8px"><div class="eyebrow">Big falls since ${yearOf(r.since)}</div>
+        <p style="margin:0">Every fall of ${pct(r.swing,0,false)} or more from a peak to a bottom (about as much as it typically moves in a year), most recent first. A fall only counts as over once the index has climbed ${pct(r.swing*((S.cyc&&S.cyc.recover)||1.5),0,false)} from its low, so short rallies inside a long slump don't split it in two.</p>${nowLine}</div>
+      ${fs.length?`<div class="tablebox"><table class="falls"><thead><tr><th>Peak</th><th>Bottom</th><th class="r">Fall</th><th class="r">Took</th><th class="r">Year after the bottom</th><th>Back to the peak</th></tr></thead><tbody>
+        ${fs.map(f=>`<tr><td>${esc(dayStr(f.peak))}</td><td>${esc(dayStr(f.trough))}</td><td class="r num neg">${pct(f.fall,0)}</td><td class="r">${esc(monthsWord(f.months))}</td>
+          <td class="r num ${cls(f.after1y)}">${f.after1y==null?"–":pct(f.after1y,0)}</td><td>${f.regained?esc(`${dayStr(f.regained)} (${monthsWord((f.regained-f.trough)/2629800)} after the bottom)`):'<span class="muted">Not yet</span>'}</td></tr>`).join("")}</tbody></table></div>`
+        :'<p class="muted">No fall that big in its history here.</p>'}
+      <p class="note">The bottom is only known afterwards: at the time, nobody could tell a fall had ended. Price index, so dividends are not included.</p>
+    </div>
+    <div class="dgrid" data-pane="dips">
+      ${o?`${ownCard("dip","When 30% or more below its 5-year high")}${ownCard("turn","When below its 5-year average but turning up")}
+        <p class="note">${esc(r.name)}'s own history from ${monthYear(o.from)} to ${monthYear(o.to)}, at month-ends; the record stops a year back, because each dip needs the 12 months after it. A handful of dips is too few to rely on: the test across all the indices (in the Cycles tab) is the better guide.</p>`
+        :`<p class="muted">Not enough history yet: this needs 5 years of month-ends before the first dip can be measured, and a year after it.${r.note?` ${esc(r.note)}`:""}</p>`}
+    </div>
+    <div class="dgrid" data-pane="about">
+      <dl class="card primer"><dt>What it is</dt><dd>${esc(r.what)}</dd>${r.includes?`<dt>Biggest companies</dt><dd>${esc(r.includes)}</dd>`:""}
+        <dt>What drives its cycle</dt><dd>${esc(r.drives)}</dd><dt>History here</dt><dd>Since ${dayStr(r.since)}, daily closes from CNBC.${r.note?` ${esc(r.note)}`:""}</dd></dl>
+      <div class="card buybox"><div class="eyebrow">Buying it on IBKR</div><p style="margin:0">You can't buy an index itself, only a fund that tracks it, or its companies' shares.</p>${buy}</div>
+    </div>`,()=>{S.csel=null;});
+  d.querySelectorAll("[data-crange]").forEach(bt=>bt.onclick=()=>{ S.crange=bt.dataset.crange; d.querySelectorAll("[data-crange]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.crange===S.crange)); drawCycleChart(r); });
+  bindDTabs(d,S.ctab,k=>{ S.ctab=k; if(k==="cycle") drawCycleChart(r); });
+}
+function drawCycleChart(r){
+  const el=$("#cchart"), note=$("#cnote"); if(!el) return;
+  document.querySelectorAll("#drawer .cr-ma").forEach(k=>k.hidden=S.crange!=="1y");
+  document.querySelectorAll("#drawer .cr-falls").forEach(k=>k.hidden=S.crange!=="all");
+  if(S.crange==="1y"){ const R=r.recent, t=R.d.map(x=>R.t0+x*86400);
+    lineChart(el,{t,series:[{v:R.c,color:"var(--ink)",name:"Level",w:1.8},{v:R.ma,color:"var(--warn)",name:"200-day avg",w:1.2}],fmt:lvl,area:1});
+    note.textContent="Above a rising 200-day average (about 10 months) is the classic sign of an uptrend; below a falling one, of a downtrend."; return; }
+  const L=longSeries(r);
+  if(S.crange==="5y"){ const k=61, avg=r.level/(1+r.vs5y);
+    lineChart(el,{t:L.t.slice(-k),series:[{v:L.c.slice(-k),color:"var(--ink)",name:"Level",w:1.6}],fmt:lvl,area:1,baseline:avg,baselineLabel:"5-year average"});
+    note.textContent="Month-end levels. Below the dashed 5-year average = low in its recent cycle; above it = high."; return; }
+  logChart(el,{t:L.t,c:L.c,falls:r.falls||[]});
+  note.textContent=`Every month-end since ${yearOf(r.since)}, on a scale where equal percentage moves look the same size. Shaded: its big falls (${pct(r.swing,0,false)} or more).`;
+}
+/* month-end levels on a ratio scale, with the big falls shaded */
+function logChart(el,{t,c,falls=[],h=260}){
+  const W=Math.max(280,el.clientWidth||600), H=h, L=8, R=58, T=10, B=24, lv=c.map(v=>Math.log10(v));
+  let mn=Math.min(...lv), mx=Math.max(...lv); const pad=(mx-mn)*.05||0.05; mn-=pad; mx+=pad;
+  const t0=t[0], t1=t[t.length-1], X=ts=>L+(ts-t0)/(t1-t0)*(W-L-R), Y=v=>T+(1-(v-mn)/(mx-mn))*(H-T-B);
+  let ticks=[]; for(let k=Math.floor(mn);k<=Math.ceil(mx);k++) [1,2,5].forEach(m=>{ const v=k+Math.log10(m); if(v>=mn&&v<=mx) ticks.push(v); });
+  if(ticks.length>6) ticks=ticks.filter(v=>Math.abs(v-Math.round(v))<1e-9||ticks.length<=6);
+  let g=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${W-R+6}" y="${Y(v)+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">${lvl(10**v)}</text>`).join("");
+  const y0=yearOf(t0), y1=yearOf(t1), step=(y1-y0)>24?5:(y1-y0)>10?2:1;
+  for(let y=Math.ceil(y0/step)*step;y<=y1;y+=step){ const ts=Date.UTC(y,0,1)/1000; if(ts<=t0) continue;
+    g+=`<text x="${X(ts)}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="middle">${y}</text>`; }
+  const sh=falls.map(f=>`<rect x="${X(f.peak)}" y="${T}" width="${Math.max(1,X(f.trough)-X(f.peak))}" height="${H-T-B}" fill="var(--neg)" fill-opacity=".10"><title>${esc(`${dayStr(f.peak)} to ${dayStr(f.trough)}: ${pct(f.fall,0)}`)}</title></rect>`).join("");
+  const d=lv.map((v,i)=>(i?"L":"M")+X(t[i]).toFixed(1)+" "+Y(v).toFixed(1)).join(""), li=lv.length-1;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${sh}${g}
+    <path d="${d}L${X(t[li])} ${H-B}L${X(t[0])} ${H-B}Z" fill="var(--ink)" fill-opacity=".05"/><path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="${X(t[li])}" cy="${Y(lv[li])}" r="3.5" fill="var(--ink)"/><rect x="${W-R+2}" y="${Y(lv[li])-9}" width="${R-4}" height="18" rx="4" fill="var(--ink)"/>
+    <text x="${W-R+6}" y="${Y(lv[li])+4}" font-size="11" fill="var(--surface)" font-family="var(--mono)">${lvl(c[li])}</text>
+    <line class="xh" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--muted)" visibility="hidden"/><rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/></svg>`;
+  const svg=el.querySelector("svg"), xh=svg.querySelector(".xh"), tip=$("#tip");
+  svg.addEventListener("mousemove",e=>{ const b=svg.getBoundingClientRect(), x=(e.clientX-b.left)*(W/b.width), ts=t0+(x-L)/(W-L-R)*(t1-t0);
+    let i=t.findIndex(v=>v>=ts); if(i<0) i=li; xh.setAttribute("x1",X(t[i])); xh.setAttribute("x2",X(t[i])); xh.setAttribute("visibility","visible");
+    tip.innerHTML=esc(new Date(t[i]*1000).toLocaleDateString(undefined,{month:"short",year:"numeric",timeZone:"UTC"}))+"  "+esc(lvl(c[i])); showTip(e); });
+  svg.addEventListener("mouseleave",()=>{ xh.setAttribute("visibility","hidden"); tip.hidden=true; });
+}
+
 /* ---------------------------------------------------------------- data loop */
-Views.init(["overview","rankings","maps","record","guide"],{
+Views.init(["overview","rankings","maps","cycles","record","guide"],{
   maps:()=>S.data&&renderRRG(),
+  cycles:()=>drawCycles(),
   record:()=>{ if(!S.data) return; drawBacktest(S.data.backtest); drawPaper(S.data.paper,S.pcur,true); }});
 startLoop({url:"data", onData(data){
   const reopen=S.sel, scrollY=window.scrollY;
@@ -621,7 +914,8 @@ startLoop({url:"data", onData(data){
   if(reopen) openDetail(reopen);
 }});
 let rt; addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{ if(!S.data) return; Views.draw[Views.cur]?.();
-  const r=S.sel&&S.data.rows.find(x=>x.symbol===S.sel); if(r) drawPane(r,S.dtab); },200);});
+  const r=S.sel&&S.data.rows.find(x=>x.symbol===S.sel); if(r) drawPane(r,S.dtab);
+  const c=S.csel&&S.cyc&&S.cyc.rows.find(x=>x.key===S.csel); if(c&&S.ctab==="cycle") drawCycleChart(c); },200);});
 </script>
 </body>
 

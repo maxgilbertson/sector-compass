@@ -36,6 +36,14 @@ jobs:
           path: data/fund_cache.json
           key: funddata-${{ github.run_id }}
           restore-keys: funddata-
+      - name: Reuse index history (cyclical indices, re-downloaded once a day; the dip test, re-run once a month)
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/cycles_cache.json.gz
+            data/cycles_test.json
+          key: cycles-${{ github.run_id }}
+          restore-keys: cycles-
       - run: python app/build_static.py
       - uses: actions/upload-pages-artifact@v3
         with:

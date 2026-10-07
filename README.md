@@ -35,6 +35,14 @@ Returns can be shown in **pounds** as well as the local currency (and US dollars
 - **Worth a look for a new holding** (Sectors overview): the buyable funds in the top fifth by score. A stricter rule that
   also skipped fast risers was fixed in advance and tested once (`app/candidates_test.py`); it did worse than holding every
   buyable fund, so it is reported on the page but not used.
+- **Cycles tab** (`app/cycles.py`): 23 cyclical stock-market indices (not funds), such as FTSE 350 Mining, STOXX Europe 600
+  sectors and the PHLX Semiconductor index, from CNBC's daily closes (full history re-downloaded daily, cached in
+  `data/cycles_cache.json.gz`). For each: how far below its 5-year high, its phase (vs its 5-year and 200-day averages),
+  its past big falls and its own dip record. Buying deep dips (30%+ below the 5-year high) was tested once, fixed in
+  advance (`app/cycles_test.py`), against 1,000 reshuffled histories: "Possibly worked" (+4.3% a year vs buying at any
+  time, p = 4.6%); waiting for the turn up "Didn't work". The page re-runs the test as each month completes.
+  CNBC history fixes (made before the test): FTSE 350 Mining joined to the old Mining index at 24 Mar 2021; UK
+  housebuilders only from that date; PHLX Housing halved before Feb 2006.
 
 **Live site:** https://maxgilbertson.github.io/sector-compass/ (updated every ~15 minutes by GitHub Actions)
 
@@ -44,6 +52,7 @@ Returns can be shown in **pounds** as well as the local currency (and US dollars
   - `engine.py`: fetching prices, the score, score history and the backtest (shared by both pages).
   - `universe.py` + `sectors.py`: the sector funds, their benchmarks and the Sectors page's data (including the cycle read).
   - `world.py`: the countries, their indices, funds and currencies and the Countries page's data (including the backdrop rules).
+  - `cycles.py`: the Cycles tab's indices, cycle measures, past falls and the buy-the-dip test (`cycles_test.py`).
   - `funddata.py`: top-10 holdings and fund facts (net assets, P/E, yield, beta, expense ratio), cached for a day.
   - `tracking.py` + `snapshot.py`: daily snapshots, the signal-change log and the practice portfolios.
   - `briefing.py` + `briefing.html` + `BRIEFING_PROMPT.md`: the weekly briefing's facts, draft, page and writing rules.

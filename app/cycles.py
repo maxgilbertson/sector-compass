@@ -7,9 +7,10 @@ turned up (above its 200-day average) or is still falling. It also lists the ind
 after them, and tests whether buying in a dip has paid off (dip_test, fixed in advance: see cycles_test.py).
 
 Data: CNBC's daily closing levels. These are price indices, so dividends are not included. The full history is
-downloaded once a day and kept in data/cycles_cache.json; each build adds the last few weeks.
+downloaded once a day and kept in data/cycles_cache.json.gz; each build adds the last few weeks.
 """
 import bisect
+import gzip
 import json
 import math
 import random
@@ -24,7 +25,7 @@ from pathlib import Path
 import engine
 
 ROOT = Path(__file__).resolve().parent.parent
-CACHE = ROOT / "data" / "cycles_cache.json"
+CACHE = ROOT / "data" / "cycles_cache.json.gz"
 UA = {"User-Agent": "SectorCompass/1.0 (personal tracker)"}
 DAY = 86400
 YEAR = 365.25 * DAY
@@ -59,11 +60,17 @@ _EXV = lambda t, n: (t, "Xetra", f"iShares STOXX Europe 600 {n} UCITS ETF (DE)",
 INDICES = [
     # UK: FTSE 350 sector indices (ICB codes)
     (".FTNMX551020", "uk-mining", "Mining", "FTSE 350 Industrial Metals and Mining", "uk", "metals",
-     "The big metal miners: what is usually called the FTSE 350 Mining index.", "Rio Tinto, Glencore, Anglo American and Antofagasta", None),
+     "The big metal miners: what is usually called the FTSE 350 Mining index.", "Rio Tinto, Glencore, Anglo American and Antofagasta",
+     ("EXV6", "Xetra", "iShares STOXX Europe 600 Basic Resources UCITS ETF (DE)", "similar",
+      "the STOXX Europe 600 Basic Resources index: the same big miners, plus European steel, aluminium and paper companies")),
     (".FTNMX601010", "uk-oil", "Oil & gas", "FTSE 350 Oil, Gas and Coal", "uk", "oil",
-     "Oil and gas producers.", "Shell and BP", None),
+     "Oil and gas producers.", "Shell and BP",
+     ("EXH1", "Xetra", "iShares STOXX Europe 600 Oil & Gas UCITS ETF (DE)", "similar",
+      "the STOXX Europe 600 Oil & Gas index: Shell and BP, plus TotalEnergies, Eni and other European producers")),
     (".FTNMX301010", "uk-banks", "Banks", "FTSE 350 Banks", "uk", "banks",
-     "The big UK-listed banks.", "HSBC, Barclays, Lloyds, NatWest and Standard Chartered", None),
+     "The big UK-listed banks.", "HSBC, Barclays, Lloyds, NatWest and Standard Chartered",
+     ("EXV1", "Xetra", "iShares STOXX Europe 600 Banks UCITS ETF (DE)", "similar",
+      "the STOXX Europe 600 Banks index: the UK's big banks plus the rest of Europe's")),
     (".FTNMX402020", "uk-homes", "Housebuilders", "FTSE 350 Household Goods and Home Construction", "uk", "homes",
      "Mostly the big housebuilders.", "Barratt Redrow, Persimmon, Berkeley and Taylor Wimpey", None),
     (".FTNMX501010", "uk-build", "Construction & materials", "FTSE 350 Construction and Materials", "uk", "build",
@@ -112,7 +119,8 @@ INDICES = [
 ]
 
 DIP = -0.30   # "in a deep dip": at least 30% below the highest close of the past five years
-SWING = 0.20  # a "big fall" (and a rise that ends it) is a move of at least 20%, or the index's usual yearly swing if bigger
+SWING = 0.20  # a "big fall" is at least 20%, or the index's usual yearly swing if bigger...
+RECOVER = 1.5  # ...and it is over once the index has risen 1.5 times that from its low, so rallies inside a long bust don't split it
 
 # Breaks in CNBC's history, found on 7 Oct 2026 before the test ran, by checking every one-day move of more than 20% and
 # each UK index against its biggest companies' share prices before and after the March 2021 sector reshuffle (ICB).
@@ -162,8 +170,8 @@ def _bars(sym, start):
 def load(symbols):
     """Daily closes for each symbol: the saved full history (re-downloaded every 20 hours) plus the last few weeks."""
     try:
-        saved = json.loads(CACHE.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        saved = json.loads(gzip.decompress(CACHE.read_bytes()))
+    except (OSError, ValueError, EOFError):
         saved = {}
     data, at = saved.get("data") or {}, saved.get("at") or 0
     stale = time.time() - at > FULL_EVERY
@@ -177,7 +185,7 @@ def load(symbols):
         if stale and len(fresh) >= 0.8 * len(symbols):
             at = time.time()
         CACHE.parent.mkdir(parents=True, exist_ok=True)
-        CACHE.write_text(json.dumps({"at": at, "data": data}, separators=(",", ":")), encoding="utf-8")
+        CACHE.write_bytes(gzip.compress(json.dumps({"at": at, "data": data}, separators=(",", ":")).encode()))
     # everything not just downloaded in full: add the last few weeks
     recent = [s for s in symbols if s in data and s not in fresh]
     start = (date.today() - timedelta(days=24)).strftime("%Y%m%d")
@@ -306,9 +314,11 @@ def month_ends(t):
     return out
 
 
-def swings(c, move=SWING):
-    """Turning points: peaks and troughs in turn, each at least `move` away from the one before (a zig-zag).
-    Returns the turns, whether the latest move is down or up (None before the first), and its extreme so far."""
+def swings(c, move=SWING, up=None):
+    """Turning points: peaks and troughs in turn (a zig-zag). A peak counts once the index has fallen `move` from it,
+    a trough once it has risen `up` (default: `move`) from it. Returns the turns, whether the latest move is down or up
+    (None before the first), and its extreme so far."""
+    up = move if up is None else up
     turns, mode, hi, lo = [], None, 0, 0
     for i in range(1, len(c)):
         if mode != "down":
@@ -321,7 +331,7 @@ def swings(c, move=SWING):
         if mode != "up":
             if c[i] < c[lo]:
                 lo = i
-            if c[i] >= c[lo] * (1 + move):
+            if c[i] >= c[lo] * (1 + up):
                 turns.append(("trough", lo))
                 mode, hi = "up", i
     return turns, mode, (lo if mode == "down" else hi)
@@ -330,7 +340,7 @@ def swings(c, move=SWING):
 def big_falls(t, c, move=SWING):
     """Every fall of `move` or more from a peak to a trough, with how long it took, the rise in the year after the
     trough, and when (if ever) the index got back to the peak."""
-    turns, mode, ext = swings(c, move)
+    turns, mode, ext = swings(c, move, move * RECOVER)
     out = []
     for (k1, p), (k2, q) in zip(turns, turns[1:]):
         if k1 != "peak" or k2 != "trough":
@@ -605,9 +615,10 @@ def describe(t, c):
     return {
         **{k: round(v, 5) for k, v in s.items()}, "phase": phase_of(s), "level": c[i], "at": t[i], "since": t[0],
         "hi5": c[k_hi], "hi5At": t[k_hi], "lo5": c[k_lo], "lo5At": t[k_lo],
-        "r1w": ago(7), "r3m": ago(91), "r1y": ago(365),
+        "r1w": round(ago(7), 5), "r3m": round(ago(91), 5), "r1y": round(ago(365), 5),
         "trail": [[round(x["vs5y"], 4), round(x["vs200"], 4)] for x in trail if x],
-        "swing": swing, "falls": falls, "now": now,
+        "swing": swing, "falls": [{k: round(v, 4) if isinstance(v, float) else v for k, v in f.items()} for f in falls],
+        "now": now and {k: round(v, 4) if isinstance(v, float) else v for k, v in now.items()},
         # month-end closes for the long chart (from the first full month), and the last year day by day with its 200-day average
         "long": {"ym0": _ym_ts(months[0]), "c": long_c + [_sig(c[i])]},
         "recent": {"t0": t[k0], "d": [(t[k] - t[k0]) // DAY for k in range(k0, i + 1)], "c": [_sig(v) for v in c[k0:]],
@@ -642,7 +653,7 @@ def build():
     return {"generated": time.time(), "marketTime": max((r["at"] for r in rows), default=None),
             "regions": {k: {"name": v["name"], "marketName": v["marketName"], "ccy": v["ccy"]} for k, v in REGIONS.items()},
             "rows": rows, "markets": mkts, "test": test, "testSeconds": round(time.time() - t0, 1),
-            "phases": PHASES, "dipLine": DIP, "swing": SWING, "errors": errors}
+            "phases": PHASES, "dipLine": DIP, "swing": SWING, "recover": RECOVER, "errors": errors}
 
 
 if __name__ == "__main__":

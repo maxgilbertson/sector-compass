@@ -33,6 +33,18 @@ Not to be tuned to the result. Known weaknesses: dips cluster in a few crises (1
 2020, 2022), so there are far fewer separate dips than months; the indices were picked today as known cyclicals;
 price indices leave out dividends; and an index can't be bought directly (a fund charges a fee, and no fund tracks
 the UK FTSE 350 sectors).
+
+Result, run once on 7 Oct 2026 (22 indices, 8,253 index-months, Nov 1988 to Sep 2025; UK housebuilders too new to join):
+  A  Deep dip  2,052 index-months, 209 separate dips. Next 12 months +14.2% on average vs +8.1% for all months;
+               vs the same index at any time +6.1%; EDGE after the reshuffle check +4.3% a year, p = 4.6%.
+               Halves: +1.6% (p 36%) to Mar 2007, +4.5% (p 12%) since. Over 3 years: edge +7.9% (p 17%).
+               vs the region's whole market: +4.7%, edge +2.7% (p 12%). A quarter of the picks fell a further
+               20% or more first (median further fall -7.9%; worst -73.9%).           VERDICT: Possibly worked
+  B  Turning up  982 index-months, 262 separate dips. vs any time +1.3%; EDGE -0.4%, p = 54%.  VERDICT: Didn't work
+  Reported, not tested: the deeper the dip, the better the next 12 months (edge -1.0% within 10% of the high,
+  +3.3% at 30-50% below, +5.7% at more than 50% below); by phase, "Down and still falling" +3.7% (p 7%) and
+  "Up but turning down" -3.3%. So buying deep dips has helped on average, but the evidence is moderate (weaker
+  in the first half), and waiting for the turn up did not help. The page shows these results as they are.
 """
 from datetime import datetime, timezone
 
