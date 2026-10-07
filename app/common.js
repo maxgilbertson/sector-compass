@@ -169,9 +169,9 @@ function stat({label,ico="",value="",tone="",sub="",body="",open="",href=""}){
 const heroGrid = cards => { const c=cards.filter(Boolean); return `<div class="hero n${c.length}">${c.join("")}</div>`; };
 const ringRow = (score,name,sub) => `<div class="stat-row">${ring(score,{size:48})}<div><div class="stat-val sm">${esc(name)}</div>${sub?`<div class="stat-sub">${sub}</div>`:""}</div></div>`;
 // one shortlist card: score ring, name, a few tags, past-year sparkline
-function pickCard({key,name,sub,score,tags=[],spark="",title=""}){
+function pickCard({key,name,sub,score,tags=[],spark="",title="",extra=""}){
   return `<div class="pick" data-open="${esc(key)}" role="button" tabindex="0" title="${esc(title)}">${ring(score,{size:44,stroke:4.5})}
-    <div class="pick-main"><div class="pick-name">${esc(name)}</div><div class="pick-sub">${esc(sub)}</div>${tags.length?`<div class="pick-tags">${tags.join("")}</div>`:""}</div>${spark}</div>`;
+    <div class="pick-main"><div class="pick-name">${esc(name)}</div><div class="pick-sub">${esc(sub)}</div>${tags.length?`<div class="pick-tags">${tags.join("")}</div>`:""}${extra}</div>${spark}</div>`;
 }
 // how far to trust the score, from the test on past data; links to the full test
 function trustBadge(bt){ if(!bt) return ""; const st=btStrength(bt);

@@ -413,3 +413,13 @@ details.fold>summary:hover{color:var(--accent)}
   details.fold>summary{font-size:17px;padding:12px 40px 12px 14px}details.fold>summary::after{right:16px;top:18px}.fold-body{padding:0 14px 14px}
   .toolbar .search{max-width:none}
 }
+
+/* buying on IBKR */
+.tick{font-family:var(--mono);font-weight:600;font-size:12.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.tick.big{font-size:17px;padding:3px 10px}
+.buyline{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:7px;font-size:12px;color:var(--muted)}
+.buybox{padding:16px;display:grid;gap:8px}
+.buybox .buyline{margin:0;font-size:13.5px}
+.buybox p{margin:0;font-size:14px}
+.buybox.none{background:color-mix(in oklab,var(--warn) 6%,var(--surface))}
+.lnk{color:var(--accent);text-decoration:underline;cursor:pointer}

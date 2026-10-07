@@ -110,7 +110,7 @@ const COLS = [
 const store = makeStore("sc.");
 const S = {data:null, region:store.get("region","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}),
            rrg:store.get("rrg","us"), sel:null, range:"1y", cur:store.get("cur","local"), pcur:store.get("pcur","gbp"),
-           cols:store.get("cols","key"), dtab:"summary"};
+           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false)};
 // returns in the chosen currency: each fund's own currency, or converted into pounds
 const rv = (r,k) => S.cur==="gbp" ? (r.gbp||{})[k] : r.m[k];
 const curWord = () => S.cur==="gbp" ? "in pounds" : "in each fund's own currency";
@@ -175,11 +175,11 @@ function reasonShort(r){
 /* ---------------------------------------------------------------- render: page */
 function filtered(){
   const q=S.q.trim().toLowerCase();
-  return S.data.rows.filter(r=>(S.region==="all"||r.group===S.region) &&
+  return S.data.rows.filter(r=>(S.region==="all"||r.group===S.region) && (!S.ibkr||r.buy) &&
     (!q || (r.name+" "+r.symbol+" "+r.fund+" "+groupName(r.group)+" "+(SECTORS[r.key]||{}).name).toLowerCase().includes(q) || holdingMatch(r)));
 }
 function sorted(rows){
-  const {k,dir}=S.sort, get = r => k==="name"?r.name : k==="quad"?["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad) : COLS.some(c=>c.k===k)? rv(r,k) : r.m[k];
+  const {k,dir}=S.sort, get = r => k==="name"?r.name : k==="buy"?(r.buy&&r.buy.ticker) : k==="quad"?["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad) : COLS.some(c=>c.k===k)? rv(r,k) : r.m[k];
   return rows.slice().sort((a,b)=>{ const x=get(a), y=get(b); if(x==null) return 1; if(y==null) return -1;
     return (typeof x==="string"? x.localeCompare(y) : x-y)*dir; });
 }
@@ -195,6 +195,7 @@ function render(){
   <div class="view" data-view="overview">
     <div class="intro">${icon("info",17)}<span>Each sector fund is compared with <b>the whole stock market of its own region</b> (US Technology with the S&amp;P 500, for example) and given a <b>score from 0 to 100</b>: 50 is the middle, 60 or more is favoured, under 40 is weak. It describes what has been happening, not what will happen. <a href="#guide">How to read this page</a></span></div>
     <section>${secHead({eyebrow:"At a glance",title:"Today in sectors"})}${heroGrid(heroCards())}</section>
+    ${openSection()}
     <section>${secHead({eyebrow:"Shortlist",title:"What the data favours today",lead:`The strongest, the improving and the weakest of all ${n} funds. Click a card for the full breakdown.`,right:trustBadge(D.backtest)})}
       ${more("shortlist",`<p>The score combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop.</p><p><b>Turnaround watch</b> lists funds that have been behind their region's market lately but are improving: wait until the price trend turns up too. Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
       <div class="picks">${ideas()}</div></section>
@@ -211,7 +212,8 @@ function render(){
           `<button class="tab" type="button" data-region="${id}" aria-pressed="${S.region===id}">${esc(l==="Theme"?"Themes":l)}</button>`).join("")}</div>
         <input class="search" id="search" type="search" placeholder="Search sector, ticker or company (e.g. Nvidia)" value="${esc(S.q)}" aria-label="Search"></div>
       <div class="toolbar"><span class="seg-lab">Columns</span>${seg("cols",S.cols,COLSETS,"Columns to show")}
-        <span class="seg-lab">Returns in</span>${seg("cur",S.cur,[["local","Own currency"],["gbp","Pounds (£)"]],"Return currency")}</div>
+        <span class="seg-lab">Returns in</span>${seg("cur",S.cur,[["local","Own currency"],["gbp","Pounds (£)"]],"Return currency")}
+        <div class="tabs" role="group" aria-label="Buyable on IBKR"><button class="tab" type="button" id="ibkrOnly" aria-pressed="${S.ibkr}" title="Hide funds that a UK investor can't buy on IBKR (no UCITS version)">Only ones I can buy on IBKR</button></div></div>
       <div class="tablebox" id="tablebox"></div>
       <div style="margin-top:10px">${more("glossary",glossary(n),"What do the columns mean?")}</div></section>
   </div>
@@ -245,6 +247,7 @@ function render(){
   app.querySelectorAll("[data-region]").forEach(b=>b.onclick=()=>{S.region=b.dataset.region;store.set("region",S.region);press("region",S.region);renderTable();});
   app.querySelectorAll("[data-pcur]").forEach(b=>b.onclick=()=>{S.pcur=b.dataset.pcur;store.set("pcur",S.pcur);const y=scrollY;render();scrollTo(0,y);});
   $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
+  $("#ibkrOnly").onclick=e=>{S.ibkr=!S.ibkr;store.set("ibkr",S.ibkr);e.currentTarget.setAttribute("aria-pressed",S.ibkr);renderTable();};
   $("#rrgsel").onchange=e=>{S.rrg=e.target.value;store.set("rrg",S.rrg);renderRRG();};
 }
 
@@ -310,8 +313,48 @@ function pickRow(r){
   if(m.quad) tags.push(tag(esc(m.quad),QUAD_TONE[m.quad],`title="${esc(cap(QUAD_PLAIN[m.quad]))}"`));
   if(m.d1w!=null&&Math.abs(m.d1w)>=3) tags.push(tag(`Score ${sgn(m.d1w)} this week`,m.d1w>0?"pos":"neg"));
   if(m.rsi>=70) tags.push(tag("Rose fast","warn"));
+  if(!r.buy) tags.push(tag("Not on IBKR","",`title="A UK investor can't buy this on IBKR, and no UCITS version was found"`));
   const c=m.series.c, sp=sparkSVG(c.filter((_,j)=>j%4===0||j===c.length-1),{w:64,h:28});
   return pickCard({key:r.symbol,name:r.name,sub:`${groupShort(r.group)} · ${r.symbol}`,score:m.score,tags,spark:sp,title:`${reasonShort(r)} · ${upDown(m.r1y,0)} in a year`});
+}
+
+/* ---------------------------------------------------------------- buying on IBKR */
+const VENUE = sym => sym.endsWith(".T")?"Japanese":sym.endsWith(".TO")?"Canadian":"US";
+function matchTag(r){ const b=r.buy; if(!b) return "";
+  return b.match==="itself"? tag("UCITS fund","pos",`title="A UCITS fund: you can buy it directly"`)
+    : b.match==="same"? tag("Same index","pos",`title="${esc(`${b.name} tracks the same index as ${r.symbol}, the fund scored here`)}"`)
+    : tag("Similar index","info",`title="${esc(`${b.name}: ${b.differs}`)}"`); }
+const buyLine = r => r.buy? `<div class="buyline">Buy as <span class="tick">${esc(r.buy.ticker)}</span>${esc(r.buy.exchange)} ${matchTag(r)}</div>` : "";
+// the buyable funds in the top fifth by score: the selection the test on past data covers
+function openList(){ const b=S.data.rows.filter(r=>r.buy&&r.m.score!=null).sort((a,b)=>b.m.score-a.m.score);
+  return {all:b.length, list:b.slice(0,Math.max(1,Math.floor(b.length/5)))}; }
+function openSection(){
+  const D=S.data, {all,list}=openList(), t=D.buyTest, bt=D.backtest;
+  const card=r=>{ const m=r.m, tags=[];
+    if(m.rs1y!=null) tags.push(tag(esc(`${aheadBehind(m.rs1y,0)} ${relPrep(m.rs1y)}${benchShort(r.group)}, 1 yr`),near0(m.rs1y)?"":m.rs1y>0?"pos":"neg"));
+    if(m.trend!=null) tags.push(tag(esc(cap(TREND_WORD[m.trend])),m.trend>=3?"pos":m.trend<=1?"neg":""));
+    if(m.rsi>=70||(m.vs200!=null&&m.vs200>0.15)) tags.push(tag("Rose fast: expect bumps","warn",`title="${esc(`RSI ${m.rsi==null?"–":m.rsi.toFixed(0)}, ${pct(m.vs200,0)} vs its 200-day average. Sharp rises can pause or pull back.`)}"`));
+    const c=m.series.c, sp=sparkSVG(c.filter((_,j)=>j%4===0||j===c.length-1),{w:64,h:28});
+    return pickCard({key:r.symbol,name:r.name,sub:`${groupShort(r.group)} · scored on ${r.symbol}`,score:m.score,tags,spark:sp,extra:buyLine(r),title:reasonShort(r)}); };
+  const tested = t? `<p><b>Tested on the past</b> (${esc(monthYear(t.from))} to ${esc(monthYear(t.to))}): each month, the buyable funds in the top fifth by score went on to ${esc(beatTrail(t.topAnn,"their own markets",true))}, before trading costs${bt?` (re-picking every month costs roughly ${pct(bt.costAnn,1,false)} a year)`:""}. Holding every buyable fund equally ${esc(beatTrail(t.allAnn,"their markets"))}. It is still wrong in many months.</p>
+    <p><b>Why fast risers aren't left out:</b> a stricter rule that skipped funds with an RSI of 70+ or a price over 15% above their 200-day average was fixed in advance and tested the same way. It did ${esc(betterWorse(t.edgeAnn))} a year than holding every buyable fund, after costs (reliability t = ${t.edgeT==null?"–":tval(t.edgeT)}): the funds that had risen fastest tended to keep rising, and switching in and out cost about ${pct(t.candAnn-t.candNetAnn,1,false)} a year. So they stay in the list, marked "Rose fast": expect bigger swings.</p>` : "";
+  return `<section id="open">${secHead({eyebrow:"Opening a holding",title:"Worth a look for a new holding",
+      lead:`The ${list.length} highest-scoring of the ${all} sector funds you can buy on IBKR, each with the ticker to search for. A starting point for your own research, not a recommendation.`,right:trustBadge(bt)})}
+    ${more("open-how",`<p>These are funds a UK investor can buy on IBKR (UCITS funds, or a UCITS "twin" listed in London that tracks the same or a similar index as the fund scored here) whose score is in the top fifth of all the buyable ones. The list changes as scores move.</p>${tested}
+      <p><b>Before buying:</b> search the ticker in IBKR and check the fund name matches. A "similar index" twin can move a little differently from the fund scored here. London listings may trade in US dollars or pounds; IBKR converts the currency. Check the fund's costs and whether it suits you.</p>`)}
+    <div class="picks">${list.map(card).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div></section>`;
+}
+function buyBox(r){
+  const b=r.buy;
+  if(!b){ const alt=S.data.rows.filter(x=>x.key===r.key&&x.buy&&x.m.score!=null).sort((a,b)=>b.m.score-a.m.score)[0];
+    return `<div class="card buybox none"><div class="eyebrow">Buying on IBKR</div>
+      <p>A UK investor can't buy ${esc(r.symbol)} on IBKR: ${esc(VENUE(r.symbol))} funds don't publish the UK key information document, and no UCITS version tracking this index was found.</p>
+      ${alt?`<p>The highest-scoring buyable fund in the same sector is <span class="lnk" role="button" tabindex="0" data-open="${esc(alt.symbol)}">${esc(alt.name)} (${esc(groupShort(alt.group))})</span>, score ${Math.round(alt.m.score)}, bought as <span class="tick">${esc(alt.buy.ticker)}</span>.</p>`:""}</div>`; }
+  return `<div class="card buybox"><div class="eyebrow">Buying on IBKR</div>
+    <div class="buyline">Search for <span class="tick big">${esc(b.ticker)}</span> on the ${esc(b.exchange)} exchange ${matchTag(r)}</div>
+    <p class="muted">${b.match==="itself"?"This is a UCITS fund, so you can buy it directly."
+      :`${esc(b.name)}. ${b.match==="same"?`It tracks the same index as ${esc(r.symbol)}, the fund scored here, so it should move almost exactly the same way.`
+        :`It tracks a similar index: ${esc(b.differs)}. So it can move a little differently from ${esc(r.symbol)}, the fund scored here.`}`} Check the name in IBKR before buying.</p></div>`;
 }
 function ideas(){
   const rows=S.data.rows.filter(r=>r.m.score!=null);
@@ -340,6 +383,8 @@ function tableCols(){
       return `<td class="l sticky"><div class="nmcell"><b>${esc(r.name)}</b><small>${esc(r.symbol)} · ${esc(groupShort(r.group))} · vs ${esc(benchShort(r.group))}${hit?` · holds ${esc(hit.name)} ${pct(hit.pct,1,false)}`:""}</small></div></td>`; }},
     {s:"krv",th:()=>th("score","Score (0–100)","l",`Ranks each fund against all ${n}: 50 = middle, 60+ favoured, under 40 weak. Signals: 80+ Strong overweight · 60–79 Overweight · 40–59 Neutral · 20–39 Underweight · under 20 Avoid.`),
       td:r=>`<td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${r.m.score==null?"–":Math.round(r.m.score)}</span><span class="bar"><i style="width:${r.m.score||0}%;background:${scoreColor(r.m.score)}"></i></span>${sigPill(r.m.signal)}</div></td>`},
+    {s:"krv",th:()=>th("buy","Buy on IBKR","l","The ticker to buy on IBKR as a UK investor: the fund itself (UCITS) or its UCITS twin. – = not available"),
+      td:r=>`<td class="l">${r.buy?`<span class="tick">${esc(r.buy.ticker)}</span> <small class="muted">${esc(r.buy.exchange)}${r.buy.match==="itself"?"":` · ${r.buy.match} index`}</small>`:'<span class="muted" title="No UCITS version on IBKR">–</span>'}</td>`},
     {s:"k",th:()=>th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week"),td:r=>`<td>${delta(r.m.d1w,scoreChangeTip(r.m))}</td>`},
     ...COLS.map(c=>({s:IN[c.k],th:()=>th(c.k,c.l,"",`${c.tip}, ${curWord()}`),td:r=>`<td class="n" style="${heat(rv(r,c.k),c.cap)}">${pct(rv(r,c.k))}</td>`})),
     {s:"kr",th:()=>th("rs6m",vsHead,"","How far ahead (+) or behind (−) the whole stock market of its own region over 6 months"),
@@ -430,6 +475,9 @@ function guide(n){
         <li><b>Improving</b> on the rotation map flags funds catching up before the score does.</li>
         <li><b>Rose fast</b> flags suggest waiting for a dip, even for strong sectors.</li></ul>`)}
       ${fold("g-cols","What the table columns mean",glossary(n))}
+      ${fold("g-ibkr","Buying on IBKR",`<p>UK rules require a key information document for funds sold to ordinary investors. US, Japanese and Canadian funds don't publish one, so IBKR blocks them for UK retail accounts. European UCITS funds (like the iShares STOXX Europe 600 sector funds) can be bought directly.</p>
+        <p>Many of the blocked US funds have a <b>UCITS twin</b> listed in London. "Same index" twins track exactly the index of the fund scored here, so they move almost identically; "similar index" twins track a close one (for example, developed markets only), so check the difference shown. The scores stay based on the original funds, which have longer price histories.</p>
+        <p>${S.data.rows.filter(r=>r.buy).length} of the ${S.data.rows.length} funds can be bought this way. All the Japanese and most Canadian sector funds, and US airlines, software, medical devices, regional banks and homebuilders, have no UCITS version. Every ticker was checked in IBKR's contract search on 7 Oct 2026; "Only ones I can buy on IBKR" in the Rankings tab hides the rest.</p>`)}
       ${fold("g-updates","What updates, and when",`<p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): returns, trend, heat, swings, every score and signal, score changes and history, flags, the rotation map, the economic read, the shortlists and every written verdict. Scores use the latest trade price. Open pages pick up new data by themselves.</p>
         <p><b>Every weekday after the US close:</b> a snapshot of every score is saved, which feeds "What changed recently". <b>At the start of each month:</b> the practice portfolios are re-picked, and the test on past data adds the month just finished.</p>
         <p><b>Once a day:</b> top-10 holdings, fund size, P/E, dividend yield, beta and fees. <b>Fixed:</b> the sector descriptions and which sectors suit which economic phase.</p>
@@ -487,6 +535,7 @@ function openDetail(sym){
         <div>${sigPill(m.signal)} <span class="q q-${m.quad}" style="margin-left:6px" title="${esc(m.quad?`${QUAD_PLAIN[m.quad]} vs ${bp}`:"")}">${esc(m.quad||"")}</span>
           ${flagsHTML(m)}
           <p style="margin:8px 0 0;font-size:15px">${esc(verdict(m,bp))}</p>${automatedNote(S.data.generated)}</div></div>
+      ${buyBox(r)}
       <div class="card chartbox"><div class="row"><span class="eyebrow">Price</span>
         <span class="key"><i style="background:var(--ink)"></i>Price</span><span class="key ma"><i style="background:var(--accent)"></i>50-day average</span><span class="key ma"><i style="background:var(--warn)"></i>200-day average</span>
         <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("10y","10 yrs")}</span></div>

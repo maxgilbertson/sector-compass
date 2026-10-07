@@ -19,6 +19,15 @@ Fixed on 7 Oct 2026, before running (see engine.is_candidate and engine.candidat
 
 The rule is not to be changed in response to this result. Known weakness: which funds count as buyable
 uses today's list, so the test assumes twins existed throughout (several launched only in 2021-23).
+
+Result, run once on 7 Oct 2026 (Oct 2017 to Aug 2026, 107 months, 57 buyable funds):
+  Candidates vs their own markets: -1.7% a year before costs, -3.7% after (t = -1.89)
+  All buyable funds held equally: -0.6% a year; buyable top 20% by score: +1.9% a year (before costs)
+  EDGE: -3.1% a year (t = -1.45); 1st half -2.6% (t = -0.87), 2nd half -3.6% (t = -1.16)
+  VERDICT: Didn't help. Skipping funds that had risen fast removed the ones that kept rising, and the
+  frequent switching cost about 2% a year. The rule is therefore NOT used to pick funds on the site; the
+  "Worth opening a holding" section lists the buyable top 20% by score (the selection already tested by
+  engine.backtest) and only shows fast rises as a warning.
 """
 from datetime import datetime, timezone
 

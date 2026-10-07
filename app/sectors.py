@@ -4,7 +4,7 @@ import time
 import engine
 import funddata
 import tracking
-from universe import GROUPS, MACRO
+from universe import GROUPS, MACRO, buy_on_ibkr
 
 FX = {"EUR": "EURUSD=X", "JPY": "JPYUSD=X", "CAD": "CADUSD=X"}  # to put net assets on one scale
 PER_USD = {"GBP": "GBP=X", "EUR": "EUR=X", "JPY": "JPY=X", "CAD": "CAD=X"}  # units per US dollar, for pound returns
@@ -144,7 +144,7 @@ def build():
             if m:
                 conv = in_ccys(d, d["ccy"])
                 rows.append({"symbol": sym, "name": name, "key": key, "group": g["id"],
-                             "fund": d["name"], "ccy": d["ccy"], "m": m,
+                             "fund": d["name"], "ccy": d["ccy"], "m": m, "buy": buy_on_ibkr(sym),
                              "gbp": engine.period_returns(engine.Track(conv["gbp"])) if conv["gbp"] else None})
                 tracks.append(tr)
                 if conv["gbp"] and conv["usd"]:
@@ -154,6 +154,8 @@ def build():
     hist_cuts = engine.apply_scores(rows, tracks, rf_at)
     t0 = time.time()
     bt = engine.backtest(tracks, rf_at)
+    # the same test on the funds a UK investor can buy on IBKR (and the candidate rule that failed it; see candidates_test.py)
+    buy_test = engine.candidate_backtest(tracks, rf_at, [bool(r["buy"]) for r in rows])
     bt_seconds = round(time.time() - t0, 1)
 
     fund = funddata.load([r["symbol"] for r in rows] + [b["symbol"] for b in benches.values()])
@@ -182,5 +184,5 @@ def build():
         "groups": [{k: g[k] for k in ("id", "name", "bench", "bench_name", "ccy", "plain", "short")} for g in GROUPS],
         "benches": benches, "rows": rows, "macro": macro, "cycle": cyc, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
-        "backtest": bt, "backtestSeconds": bt_seconds, "paper": paper, "changes": changes,
+        "backtest": bt, "backtestSeconds": bt_seconds, "buyTest": buy_test, "paper": paper, "changes": changes,
     }

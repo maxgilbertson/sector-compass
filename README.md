@@ -28,6 +28,13 @@ Returns can be shown in **pounds** as well as the local currency (and US dollars
   the task runs.
 - **Research** (`app/research.py`): tests other score recipes the careful way. Each one is judged on the first half of the
   history and must still win on the second half, which it never saw. It only reports; it never changes the live score.
+- **Buying on IBKR** (`universe.BUY_ON_IBKR`): a UK retail IBKR account can't buy US, Japanese or Canadian funds (no UK key
+  information document). Each fund shows what to buy instead: the fund itself if it's UCITS (the European ones), or a UCITS
+  "twin" in London tracking the same or a similar index. 57 of 86 funds are buyable; tickers checked in IBKR on 7 Oct 2026.
+  Scores stay based on the original funds, which have longer histories.
+- **Worth a look for a new holding** (Sectors overview): the buyable funds in the top fifth by score. A stricter rule that
+  also skipped fast risers was fixed in advance and tested once (`app/candidates_test.py`); it did worse than holding every
+  buyable fund, so it is reported on the page but not used.
 
 **Live site:** https://maxgilbertson.github.io/sector-compass/ (updated every ~15 minutes by GitHub Actions)
 
