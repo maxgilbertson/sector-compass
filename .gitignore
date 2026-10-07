@@ -1,3 +1,5 @@
 __pycache__/
 site/
 data/fund_cache.json
+data/cycles_cache.json
+data/cycles_test.json
