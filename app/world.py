@@ -56,6 +56,50 @@ COUNTRIES = [
 ]
 DEVELOPED = {"US", "CA", "GB", "DE", "FR", "NL", "ES", "IT", "CH", "SE", "NO", "DK", "BE", "JP", "HK", "AU", "NZ", "SG", "IL"}
 
+# Where each country can be bought on IBKR by a UK retail investor: the US-listed funds scored here are blocked
+# (no UK key information document), so this is a UCITS fund for the same country. "same" = the same MSCI index as
+# the scored fund; "similar" = a close one (often the country's main local index, or without the cap on the biggest
+# companies). Every ticker was found in IBKR's contract search on 7 Oct 2026. Countries not listed have no UCITS fund
+# on IBKR. code: (IBKR ticker, exchange, fund name, match, what differs when "similar")
+BUY_ON_IBKR = {
+    "US": ("CSPX", "London", "iShares Core S&P 500 UCITS ETF", "same", ""),
+    "CA": ("CSCA", "London", "iShares MSCI Canada UCITS ETF", "same", ""),
+    "MX": ("XMEX", "London", "Xtrackers MSCI Mexico UCITS ETF", "similar", "large and mid-sized companies only, without the cap on the biggest"),
+    "BR": ("IBZL", "London", "iShares MSCI Brazil UCITS ETF", "similar", "without the cap on the biggest companies"),
+    "GB": ("ISF", "London", "iShares Core FTSE 100 UCITS ETF", "similar", "the FTSE 100 rather than MSCI UK: the 100 biggest UK companies"),
+    "DE": ("EXS1", "Xetra", "iShares Core DAX UCITS ETF (DE)", "similar", "the DAX: Germany's 40 biggest companies"),
+    "FR": ("ISFR", "London", "iShares MSCI France UCITS ETF", "same", ""),
+    "NL": ("IAEX", "Amsterdam", "iShares AEX UCITS ETF", "similar", "the AEX: the 25 biggest Dutch companies"),
+    "ES": ("LYXIB", "Madrid", "Amundi IBEX 35 UCITS ETF", "similar", "the IBEX 35: Spain's 35 biggest companies"),
+    "IT": ("IMIB", "London", "iShares FTSE MIB UCITS ETF", "similar", "the FTSE MIB: Italy's 40 biggest companies"),
+    "CH": ("CSSMI", "Swiss exchange", "iShares SMI ETF (CH)", "similar", "the SMI: Switzerland's 20 biggest companies"),
+    "SE": ("XACTOMXS3", "Stockholm", "XACT OMXS30 ESG UCITS ETF", "similar", "Stockholm's 30 most traded companies, with an ESG screen"),
+    "NO": ("OBXD", "Oslo", "DNB OBX ETF", "similar", "the OBX: Oslo's 25 most traded companies"),
+    "PL": ("IPOL", "London", "iShares MSCI Poland UCITS ETF", "similar", "large and mid-sized companies only"),
+    "TR": ("ITKY", "London", "iShares MSCI Turkey UCITS ETF", "similar", "large and mid-sized companies only"),
+    "JP": ("IJPN", "London", "iShares MSCI Japan UCITS ETF", "same", ""),
+    "CN": ("ICHN", "Amsterdam", "iShares MSCI China UCITS ETF", "same", ""),
+    "IN": ("NDIA", "London", "iShares MSCI India UCITS ETF", "same", ""),
+    "KR": ("CSKR", "London", "iShares MSCI Korea UCITS ETF", "similar", "a different cap on the biggest companies (Samsung)"),
+    "TW": ("ITWN", "London", "iShares MSCI Taiwan UCITS ETF", "similar", "a different cap on the biggest company (TSMC)"),
+    "AU": ("SAUS", "London", "iShares MSCI Australia UCITS ETF", "same", ""),
+    "SG": ("XBAS", "Xetra", "Xtrackers MSCI Singapore UCITS ETF", "similar", "without the cap on the biggest companies"),
+    "ID": ("XMID", "London", "Xtrackers MSCI Indonesia Swap UCITS ETF", "similar", "large and mid-sized companies only, held through a swap"),
+    "MY": ("XCS3", "London", "Xtrackers MSCI Malaysia UCITS ETF", "same", ""),
+    "TH": ("XCS4", "London", "Xtrackers MSCI Thailand UCITS ETF", "similar", "large and mid-sized companies only"),
+    "PH": ("XPQP", "Xetra", "Xtrackers MSCI Philippines UCITS ETF", "similar", "large and mid-sized companies only"),
+    "VN": ("XFVT", "London", "Xtrackers FTSE Vietnam Swap UCITS ETF", "similar", "FTSE's Vietnam index, held through a swap"),
+    "SA": ("IKSA", "London", "iShares MSCI Saudi Arabia Capped UCITS ETF", "similar", "large and mid-sized companies only, with a different cap"),
+    "ZA": ("SRSA", "London", "iShares MSCI South Africa UCITS ETF", "similar", "without the cap on the biggest companies"),
+}
+# all world stocks, for the long-term core
+WORLD_BUY = ("SSAC", "London", "iShares MSCI ACWI UCITS ETF", "same", "")
+
+
+def buy_on_ibkr(code):
+    t = BUY_ON_IBKR.get(code)
+    return t and {"ticker": t[0], "exchange": t[1], "name": t[2], "match": t[3], "differs": t[4]}
+
 TRAITS = {
     "em": "Emerging market", "oil": "Full of oil and gas companies", "oil_user": "Imports a lot of oil",
     "metals": "Full of mining companies", "tech": "Tech-heavy market", "haven": "Tends to hold up in sell-offs",
@@ -191,7 +235,7 @@ def build():
             series[code] = {"gbp": fund_gbp, "usd": fund}
         rows.append({
             "code": code, "symbol": code, "name": name, "region": region, "iso": iso, "ll": ll,
-            "dm": code in DEVELOPED, "traits": traits,
+            "dm": code in DEVELOPED, "traits": traits, "buy": buy_on_ibkr(code),
             "index": {"symbol": idx_sym if idx_ok else None, "name": idx_name, "ccy": ccy, "proxy": not idx_ok},
             "etf": etf, "fund": fund["name"], "ccy": "USD",
             "m": m,

@@ -155,7 +155,7 @@ function narrative(r){
     out.push(`Risk: over the last 3 months its volatility (a measure of typical daily ups and downs, scaled to a year; higher = bumpier) was ${pct(m.vol,0,false)}${bv?`, against ${pct(bv,0,false)} for the ${benchShort(r.group)}`:""}. `+
       `Its biggest drop in the past year was ${pct(Math.abs(m.mdd),1,false)}, and ${m.offHigh>-0.005?"it is at or very near its highest price of the past year":`it is now ${pct(Math.abs(m.offHigh),1,false)} below its highest price of the past year`}.`); }
   if(m.rsi!=null){ if(m.rsi>=70) out.push(`Timing: its recent gains have been much bigger than its recent losses (RSI ${m.rsi.toFixed(0)}; 70 or more is called 'overbought'). Buying right after a sharp run-up carries the risk of a short-term dip.`);
-    else if(m.rsi<=30) out.push(`Timing: its recent losses have been much bigger than its recent gains (RSI ${m.rsi.toFixed(0)}; 30 or under is called 'oversold'). Short bounces are common, but it can keep falling, so wait for the trend to turn.`);
+    else if(m.rsi<=30) out.push(`Timing: its recent losses have been much bigger than its recent gains (RSI ${m.rsi.toFixed(0)}; 30 or under is called 'oversold'). Short bounces are common, but it can also keep falling.`);
     else out.push(`Timing: RSI ${m.rsi.toFixed(0)}: it has not risen or fallen unusually fast lately.`); }
   const cyc=S.data.cycle, fav=cyc.favoured, phase=phaseMix(cyc);
   out.push(fav.includes(r.key) ? `Economic cycle: our US market signals point to ${phase} (see the Overview tab), and this sector has tended to do well then.`
@@ -197,7 +197,7 @@ function render(){
     <section>${secHead({eyebrow:"At a glance",title:"Today in sectors"})}${heroGrid(heroCards())}</section>
     ${openSection()}
     <section>${secHead({eyebrow:"Shortlist",title:"What the data favours today",lead:`The strongest, the improving and the weakest of all ${n} funds. Click a card for the full breakdown.`,right:trustBadge(D.backtest)})}
-      ${more("shortlist",`<p>The score combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop.</p><p><b>Turnaround watch</b> lists funds that have been behind their region's market lately but are improving: wait until the price trend turns up too. Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
+      ${more("shortlist",`<p>The score combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop.</p><p><b>Turnaround watch</b> lists funds that have been behind their region's market lately but are improving; this list hasn't been tested on past data on its own. Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
       <div class="picks">${ideas()}</div></section>
     <section id="economy">${secHead({eyebrow:"Economic backdrop",title:"Where is the economy in its cycle?",lead:"An automatic read of US market signals. Different sectors have tended to do best in different phases."})}
       ${more("cycle-how",`<p>Economies move through phases: recovery, steady growth, late expansion and recession. This read combines the gap between long- and short-term interest rates, oil, copper against gold, how nervous investors are, and the US stock market's trend.</p>`)}
@@ -473,7 +473,7 @@ function guide(n){
         <li>${sigPill("Underweight")} (20–39) and ${sigPill("Avoid")} (under 20): usually behind its region's whole market with a weak trend; a case for holding less, or none.</li>
         <li><b>Score chg (wk)</b> shows whether a score is rising or fading. A rising score often comes before a better signal.</li>
         <li><b>Improving</b> on the rotation map flags funds catching up before the score does.</li>
-        <li><b>Rose fast</b> flags suggest waiting for a dip, even for strong sectors.</li></ul>`)}
+        <li><b>Rose fast</b> flags mean bigger swings are likely. They are a warning, not a reason to wait: on past data, skipping funds that had risen fast made results worse.</li></ul>`)}
       ${fold("g-cols","What the table columns mean",glossary(n))}
       ${fold("g-ibkr","Buying on IBKR",`<p>UK rules require a key information document for funds sold to ordinary investors. US, Japanese and Canadian funds don't publish one, so IBKR blocks them for UK retail accounts. European UCITS funds (like the iShares STOXX Europe 600 sector funds) can be bought directly.</p>
         <p>Many of the blocked US funds have a <b>UCITS twin</b> listed in London. "Same index" twins track exactly the index of the fund scored here, so they move almost identically; "similar index" twins track a close one (for example, developed markets only), so check the difference shown. The scores stay based on the original funds, which have longer price histories.</p>

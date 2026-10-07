@@ -293,23 +293,24 @@ function rrgChart(el,items,{vs="the market"}={}){
 /* ---------------------------------------------------------------- shared verdict + cards */
 function verdict(m,bench="its region's whole market"){
   // Built fresh from the latest data on every refresh; each clause only appears when the numbers support it.
+  // It describes; it doesn't tell you to wait or hold back, because no timing rule has passed a test on past data
+  // (skipping funds that had risen fast made results worse, see candidates_test.py).
   const s=m.score??50, over=m.rsi!=null&&m.rsi>=70, stretched=m.vs200!=null&&m.vs200>.15;
   const below200=m.vs200!=null&&m.vs200<0, gap=below200?` It is ${pct(-m.vs200,1,false)} below that line today.`:"";
   if(s>=60){
-    const base = m.quad==="Weakening" ? `A high score, but over the last couple of months its edge over ${bench} has started to fade. Fine to keep; be choosy about adding more.`
-      : `A high score: it ranks well on performance against ${bench}, price trend and risk. The data supports holding more of it than usual.`;
+    const base = m.quad==="Weakening" ? `A high score: it ranks well on performance against ${bench}, price trend and risk, though its lead over the last couple of months has narrowed.`
+      : `A high score: it ranks well on performance against ${bench}, price trend and risk.`;
     if(!over&&!stretched) return base;
     const why=[over?`RSI ${m.rsi.toFixed(0)}, where 70 or more means a sharp run-up`:"", stretched?`price ${pct(m.vs200,0,false)} above its 200-day average`:""].filter(Boolean).join("; ");
-    return `${base} It has also risen very fast (${why}), so consider buying after a dip rather than right now.`;
+    return `${base} It has also risen very fast (${why}), so expect bigger swings in both directions.`;
   }
   if(m.quad==="Improving"){
-    if(s>=40) return `It has been doing worse than ${bench}, but over the last couple of months it has started to improve. Worth watching.`;
-    return below200 ? `Starting to improve against ${bench} lately, but its own price trend is still weak. Wait until it ends a day above its 200-day (about 10-month) average price.${gap}`
-                    : `Starting to improve against ${bench} lately and already back above its 200-day average price, but the score is still low. Watch whether the improvement lasts before committing.`;
+    if(s>=40) return `It has been doing worse than ${bench}, but over the last couple of months it has started to improve.`;
+    return below200 ? `Starting to improve against ${bench} lately, but the score is still low and its price is below its 200-day (about 10-month) average.${gap}`
+                    : `Starting to improve against ${bench} lately and already back above its 200-day average price, but the score is still low.`;
   }
-  if(s<40) return `A low score: it ranks poorly on performance against ${bench}, price trend and risk. The data suggests holding less of it than usual, or none, until that changes.`+
-                  (below200?` The first sign of recovery would be a day ending above its 200-day (about 10-month) average price.${gap}`:"");
-  return "No clear signal either way. A normal-sized holding is reasonable.";
+  if(s<40) return `A low score: it ranks poorly on performance against ${bench}, price trend and risk.`+(below200?` Its price is below its 200-day (about 10-month) average.${gap}`:"");
+  return `A middling score: no clear lean either way against ${bench}.`;
 }
 function historyText(m,prefix=true){
   const bits=[["since the previous close",m.d1],["this week",m.d1w],["over 4 weeks",m.d1m]].filter(([,v])=>v!=null)

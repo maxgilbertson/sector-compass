@@ -681,6 +681,94 @@ def candidate_backtest(tracks, rf_at, buyable, cost=COST_PER_TRADE, min_funds=8)
             "halves": [summ(months[:half]), summ(months[half:])]}
 
 
+# ---------------------------------------------------------------- the long run
+# Fixed on 7 Oct 2026 before it was run (see longrun_test.py), and not to be tuned to the result.
+def _nw_tstat(xs, lags):
+    """t-statistic of the mean with a Newey-West correction, for overlapping holding periods."""
+    xs = [x for x in xs if x is not None]
+    n = len(xs)
+    if n < 12:
+        return None
+    m = sum(xs) / n
+    d = [x - m for x in xs]
+    var = sum(v * v for v in d) / n
+    for lag in range(1, lags + 1):
+        var += 2 * (1 - lag / (lags + 1)) * sum(d[i] * d[i - lag] for i in range(lag, n)) / n
+    return m / math.sqrt(var / n) if var > 0 else None
+
+
+def long_hold_test(tracks, rf_at, buyable, hold=12, cost=COST_PER_TRADE, min_funds=8):
+    """The score as a long-term investor would use it: at each month-end take the buyable funds in the top fifth by
+    score (scored across the whole universe with data up to that day), hold them for `hold` months, and compare
+    each with its own market. One round of trading costs per holding period. The bar: beating every buyable fund
+    held equally over the same months. Holding periods overlap, so reliability uses a Newey-West t-statistic."""
+    cuts = _month_ends(min(tr.t[0] for tr in tracks), max(tr.t[-1] for tr in tracks))
+    rows = []
+    for k, cut in enumerate(cuts[:-hold]):
+        idx = [tr.at(cut) for tr in tracks]
+        inputs = [tr.inputs(i, rf_at(cut)) if i >= 0 else None for tr, i in zip(tracks, idx)]
+        if sum(x is not None for x in inputs) < min_funds:
+            continue
+        sc = [s for s, _ in score(inputs)]
+        end = [tr.at(cuts[k + hold]) for tr in tracks]
+        live = []
+        for n, (tr, i, j, s) in enumerate(zip(tracks, idx, end, sc)):
+            if not buyable[n] or s is None or i < 0 or j <= i:
+                continue
+            r = tr.c[j] / tr.c[i] - 1
+            if tr.b is not None:
+                if not (tr.b[i] and tr.b[j]):
+                    continue
+                r -= tr.b[j] / tr.b[i] - 1
+            live.append((s, r))
+        if len(live) < min_funds:
+            continue
+        live.sort(key=lambda p: -p[0])
+        top = [r for _, r in live[:max(1, len(live) // 5)]]
+        net, allr = _mean(top) - 2 * cost, _mean([r for _, r in live])
+        rows.append({"t": cut, "net": net, "all": allr, "edge": net - allr})
+    if len(rows) < 24:
+        return None
+    per = 12 / hold  # results are per holding period; scale to a year
+
+    def summ(rs):
+        e = [r["edge"] for r in rs]
+        return {"from": rs[0]["t"], "to": rs[-1]["t"], "starts": len(rs), "edgeAnn": _mean(e) * per,
+                "edgeT": _nw_tstat(e, hold - 1), "hit": sum(x > 0 for x in e) / len(e)}
+    half = len(rows) // 2
+    return {**summ(rows), "hold": hold, "costPerTrade": cost,
+            "topNetAnn": _mean([r["net"] for r in rows]) * per, "topNetT": _nw_tstat([r["net"] for r in rows], hold - 1),
+            "allAnn": _mean([r["all"] for r in rows]) * per,
+            "beatMarketShare": sum(r["net"] > 0 for r in rows) / len(rows),
+            "halves": [summ(rows[:half]), summ(rows[half:])]}
+
+
+def long_run_record(d, years=(1, 3, 5)):
+    """How a fund has done over every past holding period of each length in its own history (one start a month):
+    the share of periods that ended with a gain, and the worst and typical yearly returns. d = a price dict."""
+    if not usable(d, 400):
+        return None
+    t, c = d["t"], d["c"]
+    out = {"from": t[0], "yearsOfData": (t[-1] - t[0]) / 31557600}
+    tr = Track(d)
+    for y in years:
+        span, res = int(round(y * 252)), []
+        for i in range(0, len(c) - span, 21):
+            res.append((c[i + span] / c[i]) ** (1 / y) - 1)
+        if len(res) >= 6:
+            res.sort()
+            out[f"y{y}"] = {"periods": len(res), "gainShare": sum(r > 0 for r in res) / len(res),
+                            "worst": res[0], "median": res[len(res) // 2]}
+    n = len(c) - 1
+    out["annAll"] = (c[n] / c[0]) ** (31557600 / (t[n] - t[0])) - 1 if t[n] > t[0] else None
+    peak, mdd = c[0], 0.0
+    for v in c:
+        peak = max(peak, v)
+        mdd = min(mdd, v / peak - 1)
+    out["mdd"] = mdd
+    return out
+
+
 def clean(o):
     """Make a structure JSON-safe (NaN and infinity become null)."""
     if isinstance(o, float) and (math.isnan(o) or math.isinf(o)):
