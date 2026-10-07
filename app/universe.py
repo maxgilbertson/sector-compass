@@ -53,16 +53,16 @@ GROUPS = [
             ("EXH4.DE", "Industrial Goods & Services", "indu"),
             ("EXV8.DE", "Construction & Materials", "indu"),
             ("EXV5.DE", "Automobiles & Parts", "discr"),
-            ("EXH7.DE", "Retail", "discr"),
+            ("EXH8.DE", "Retail", "discr"),
             ("EXV9.DE", "Travel & Leisure", "discr"),
             ("EXH3.DE", "Food & Beverage", "staples"),
-            ("EXH6.DE", "Personal & Household Goods", "staples"),
+            ("EXH7.DE", "Personal & Household Goods", "staples"),
             ("EXH9.DE", "Utilities", "util"),
             ("EXV6.DE", "Basic Resources", "mat"),
             ("EXV7.DE", "Chemicals", "mat"),
             ("EXI5.DE", "Real Estate", "re"),
             ("EXV2.DE", "Telecommunications", "comm"),
-            ("EXH8.DE", "Media", "comm"),
+            ("EXH6.DE", "Media", "comm"),
         ],
     },
     {
@@ -138,3 +138,57 @@ MACRO = [
     ("HG=F", "Copper ($ a tonne)"),
     ("BTC-USD", "Bitcoin ($)"),
 ]
+
+# Where each fund can be bought on IBKR by a UK retail investor. US, Japanese and Canadian funds have no UK
+# key information document, so IBKR blocks them; many US ones have a UCITS "twin" listed in London that tracks
+# the same index ("same") or a close one ("similar"). Every ticker below was found in IBKR's contract search on
+# 7 Oct 2026. The European funds are UCITS themselves (Xetra). Funds not listed have no UCITS version on IBKR.
+# fund symbol: (IBKR ticker, exchange, fund name, match, what differs when "similar")
+BUY_ON_IBKR = {
+    "XLK": ("SXLK", "London", "SPDR S&P US Technology Select Sector UCITS ETF", "same", ""),
+    "XLF": ("SXLF", "London", "SPDR S&P US Financials Select Sector UCITS ETF", "same", ""),
+    "XLV": ("SXLV", "London", "SPDR S&P US Health Care Select Sector UCITS ETF", "same", ""),
+    "XLE": ("SXLE", "London", "SPDR S&P US Energy Select Sector UCITS ETF", "same", ""),
+    "XLI": ("SXLI", "London", "SPDR S&P US Industrials Select Sector UCITS ETF", "same", ""),
+    "XLY": ("SXLY", "London", "SPDR S&P US Consumer Discretionary Select Sector UCITS ETF", "same", ""),
+    "XLP": ("SXLP", "London", "SPDR S&P US Consumer Staples Select Sector UCITS ETF", "same", ""),
+    "XLU": ("SXLU", "London", "SPDR S&P US Utilities Select Sector UCITS ETF", "same", ""),
+    "XLB": ("SXLB", "London", "SPDR S&P US Materials Select Sector UCITS ETF", "same", ""),
+    "XLC": ("SXLC", "London", "SPDR S&P US Communication Services Select Sector UCITS ETF", "same", ""),
+    "XLRE": ("IUSP", "London", "iShares US Property Yield UCITS ETF", "similar", "holds only US property companies that pay higher dividends"),
+    "IXN": ("XDWT", "London", "Xtrackers MSCI World Information Technology UCITS ETF", "similar", "developed markets only (no Taiwan, so no TSMC)"),
+    "IXG": ("XDWF", "London", "Xtrackers MSCI World Financials UCITS ETF", "similar", "developed markets only"),
+    "IXJ": ("XDWH", "London", "Xtrackers MSCI World Health Care UCITS ETF", "similar", "developed markets only"),
+    "IXC": ("XDW0", "London", "Xtrackers MSCI World Energy UCITS ETF", "similar", "developed markets only"),
+    "EXI": ("XDWI", "London", "Xtrackers MSCI World Industrials UCITS ETF", "similar", "developed markets only"),
+    "RXI": ("XDWC", "London", "Xtrackers MSCI World Consumer Discretionary UCITS ETF", "similar", "developed markets only"),
+    "KXI": ("XDWS", "London", "Xtrackers MSCI World Consumer Staples UCITS ETF", "similar", "developed markets only"),
+    "JXI": ("XDWU", "London", "Xtrackers MSCI World Utilities UCITS ETF", "similar", "developed markets only"),
+    "MXI": ("XDWM", "London", "Xtrackers MSCI World Materials UCITS ETF", "similar", "developed markets only"),
+    "IXP": ("XWTS", "London", "Xtrackers MSCI World Communication Services UCITS ETF", "similar", "developed markets only"),
+    "REET": ("IWDP", "London", "iShares Developed Markets Property Yield UCITS ETF", "similar", "developed markets only, higher-dividend property companies"),
+    "SMH": ("SMH", "London", "VanEck Semiconductor UCITS ETF", "same", ""),
+    "CIBR": ("CIBR", "London", "First Trust Nasdaq Cybersecurity UCITS ETF", "same", ""),
+    "SKYY": ("FSKY", "London", "First Trust Cloud Computing UCITS ETF", "same", ""),
+    "BOTZ": ("BOTZ", "London", "Global X Robotics & Artificial Intelligence UCITS ETF", "same", ""),
+    "KWEB": ("KWEB", "London", "KraneShares CSI China Internet UCITS ETF", "same", ""),
+    "XBI": ("BTEC", "London", "iShares Nasdaq US Biotechnology UCITS ETF", "similar", "the biggest biotech companies count for more (the scored fund weights them equally)"),
+    "ITA": ("DFNS", "London", "VanEck Defense UCITS ETF", "similar", "defence companies worldwide, not only US aerospace and defence"),
+    "PAVE": ("PAVE", "London", "Global X US Infrastructure Development UCITS ETF", "same", ""),
+    "ICLN": ("INRG", "London", "iShares Global Clean Energy Transition UCITS ETF", "same", ""),
+    "TAN": ("RAYS", "London", "Invesco Solar Energy UCITS ETF", "same", ""),
+    "URA": ("URNU", "London", "Global X Uranium UCITS ETF", "same", ""),
+    "XOP": ("IOGP", "London", "iShares Oil & Gas Exploration & Production UCITS ETF", "similar", "oil and gas producers worldwide, not only US ones"),
+    "GDX": ("GDX", "London", "VanEck Gold Miners UCITS ETF", "same", ""),
+    "COPX": ("COPX", "London", "Global X Copper Miners UCITS ETF", "same", ""),
+    "LIT": ("LITU", "London", "Global X Lithium & Battery Tech UCITS ETF", "same", ""),
+    "XGD.TO": ("GDX", "London", "VanEck Gold Miners UCITS ETF", "similar", "gold miners worldwide, not only Canadian ones"),
+}
+
+
+def buy_on_ibkr(sym):
+    """How to buy a fund on IBKR, or None. European funds (Xetra) are UCITS themselves."""
+    if sym.endswith(".DE"):
+        return {"ticker": sym[:-3], "exchange": "Xetra", "name": None, "match": "itself", "differs": ""}
+    t = BUY_ON_IBKR.get(sym)
+    return t and {"ticker": t[0], "exchange": t[1], "name": t[2], "match": t[3], "differs": t[4]}

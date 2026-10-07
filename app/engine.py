@@ -613,6 +613,73 @@ def backtest(tracks, rf_at, min_funds=8, weights=None, cost=COST_PER_TRADE):
         "spreadByMonth": [[m["t"], round(m["spread"], 5)] for m in months],
     }
 
+# ---------------------------------------------------------------- candidates for a new holding
+# The rule was fixed on 7 Oct 2026 before it was tested (see candidates_test.py), and is not to be tuned to the results.
+CANDIDATE_RULE = ("a score of 60 or more, at least 3 of the 4 uptrend checks, an RSI under 70, "
+                  "and a price no more than 15% above its 200-day average")
+
+
+def is_candidate(score_v, trend, rsi_v, vs200):
+    """Worth considering for a new holding: a strong score, a healthy uptrend, and not overheated.
+    (Whether it can be bought is checked separately.)"""
+    return (score_v is not None and score_v >= 60 and trend is not None and trend >= 3
+            and rsi_v is not None and rsi_v < 70 and vs200 is not None and vs200 <= 0.15)
+
+
+def candidate_backtest(tracks, rf_at, buyable, cost=COST_PER_TRADE, min_funds=8):
+    """Monthly walk-forward test of the candidate rule, set up like backtest().
+
+    At each month-end every fund is scored across the whole universe using only data up to that day, as on
+    the live page. The candidates are the buyable funds passing is_candidate(), held in equal amounts for the
+    next month (with none, the money stays in the market, which counts as level with it). Returns are relative
+    to each fund's own benchmark. The bar: beating every buyable fund held equally, after trading costs.
+    """
+    cuts = _month_ends(min(tr.t[0] for tr in tracks), max(tr.t[-1] for tr in tracks))
+    months, prev = [], {}
+    for k, cut in enumerate(cuts[:-1]):
+        idx = [tr.at(cut) for tr in tracks]
+        inputs = [tr.inputs(i, rf_at(cut)) if i >= 0 else None for tr, i in zip(tracks, idx)]
+        if sum(x is not None for x in inputs) < min_funds:
+            continue
+        sc = [s for s, _ in score(inputs)]
+        nxt = [tr.at(cuts[k + 1]) for tr in tracks]
+        live = []
+        for n, (tr, i, j, s, x) in enumerate(zip(tracks, idx, nxt, sc, inputs)):
+            if not buyable[n] or s is None or x is None or j <= i:
+                continue
+            r = tr.c[j] / tr.c[i] - 1
+            if tr.b is not None:
+                if not (tr.b[i] and tr.b[j]):
+                    continue
+                r -= tr.b[j] / tr.b[i] - 1
+            live.append((n, s, r, is_candidate(s, x["trend"], rsi(tr.c[:i + 1]), x["vs200"])))
+        if len(live) < min_funds:
+            continue
+        picks = [(n, r) for n, s, r, ok in live if ok]
+        weights = {n: 1 / len(picks) for n, _ in picks}
+        # the share of the money moved is half the total change in weights; each move is a sale plus a purchase
+        moved = 0.5 * sum(abs(weights.get(n, 0) - prev.get(n, 0)) for n in set(weights) | set(prev))
+        prev = weights
+        cand = _mean([r for _, r in picks]) if picks else 0.0
+        net, allr = cand - moved * 2 * cost, _mean([r for _, _, r, _ in live])
+        top = sorted(live, key=lambda p: -p[1])[:max(1, len(live) // 5)]
+        months.append({"t": cut, "cand": cand, "net": net, "all": allr, "edge": net - allr,
+                       "top": _mean([r for _, _, r, _ in top]), "n": len(picks)})
+    if len(months) < 12:
+        return None
+
+    def summ(ms):
+        e = [m["edge"] for m in ms]
+        return {"from": ms[0]["t"], "to": ms[-1]["t"], "months": len(ms), "edgeAnn": _mean(e) * 12,
+                "edgeT": _tstat(e), "hit": sum(x > 0 for x in e) / len(e)}
+    half = len(months) // 2
+    return {**summ(months), "rule": CANDIDATE_RULE, "costPerTrade": cost,
+            "candAnn": _mean([m["cand"] for m in months]) * 12, "candNetAnn": _mean([m["net"] for m in months]) * 12,
+            "candNetT": _tstat([m["net"] for m in months]),
+            "allAnn": _mean([m["all"] for m in months]) * 12, "topAnn": _mean([m["top"] for m in months]) * 12,
+            "avgPicks": _mean([m["n"] for m in months]), "emptyMonths": sum(m["n"] == 0 for m in months),
+            "halves": [summ(months[:half]), summ(months[half:])]}
+
 
 def clean(o):
     """Make a structure JSON-safe (NaN and infinity become null)."""
