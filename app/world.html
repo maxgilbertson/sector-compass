@@ -111,7 +111,7 @@ const WORLD = "world stocks (MSCI ACWI)";
 const store = makeStore("wc.");
 const S = {data:null, filter:store.get("filter","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}), basis:store.get("basis","usd"),
            metric:store.get("metric","score"), rrg:store.get("rrg","all"), sel:null, range:"1y", pcur:store.get("pcur","gbp"),
-           cols:store.get("cols","key"), dtab:"summary"};
+           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false)};
 // return figures in the chosen view: what a US-dollar investor got, the same in pounds, or the local index in its own currency
 const retSrc = r => S.basis==="local" ? r.local : S.basis==="gbp" ? (r.gbp||{}) : r.m;
 const inv = () => S.basis==="gbp" ? {src:"gbp",word:"in pounds",sign:"£"} : {src:"usd",word:"in US dollars",sign:"$"};
@@ -186,6 +186,7 @@ function render(){
   <div class="view" data-view="overview">
     <div class="intro">${icon("info",17)}<span>Each country is compared with <b>all world stocks</b> (the MSCI ACWI index) in <b>US dollars</b>, and given a <b>score from 0 to 100</b>: 50 is the middle, 60 or more is favoured, under 40 is weak. Tested on the past, the score didn't reliably pick winning countries, so weigh it alongside value, currency and today's conditions. <a href="#guide">How to read this page</a></span></div>
     <section>${secHead({eyebrow:"At a glance",title:"Today around the world"})}${heroGrid(heroCards(open))}</section>
+    ${longRunSection()}
     <section id="worldmap">${secHead({eyebrow:"World map",title:"How the world's markets stand",lead:"Colour the map by the measure that matters to you. Click a country for its full breakdown.",
         right:`<div class="controls"><label class="muted" for="metric" style="font-size:13px">Colour by</label><select id="metric" class="btn">${Object.entries(METRICS).map(([k,v])=>`<option value="${k}" ${S.metric===k?"selected":""}>${esc(v.label)}</option>`).join("")}</select></div>`})}
       <div class="mapwrap">
@@ -211,7 +212,8 @@ function render(){
           `<button class="tab" type="button" data-filter="${esc(id)}" aria-pressed="${S.filter===id}" ${id==="dm"?`title="${esc(TYPE_TIP["Developed market"])}"`:id==="em"?`title="${esc(TYPE_TIP["Emerging market"])} Includes frontier markets."`:""}>${esc(l)}</button>`).join("")}</div>
         <input class="search" id="search" type="search" placeholder="Search country, index or company (e.g. TSMC)" value="${esc(S.q)}" aria-label="Search"></div>
       <div class="toolbar"><span class="seg-lab">Columns</span>${seg("cols",S.cols,COLSETS,"Columns to show")}
-        <span class="seg-lab">Returns in</span>${seg("basis",S.basis,[["usd","US dollars"],["gbp","Pounds (£)"],["local","Local currency"]],"Return basis")}</div>
+        <span class="seg-lab">Returns in</span>${seg("basis",S.basis,[["usd","US dollars"],["gbp","Pounds (£)"],["local","Local currency"]],"Return basis")}
+        <div class="tabs" role="group" aria-label="Buyable on IBKR"><button class="tab" type="button" id="ibkrOnly" aria-pressed="${S.ibkr}" title="Hide countries a UK investor can't buy on IBKR (no UCITS fund)">Only ones I can buy on IBKR</button></div></div>
       <div class="tablebox" id="tablebox"></div>
       <div style="margin-top:10px">${more("glossary",glossary(n),"What do the columns mean?")}</div></section>
   </div>
@@ -259,6 +261,7 @@ function render(){
   $("#metric").onchange=e=>{S.metric=e.target.value;store.set("metric",S.metric);renderMap();};
   $("#rrgsel").onchange=e=>{S.rrg=e.target.value;store.set("rrg",S.rrg);renderRRG();};
   $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
+  $("#ibkrOnly").onclick=e=>{S.ibkr=!S.ibkr;store.set("ibkr",S.ibkr);e.currentTarget.setAttribute("aria-pressed",S.ibkr);renderTable();};
 }
 
 /* ---------------------------------------------------------------- overview */
@@ -304,6 +307,34 @@ function macroHints(){ const M=S.data.macro;
   return `<ul>${MACRO_ORDER.map(sym=>M[sym]?`<li><b>${esc(M[sym].label)}</b>: ${esc(MACRO_HINT[sym]||"")}</li>`:"").join("")}
     <li><b>Chip stocks (SMH fund)</b>: ${esc(REL_HINT.SMH)}</li><li><b>Emerging markets (EEM fund)</b>: ${esc(REL_HINT.EEM)}</li></ul><p>Each small chart shows the last 6 months.</p>`; }
 
+/* ---------------------------------------------------------------- the long run, and buying on IBKR */
+function longRunSection(){
+  const D=S.data, W=D.world, lt=D.longTest, L=W.longRun||{}, years=Math.round(L.yearsOfData||10);
+  const wy5=(W.gbp||{}).r5y, buy=rows().filter(r=>r.buy&&r.gbp&&r.gbp.r5y!=null), beat=buy.filter(r=>r.gbp.r5y>wy5);
+  const tiles=heroGrid([
+    lt&&stat({label:"Top-scored fifth, held a year",ico:"record",value:aheadBehind(lt.topNetAnn),tone:cls(lt.topNetAnn),sub:`${relPrep(lt.topNetAnn)}world stocks, per year after costs`}),
+    lt&&stat({label:"Every buyable country, held a year",ico:"globe",value:aheadBehind(lt.allAnn),tone:cls(lt.allAnn),sub:`${relPrep(lt.allAnn)}world stocks, per year`}),
+    wy5!=null&&stat({label:"Beat world stocks over 5 years",ico:"award",value:`${beat.length} <span class="muted" style="font-size:16px;font-weight:500">of ${buy.length}</span>`,body:meter(buy.length?beat.length/buy.length:0,"var(--accent)"),sub:"buyable countries, in pounds"}),
+  ]);
+  return `<section id="longrun">${secHead({eyebrow:"For the long run",title:"What has grown over the long run",
+      lead:`Over a year or more, single countries, and the top-scored ones in particular, have lagged simply owning all world stocks in our tests. The simplest long-term core is one fund holding the whole world.`})}
+    ${more("longrun-how",`${longTestText(lt,{noun:"countries",vs:"world stocks"})}
+      <p><b>Why the whole world:</b> one fund holds thousands of companies in dozens of countries, so no single country's politics, currency or crash can sink it, and the yearly fee is low. Over long periods, world stocks have usually grown, as company profits grow. Usually is not always: markets can fall for years (Japan's took more than 30 years to regain its 1989 peak), so money needed within a few years is better kept somewhere safer.</p>
+      <p><b>Reading the figures:</b> they come from our ${years} years of data, in pounds, so currency moves are included. These ${years} years were good ones for shares; long-run studies going back to 1900 put world stocks at roughly 5% a year more than inflation on average, with long bad spells along the way. "3-year stretches that gained" counts every 3-year period in that data, one starting each month. Past results don't guarantee future ones. This is not advice: how much to invest, and for how long, depends on your own situation.</p>`,"What the tests found, and why the whole world")}
+    <div class="cores" style="margin-bottom:12px">${coreCard({eyebrow:"The simplest long-term core",title:"All world stocks (MSCI ACWI)",b:W.buy,L:W.longRun,main:true})}</div>
+    ${tiles}</section>`;
+}
+function buyBox(r){
+  const b=r.buy;
+  if(!b){ const alt=rows().filter(x=>x.region===r.region&&x.buy&&x.m.score!=null).sort((a,b)=>b.m.score-a.m.score)[0];
+    return `<div class="card buybox none"><div class="eyebrow">Buying on IBKR</div>
+      <p>A UK investor can't buy ${esc(r.etf)} on IBKR: US-listed funds don't publish the UK key information document, and no UCITS fund for ${esc(r.name)} was found.</p>
+      ${alt?`<p>The highest-scoring buyable country in ${esc(r.region)} is <span class="lnk" role="button" tabindex="0" data-open="${esc(alt.code)}">${esc(alt.name)}</span>, score ${Math.round(alt.m.score)}, bought as <span class="tick">${esc(alt.buy.ticker)}</span>.</p>`:""}</div>`; }
+  return `<div class="card buybox"><div class="eyebrow">Buying on IBKR</div>
+    <div class="buyline">Search for <span class="tick big">${esc(b.ticker)}</span> on the ${esc(b.exchange)} exchange ${buyMatchTag(b,`${r.etf}, the fund scored here`)}</div>
+    <p class="muted">${esc(b.name)}. ${b.match==="same"?`It tracks the same index as ${esc(r.etf)}, the fund scored here, so it should move almost exactly the same way.`
+      :`It tracks a similar index: ${esc(b.differs)}. So it can move a little differently from ${esc(r.etf)}, the fund scored here.`} Check the name in IBKR before buying.</p></div>`;
+}
 function pickRow(r,extra){
   const m=r.m, tags=extra?extra(r):[];
   if(!extra){
@@ -312,6 +343,7 @@ function pickRow(r,extra){
     if(m.quad) tags.push(tag(esc(m.quad),QUAD_TONE[m.quad],`title="${esc(cap(QUAD_PLAIN[m.quad]))}"`));
     if(m.value!=null&&m.value>=60) tags.push(tag(`Cheap · value ${Math.round(m.value)}`,"info"));
   }
+  if(!r.buy) tags.push(tag("Not on IBKR","",`title="A UK investor can't buy a fund for this country on IBKR: no UCITS fund was found"`));
   const c=m.series.c, sp=sparkSVG(c.filter((_,j)=>j%4===0||j===c.length-1),{w:64,h:28});
   return pickCard({key:r.code,name:r.name,sub:r.index.name,score:m.score,tags,spark:sp,title:reasonShort(r)});
 }
@@ -394,7 +426,7 @@ function renderRRG(){
 /* ---------------------------------------------------------------- rankings */
 function val(r,k){
   const src=retSrc(r);
-  if(k==="name") return r.name; if(k==="today") return r.local.r1d; if(k==="fx") return r.fx?r.fx.y1:null;
+  if(k==="name") return r.name; if(k==="buy") return r.buy&&r.buy.ticker; if(k==="today") return r.local.r1d; if(k==="fx") return r.fx?r.fx.y1:null;
   if(k==="quad") return ["Lagging","Improving","Weakening","Leading"].indexOf(r.m.quad);
   if(RET.some(c=>c.k===k)) return src[k];
   return r.m[k];
@@ -411,6 +443,8 @@ function tableCols(){
       return `<td class="l sticky"><div class="nmcell"><b>${esc(r.name)}</b><small>${esc(r.index.name)}${hit?` · holds ${esc(hit.name)} ${pct(hit.pct,1,false)}`:""}</small></div></td>`; }},
     {s:"krv",th:()=>th("score","Score (0–100)","l",`Ranks each market against all ${n} on performance against world stocks, trend and risk, in US dollars. 50 = middle. Signals: 80+ Strong overweight · 60–79 Overweight · 40–59 Neutral · 20–39 Underweight · under 20 Avoid.`),
       td:r=>`<td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${r.m.score==null?"–":Math.round(r.m.score)}</span><span class="bar"><i style="width:${r.m.score||0}%;background:${scoreColor(r.m.score)}"></i></span>${sigPill(r.m.signal)}</div></td>`},
+    {s:"krv",th:()=>th("buy","Buy on IBKR","l","The ticker to buy on IBKR as a UK investor: a UCITS fund for the same country. – = not available"),
+      td:r=>`<td class="l">${r.buy?`<span class="tick">${esc(r.buy.ticker)}</span> <small class="muted">${esc(r.buy.exchange)} · ${r.buy.match} index</small>`:'<span class="muted" title="No UCITS fund on IBKR">–</span>'}</td>`},
     {s:"k",th:()=>th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week"),td:r=>`<td>${delta(r.m.d1w,scoreChangeTip(r.m))}</td>`},
     {s:"kr",th:()=>th("today","Latest session","","The main index's move in its latest trading session, in its own currency"),
       td:r=>`<td class="n" style="${heat(r.local.r1d,.02)}">${isOpen(r)?'<span class="open" title="Trading now"></span> ':""}${pct(r.local.r1d)}</td>`},
@@ -437,7 +471,7 @@ function tableCols(){
 }
 function renderTable(){
   const q=S.q.trim().toLowerCase(), code={key:"k",returns:"r",risk:"v"}[S.cols];
-  const list=rows().filter(r=>(S.filter==="all"||(S.filter==="dm"&&r.dm)||(S.filter==="em"&&!r.dm)||r.region===S.filter) &&
+  const list=rows().filter(r=>(S.filter==="all"||(S.filter==="dm"&&r.dm)||(S.filter==="em"&&!r.dm)||r.region===S.filter) && (!S.ibkr||r.buy) &&
       (!q||(r.name+" "+r.code+" "+r.index.name+" "+r.etf+" "+r.region).toLowerCase().includes(q)||holdingMatch(r)))
     .sort((a,b)=>{ const x=val(a,S.sort.k), y=val(b,S.sort.k); if(x==null) return 1; if(y==null) return -1;
       return (typeof x==="string"?x.localeCompare(y):x-y)*S.sort.dir; });
@@ -482,6 +516,8 @@ function guide(n){
         <li><b>Today's conditions</b> show which kinds of market today's dollar, oil, metals, investor mood and chip stocks tend to help.</li>
         <li><b>Moves with world</b> below 0.5 means a market has behaved quite differently from world stocks, which helps spread risk.</li></ul>`)}
       ${fold("g-cols","What the table columns mean",glossary(n))}
+      ${fold("g-ibkr","Buying on IBKR",`<p>UK rules require a key information document for funds sold to ordinary investors. The US-listed country funds scored here don't publish one, so IBKR blocks them for UK retail accounts. For ${rows().filter(r=>r.buy).length} of the ${rows().length} countries there is a UCITS fund instead, listed in London or on a European exchange.</p>
+        <p>"Same index" funds track exactly the MSCI index of the fund scored here; "similar index" ones track a close one, often the country's main local index (the DAX, the FTSE 100, the IBEX 35) or one without the cap on the biggest companies. The scores stay based on the original funds. Argentina, Chile, Denmark, Belgium, Hong Kong, New Zealand and Israel have no UCITS fund on IBKR. Every ticker was checked in IBKR's contract search on 7 Oct 2026.</p>`)}
       ${fold("g-updates","What updates, and when",`<p><b>With every price update</b> (${STATIC?"about every 15–30 minutes":"every 5 minutes"}): index levels, currencies, fund prices, returns, scores, score changes, open/closed status, today's conditions, the map and every written verdict.</p>
         <p><b>Every weekday after the US close:</b> a snapshot of every score is saved, which feeds "What changed recently". <b>At the start of each month:</b> the practice portfolios are re-picked, and the test on past data adds the month just finished.</p>
         <p><b>Once a day:</b> P/E, dividend yield, fees and top holdings.</p>
@@ -540,6 +576,7 @@ function openDetail(code){
           <p style="margin:8px 0 0;font-size:15px">${esc(verdict(m,"world stocks"))}</p>
           <p class="note">Value score ${m.value==null?"–":Math.round(m.value)} of 100 (higher = cheaper P/E and a higher dividend yield) · today's conditions: ${esc(fitText(m.fit))}. ${esc(btWord)}</p>
           ${automatedNote(S.data.generated)}</div></div>
+      ${buyBox(r)}
       <div class="card chartbox"><div class="row"><span class="eyebrow">${esc(r.index.proxy?`${r.etf} fund in ${cp}`:`${r.index.name}, in ${cp}`)}</span>
         <span class="key"><i style="background:var(--ink)"></i>Index</span><span class="key ma"><i style="background:var(--accent)"></i>50-day average</span><span class="key ma"><i style="background:var(--warn)"></i>200-day average</span>
         <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("10y","10 yrs")}</span></div><div id="pchart"></div>

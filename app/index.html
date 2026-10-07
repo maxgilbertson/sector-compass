@@ -195,6 +195,7 @@ function render(){
   <div class="view" data-view="overview">
     <div class="intro">${icon("info",17)}<span>Each sector fund is compared with <b>the whole stock market of its own region</b> (US Technology with the S&amp;P 500, for example) and given a <b>score from 0 to 100</b>: 50 is the middle, 60 or more is favoured, under 40 is weak. It describes what has been happening, not what will happen. <a href="#guide">How to read this page</a></span></div>
     <section>${secHead({eyebrow:"At a glance",title:"Today in sectors"})}${heroGrid(heroCards())}</section>
+    ${longRunSection()}
     ${openSection()}
     <section>${secHead({eyebrow:"Shortlist",title:"What the data favours today",lead:`The strongest, the improving and the weakest of all ${n} funds. Click a card for the full breakdown.`,right:trustBadge(D.backtest)})}
       ${more("shortlist",`<p>The score combines how each fund has done against the whole stock market of its region (over 3, 6 and 12 months), how healthy its price trend is, its gain for the risk taken, and the size of its biggest recent drop.</p><p><b>Turnaround watch</b> lists funds that have been behind their region's market lately but are improving; this list hasn't been tested on past data on its own. Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
@@ -320,11 +321,22 @@ function pickRow(r){
 
 /* ---------------------------------------------------------------- buying on IBKR */
 const VENUE = sym => sym.endsWith(".T")?"Japanese":sym.endsWith(".TO")?"Canadian":"US";
-function matchTag(r){ const b=r.buy; if(!b) return "";
-  return b.match==="itself"? tag("UCITS fund","pos",`title="A UCITS fund: you can buy it directly"`)
-    : b.match==="same"? tag("Same index","pos",`title="${esc(`${b.name} tracks the same index as ${r.symbol}, the fund scored here`)}"`)
-    : tag("Similar index","info",`title="${esc(`${b.name}: ${b.differs}`)}"`); }
-const buyLine = r => r.buy? `<div class="buyline">Buy as <span class="tick">${esc(r.buy.ticker)}</span>${esc(r.buy.exchange)} ${matchTag(r)}</div>` : "";
+const matchTag = r => buyMatchTag(r.buy,`${r.symbol}, the fund scored here`);
+const buyLine = r => buyLineHTML(r.buy,`${r.symbol}, the fund scored here`);
+// the long run: whole-market funds, and what the 12-month test of the score found
+function longRunSection(){
+  const D=S.data, lt=D.longTest, order=["global","us","europe","japan","canada"];
+  const cards=order.map(g=>{ const b=D.benches[g]; if(!b) return "";
+    return coreCard({eyebrow:g==="global"?"The simplest long-term core":`${esc(groupName(g))} as a whole`,title:cap(benchPlain(g)),b:b.buy,L:b.longRun,main:g==="global"}); }).join("");
+  const years=Math.round(((D.benches.global||{}).longRun||{}).yearsOfData||10);
+  return `<section id="longrun">${secHead({eyebrow:"For the long run",title:"What has grown over the long run",
+      lead:`Over a year or more, our tests found no way of picking sectors that beat simply holding a whole market. What has made money over long periods is owning a whole market cheaply and keeping it. These are the markets every sector here is measured against, with what each did in our ${years} years of data, in pounds.`})}
+    ${more("longrun-how",`${longTestText(lt,{noun:"sector funds",vs:"their markets"})}
+      <p>Over a single month the score did slightly better (see Track record), but only by switching holdings every month, and trading costs take much of that gain.</p>
+      <p><b>Why whole markets:</b> one fund holds hundreds or thousands of companies, so no single company or sector can sink it, and the yearly fee is low. Over long periods, broad stock markets have usually grown, as company profits grow. Usually is not always: markets can fall for years (Japan's took more than 30 years to regain its 1989 peak), so money needed within a few years is better kept somewhere safer.</p>
+      <p><b>Reading the figures:</b> they come from our ${years} years of data, in pounds, so currency moves are included. These ${years} years were good ones for shares; long-run studies going back to 1900 put world stocks at roughly 5% a year more than inflation on average, with long bad spells along the way. "3-year stretches that gained" counts every 3-year period in that data, one starting each month. Past results don't guarantee future ones. This is not advice: how much to invest, and for how long, depends on your own situation.</p>`,"What the tests found, and why whole markets")}
+    <div class="cores">${cards}</div></section>`;
+}
 // the buyable funds in the top fifth by score: the selection the test on past data covers
 function openList(){ const b=S.data.rows.filter(r=>r.buy&&r.m.score!=null).sort((a,b)=>b.m.score-a.m.score);
   return {all:b.length, list:b.slice(0,Math.max(1,Math.floor(b.length/5)))}; }
@@ -338,8 +350,8 @@ function openSection(){
     return pickCard({key:r.symbol,name:r.name,sub:`${groupShort(r.group)} · scored on ${r.symbol}`,score:m.score,tags,spark:sp,extra:buyLine(r),title:reasonShort(r)}); };
   const tested = t? `<p><b>Tested on the past</b> (${esc(monthYear(t.from))} to ${esc(monthYear(t.to))}): each month, the buyable funds in the top fifth by score went on to ${esc(beatTrail(t.topAnn,"their own markets",true))}, before trading costs${bt?` (re-picking every month costs roughly ${pct(bt.costAnn,1,false)} a year)`:""}. Holding every buyable fund equally ${esc(beatTrail(t.allAnn,"their markets"))}. It is still wrong in many months.</p>
     <p><b>Why fast risers aren't left out:</b> a stricter rule that skipped funds with an RSI of 70+ or a price over 15% above their 200-day average was fixed in advance and tested the same way. It did ${esc(betterWorse(t.edgeAnn))} a year than holding every buyable fund, after costs (reliability t = ${t.edgeT==null?"–":tval(t.edgeT)}): the funds that had risen fastest tended to keep rising, and switching in and out cost about ${pct(t.candAnn-t.candNetAnn,1,false)} a year. So they stay in the list, marked "Rose fast": expect bigger swings.</p>` : "";
-  return `<section id="open">${secHead({eyebrow:"Opening a holding",title:"Worth a look for a new holding",
-      lead:`The ${list.length} highest-scoring of the ${all} sector funds you can buy on IBKR, each with the ticker to search for. A starting point for your own research, not a recommendation.`,right:trustBadge(bt)})}
+  return `<section id="open">${secHead({eyebrow:"Short term · re-picked each month",title:"Strongest right now",
+      lead:`The ${list.length} highest-scoring of the ${all} sector funds you can buy on IBKR. On past data this helped a little over a month, not over a year, so it suits a smaller, actively managed part of a portfolio. A starting point for your own research, not a recommendation.`,right:trustBadge(bt)})}
     ${more("open-how",`<p>These are funds a UK investor can buy on IBKR (UCITS funds, or a UCITS "twin" listed in London that tracks the same or a similar index as the fund scored here) whose score is in the top fifth of all the buyable ones. The list changes as scores move.</p>${tested}
       <p><b>Before buying:</b> search the ticker in IBKR and check the fund name matches. A "similar index" twin can move a little differently from the fund scored here. London listings may trade in US dollars or pounds; IBKR converts the currency. Check the fund's costs and whether it suits you.</p>`)}
     <div class="picks">${list.map(card).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div></section>`;

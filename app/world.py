@@ -66,15 +66,15 @@ BUY_ON_IBKR = {
     "CA": ("CSCA", "London", "iShares MSCI Canada UCITS ETF", "same", ""),
     "MX": ("XMEX", "London", "Xtrackers MSCI Mexico UCITS ETF", "similar", "large and mid-sized companies only, without the cap on the biggest"),
     "BR": ("IBZL", "London", "iShares MSCI Brazil UCITS ETF", "similar", "without the cap on the biggest companies"),
-    "GB": ("ISF", "London", "iShares Core FTSE 100 UCITS ETF", "similar", "the FTSE 100 rather than MSCI UK: the 100 biggest UK companies"),
-    "DE": ("EXS1", "Xetra", "iShares Core DAX UCITS ETF (DE)", "similar", "the DAX: Germany's 40 biggest companies"),
+    "GB": ("ISF", "London", "iShares Core FTSE 100 UCITS ETF", "similar", "the FTSE 100 (the 100 biggest UK companies) rather than MSCI UK"),
+    "DE": ("EXS1", "Xetra", "iShares Core DAX UCITS ETF (DE)", "similar", "the DAX, Germany's 40 biggest companies"),
     "FR": ("ISFR", "London", "iShares MSCI France UCITS ETF", "same", ""),
-    "NL": ("IAEX", "Amsterdam", "iShares AEX UCITS ETF", "similar", "the AEX: the 25 biggest Dutch companies"),
-    "ES": ("LYXIB", "Madrid", "Amundi IBEX 35 UCITS ETF", "similar", "the IBEX 35: Spain's 35 biggest companies"),
-    "IT": ("IMIB", "London", "iShares FTSE MIB UCITS ETF", "similar", "the FTSE MIB: Italy's 40 biggest companies"),
-    "CH": ("CSSMI", "Swiss exchange", "iShares SMI ETF (CH)", "similar", "the SMI: Switzerland's 20 biggest companies"),
+    "NL": ("IAEX", "Amsterdam", "iShares AEX UCITS ETF", "similar", "the AEX, the 25 biggest Dutch companies"),
+    "ES": ("LYXIB", "Madrid", "Amundi IBEX 35 UCITS ETF", "similar", "the IBEX 35, Spain's 35 biggest companies"),
+    "IT": ("IMIB", "London", "iShares FTSE MIB UCITS ETF", "similar", "the FTSE MIB, Italy's 40 biggest companies"),
+    "CH": ("CSSMI", "Swiss exchange", "iShares SMI ETF (CH)", "similar", "the SMI, Switzerland's 20 biggest companies"),
     "SE": ("XACTOMXS3", "Stockholm", "XACT OMXS30 ESG UCITS ETF", "similar", "Stockholm's 30 most traded companies, with an ESG screen"),
-    "NO": ("OBXD", "Oslo", "DNB OBX ETF", "similar", "the OBX: Oslo's 25 most traded companies"),
+    "NO": ("OBXD", "Oslo", "DNB OBX ETF", "similar", "the OBX, Oslo's 25 most traded companies"),
     "PL": ("IPOL", "London", "iShares MSCI Poland UCITS ETF", "similar", "large and mid-sized companies only"),
     "TR": ("ITKY", "London", "iShares MSCI Turkey UCITS ETF", "similar", "large and mid-sized companies only"),
     "JP": ("IJPN", "London", "iShares MSCI Japan UCITS ETF", "same", ""),
@@ -251,6 +251,7 @@ def build():
     hist_cuts = engine.apply_scores(rows, tracks, rf_at)
     t0 = time.time()
     bt = engine.backtest(tracks, rf_at)
+    long_test = engine.long_hold_test(tracks, rf_at, [bool(r["buy"]) for r in rows])  # see longrun_test.py
     bt_seconds = round(time.time() - t0, 1)
 
     fund = funddata.load([r["etf"] for r in rows] + [WORLD])
@@ -284,8 +285,10 @@ def build():
         "generated": time.time(), "marketTime": max((d.get("mtime") or 0) for d in raw.values() if "error" not in d),
         "world": {"symbol": WORLD, "name": WORLD_NAME, "facts": wf,
                   "m": {k: world_m[k] for k in ("r1d", "r1w", "r1m", "r3m", "ytd", "r1y", "vs200", "trend")},
-                  "gbp": engine.period_returns(engine.Track(world_series["gbp"])) if world_series else None},
+                  "gbp": engine.period_returns(engine.Track(world_series["gbp"])) if world_series else None,
+                  "longRun": engine.long_run_record(world_series["gbp"]) if world_series else None,
+                  "buy": dict(zip(("ticker", "exchange", "name", "match", "differs"), WORLD_BUY))},
         "rows": rows, "macro": macro, "rules": rules, "traits": TRAITS, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
-        "backtest": bt, "backtestSeconds": bt_seconds, "paper": paper, "changes": changes,
+        "backtest": bt, "backtestSeconds": bt_seconds, "longTest": long_test, "paper": paper, "changes": changes,
     }

@@ -192,3 +192,18 @@ def buy_on_ibkr(sym):
         return {"ticker": sym[:-3], "exchange": "Xetra", "name": None, "match": "itself", "differs": ""}
     t = BUY_ON_IBKR.get(sym)
     return t and {"ticker": t[0], "exchange": t[1], "name": t[2], "match": t[3], "differs": t[4]}
+
+# The long-term core: each region's whole market, bought as one low-cost UCITS fund on IBKR (checked 7 Oct 2026).
+# group id: (IBKR ticker, exchange, fund name, match, what differs when "similar")
+CORE = {
+    "global": ("SSAC", "London", "iShares MSCI ACWI UCITS ETF", "same", ""),
+    "us": ("CSPX", "London", "iShares Core S&P 500 UCITS ETF", "same", ""),
+    "europe": ("EXSA", "Xetra", "iShares STOXX Europe 600 UCITS ETF (DE)", "itself", ""),
+    "japan": ("IJPN", "London", "iShares MSCI Japan UCITS ETF", "similar", "MSCI Japan (about 180 large and mid-sized companies) rather than the whole TOPIX"),
+    "canada": ("CSCA", "London", "iShares MSCI Canada UCITS ETF", "similar", "MSCI Canada (about 85 companies) rather than the 60 biggest"),
+}
+
+
+def core_buy(group):
+    t = CORE.get(group)
+    return t and {"ticker": t[0], "exchange": t[1], "name": t[2], "match": t[3], "differs": t[4]}

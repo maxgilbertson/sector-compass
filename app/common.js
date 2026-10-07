@@ -174,6 +174,32 @@ function pickCard({key,name,sub,score,tags=[],spark="",title="",extra=""}){
     <div class="pick-main"><div class="pick-name">${esc(name)}</div><div class="pick-sub">${esc(sub)}</div>${tags.length?`<div class="pick-tags">${tags.join("")}</div>`:""}${extra}</div>${spark}</div>`;
 }
 // how far to trust the score, from the test on past data; links to the full test
+/* ---------------------------------------------------------------- buying on IBKR and the long run */
+// b = {ticker, exchange, name, match: "itself" | "same" | "similar", differs}; scored = the fund the score is based on
+function buyMatchTag(b,scored="the fund scored here"){ if(!b) return "";
+  return b.match==="itself"? tag("UCITS fund","pos",`title="A UCITS fund: you can buy it directly"`)
+    : b.match==="same"? tag("Same index","pos",`title="${esc(`${b.name} tracks the same index as ${scored}`)}"`)
+    : tag("Similar index","info",`title="${esc(`${b.name}: ${b.differs}`)}"`); }
+const buyLineHTML = (b,scored) => b? `<div class="buyline">Buy as <span class="tick">${esc(b.ticker)}</span>${esc(b.exchange)} ${buyMatchTag(b,scored)}</div>` : "";
+// one whole-market fund for the long run, with its record in our data (L = engine.long_run_record, in pounds)
+function coreCard({eyebrow,title,b,L,main=false}){
+  if(!b||!L) return "";
+  const y3=L.y3||{}, years=Math.round(L.yearsOfData);
+  return `<div class="card core${main?" main":""}"><div><div class="eyebrow">${eyebrow}</div><h3>${esc(title)}</h3></div>
+    <div class="buyline">Buy as <span class="tick big">${esc(b.ticker)}</span>${esc(b.exchange)} ${buyMatchTag(b,title)}</div>
+    <div class="core-stats">
+      <div title="Average yearly growth over all ${years} years of our data, dividends included, in pounds"><span>Per year over ${years} years</span><b class="${cls(L.annAll)}">${pct(L.annAll,1)}</b></div>
+      <div title="Of every 3-year stretch in our data (one starting each month), the share that ended higher"><span>3-year stretches that gained</span><b>${y3.gainShare==null?"–":pct(y3.gainShare,0,false)}</b></div>
+      <div title="The worst 3-year stretch in our data, as a yearly rate"><span>Worst 3 years, per year</span><b class="${cls(y3.worst)}">${pct(y3.worst,1)}</b></div>
+      <div title="The largest fall from a high to a later low in our data, in pounds"><span>Biggest fall</span><b class="neg">${pct(L.mdd,0)}</b></div>
+    </div>${b.match==="similar"?`<p class="note" style="margin:0">Tracks ${esc(b.differs)}.</p>`:""}</div>`;
+}
+// the 12-month test of the score (engine.long_hold_test), in words
+function longTestText(lt,{noun,vs}){
+  if(!lt) return "<p>The test of holding for a year needs more history.</p>";
+  return `<p><b>Tested on the past</b> (${esc(monthYear(lt.from))} to ${esc(monthYear(lt.to))}, a new start each month): when the top-scored fifth of the ${esc(noun)} you can buy on IBKR were bought and held for a year, they ${esc(beatTrail(lt.topNetAnn,vs))}, after trading costs. Holding every buyable one equally ${esc(beatTrail(lt.allAnn,vs))}. The difference, ${esc(betterWorse(lt.edgeAnn))} a year, has a reliability of t = ${lt.edgeT==null?"–":tval(lt.edgeT)} (2 or more would be convincing), so <b>picking by score did not help over a year</b>. This test was fixed in advance and run once.</p>`;
+}
+
 function trustBadge(bt){ if(!bt) return ""; const st=btStrength(bt);
   return `<a class="trust ${st.cls}" href="#track" title="${esc(`Tested on the past (${monthYear(bt.from)} to ${monthYear(bt.to)}): the top-scored 20% went on to ${beatTrail(bt.topAnn,"their market",true)}; the lowest-scored 20% ${beatTrail(bt.botAnn,"it")}. Click for the full test.`)}">${icon("record",14)}Tested on the past: ${esc(st.label.toLowerCase())}</a>`; }
 const niceDate = (iso,year=false) => new Date(iso+"T12:00:00Z").toLocaleDateString(undefined,{day:"numeric",month:"short",...(year?{year:"numeric"}:{})});

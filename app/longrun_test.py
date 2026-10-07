@@ -18,6 +18,14 @@ Fixed on 7 Oct 2026, before running (engine.long_hold_test):
 
 Not to be tuned to the result. Known weaknesses: about nine years of data gives only nine
 non-overlapping years; the buyable list is today's, so it assumes twins existed throughout.
+
+Result, run once on 7 Oct 2026 (96 start months, Oct 2017 to Sep 2025):
+  Sectors    top fifth vs their markets after costs +0.5% a year (t = 0.24); all buyable +0.1%;
+             EDGE +0.4% a year (t = 0.20); halves -1.2% then +2.0%.          VERDICT: Didn't help
+  Countries  top fifth vs world stocks after costs -4.4% a year (t = -2.83); all buyable -3.5%;
+             EDGE -0.9% a year (t = -1.03); halves -0.1% then -1.7%.         VERDICT: Didn't help
+  So over a year, neither score picked better than holding everything buyable, and single countries
+  lagged world stocks. The pages' "For the long run" sections lead with whole-market funds instead.
 """
 from datetime import datetime, timezone
 
