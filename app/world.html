@@ -93,11 +93,11 @@ const METRICS = {
   score:{label:"Score (0–100)",get:r=>r.m.score,center:50,cap:50,fmt:v=>v.toFixed(0),tip:v=>`score ${v.toFixed(0)} of 100`},
   d1w:{label:"Score change this week",get:r=>r.m.d1w,center:0,cap:12,fmt:v=>sgn(v),tip:v=>`score ${v>=0?"up":"down"} ${Math.abs(Math.round(v))} this week`},
   today:{label:"Latest session (main index, own currency)",get:r=>r.local.r1d,center:0,cap:.02,fmt:v=>pct(v,1),tip:v=>`${pct(v,2)} in the latest session`},
+  ytdGbp:{label:"Since 1 January (in pounds)",get:r=>(r.gbp||{}).ytd,center:0,cap:.3,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} since 1 January in pounds`},
+  r1yGbp:{label:"1 year (in pounds)",get:r=>(r.gbp||{}).r1y,center:0,cap:.4,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} over 1 year in pounds`},
   r1m:{label:"1 month (in US dollars)",get:r=>r.m.r1m,center:0,cap:.08,fmt:v=>pct(v,1),tip:v=>`${pct(v,1)} over 1 month in US dollars`},
   ytd:{label:"Since 1 January (in US dollars)",get:r=>r.m.ytd,center:0,cap:.3,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} since 1 January in US dollars`},
   r1y:{label:"1 year (in US dollars)",get:r=>r.m.r1y,center:0,cap:.4,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} over 1 year in US dollars`},
-  ytdGbp:{label:"Since 1 January (in pounds)",get:r=>(r.gbp||{}).ytd,center:0,cap:.3,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} since 1 January in pounds`},
-  r1yGbp:{label:"1 year (in pounds)",get:r=>(r.gbp||{}).r1y,center:0,cap:.4,fmt:v=>pct(v,0),tip:v=>`${pct(v,1)} over 1 year in pounds`},
   fx:{label:"Currency vs US dollar, 1 year",get:r=>r.fx?r.fx.y1:null,center:0,cap:.1,fmt:v=>pct(v,1),tip:v=>`currency ${v>=0?"up":"down"} ${pct(Math.abs(v),1,false)} vs the dollar`},
   value:{label:"Value score (higher = cheaper)",get:r=>r.m.value,center:50,cap:50,fmt:v=>v.toFixed(0),tip:v=>`value score ${v.toFixed(0)} of 100`},
   pe:{label:"Cheap or pricey vs world (P/E)",get:r=>r.m.peRel==null?null:-r.m.peRel,center:0,cap:.5,fmt:v=>`${pct(Math.abs(v),0,false)} ${v<0?"pricier":"cheaper"}`,tip:v=>`${pct(Math.abs(v),0,false)} ${v<0?"pricier":"cheaper"} than world stocks (P/E)`},
@@ -109,12 +109,16 @@ const WORLD = "world stocks (MSCI ACWI)";
 
 /* ---------------------------------------------------------------- state */
 const store = makeStore("wc.");
-const S = {data:null, filter:store.get("filter","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}), basis:store.get("basis","usd"),
-           metric:store.get("metric","score"), rrg:store.get("rrg","all"), sel:null, range:"1y", pcur:store.get("pcur","gbp"),
-           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false)};
+// "basis2" and "rrg2": returns default to pounds and the rotation map to one region (new keys, so the old remembered defaults don't carry over)
+const S = {data:null, filter:store.get("filter","all"), q:"", sort:store.get("sort",{k:"score",dir:-1}), basis:store.get("basis2","gbp"),
+           metric:store.get("metric","score"), rrg:store.get("rrg2","Europe"), sel:null, range:"1y", pcur:store.get("pcur","gbp"),
+           cols:store.get("cols","key"), dtab:"summary", ibkr:store.get("ibkr",false), short:store.get("short","lead")};
 // return figures in the chosen view: what a US-dollar investor got, the same in pounds, or the local index in its own currency
-const retSrc = r => S.basis==="local" ? r.local : S.basis==="gbp" ? (r.gbp||{}) : r.m;
-const inv = () => S.basis==="gbp" ? {src:"gbp",word:"in pounds",sign:"£"} : {src:"usd",word:"in US dollars",sign:"$"};
+// pounds fall back to US dollars when the pound conversion is missing from the data, and every label follows
+const basisNow = () => S.basis==="gbp" && S.data && !S.data.world.gbp ? "usd" : S.basis;
+const retSrc = r => { const b=basisNow(); return b==="local" ? r.local : b==="gbp" ? (r.gbp||{}) : r.m; };
+// an investor's view (for the local-index view too): pounds unless US dollars are chosen
+const inv = () => basisNow()==="usd" || !(S.data&&S.data.world.gbp) ? {src:"usd",word:"in US dollars",sign:"$"} : {src:"gbp",word:"in pounds",sign:"£"};
 let TOPO=null;
 const isOpen = r => { const p=r.status&&r.status.period, now=Date.now()/1000; return !!(p&&p.start&&p.end&&p.start<=now&&now<p.end); };
 const rows = () => S.data.rows;
@@ -172,7 +176,6 @@ function reasonShort(r){
 }
 
 /* ---------------------------------------------------------------- page */
-const seg=(attr,cur,opts,label)=>`<span class="seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</span>`;
 const COLSETS=[["key","Key figures"],["returns","Returns"],["risk","Risk & value"],["all","Everything"]];
 const nameOfCode = c => (byCode(c)||{}).name||c;
 
@@ -184,7 +187,8 @@ function render(){
   const active=D.rules.filter(x=>x.active), inactive=D.rules.filter(x=>!x.active);
   app.innerHTML = `
   <div class="view" data-view="overview">
-    <div class="intro">${icon("info",17)}<span>Each country is compared with <b>all world stocks</b> (the MSCI ACWI index) in <b>US dollars</b>, and given a <b>score from 0 to 100</b>: 50 is the middle, 60 or more is favoured, under 40 is weak. Tested on the past, the score didn't reliably pick winning countries, so weigh it alongside value, currency and today's conditions. <a href="#guide">How to read this page</a></span></div>
+    <div class="intro">${icon("info",17)}<span>Each country is compared with <b>all world stocks</b> (the MSCI ACWI index) and given a <b>score from 0 to 100</b>: 50 is the middle, 60 or more is favoured, under 40 is weak. ${basisNow()==="local"?`Returns in the table are shown <b>in each country's own currency</b> (${inv().word} elsewhere; the score itself is worked out in US dollars)`
+   : `Returns are shown <b>${inv().word}</b>${inv().src==="gbp"?" (the score itself is worked out in US dollars)":""}`}. Tested on the past, the score didn't reliably pick winning countries, so weigh it alongside value, currency and today's conditions. <a href="#guide">How to read this page</a></span></div>
     <section>${secHead({eyebrow:"At a glance",title:"Today around the world"})}${heroGrid(heroCards(open))}</section>
     ${longRunSection()}
     <section id="worldmap">${secHead({eyebrow:"World map",title:"How the world's markets stand",lead:"Colour the map by the measure that matters to you. Click a country for its full breakdown.",
@@ -200,9 +204,10 @@ function render(){
             <div class="muted" style="font-size:12px;margin-top:8px">Worst</div>${movers.slice(-4).map(mover).join("")}</div>
         </div>
       </div></section>
-    <section>${secHead({eyebrow:"Shortlist",title:"Markets worth a closer look",lead:"Four views side by side. Click a card for the full breakdown.",right:trustBadge(D.backtest)})}
+    <section>${secHead({eyebrow:"Shortlist",title:"Markets worth a closer look",lead:"Four lists: pick one to see its markets, and click a card for the full breakdown.",right:trustBadge(D.backtest)})}
       ${more("shortlist",`<p>The score reflects how each market has done against world stocks (over 3, 6 and 12 months), its price trend and its risk. <b>Cheap and holding up</b> adds the value score (60% P/E, 40% dividend yield). <b>Turnaround watch</b> lists markets that have been behind world stocks lately but are improving.</p><p>Read the <a href="#limits">limitations</a> before acting on any of it.</p>`)}
-      <div class="picks four">${ideas()}</div></section>
+      <div class="toolbar">${seg("short",S.short,SHORTLISTS.map(([k,l,ico])=>[k,icon(ico,14)+l]),"Which list")}</div>
+      <div id="shortbox">${ideas()}</div></section>
     ${changesSection(D.changes,{nameOf:nameOfCode,noun:"countries"})}
   </div>
 
@@ -212,7 +217,7 @@ function render(){
           `<button class="tab" type="button" data-filter="${esc(id)}" aria-pressed="${S.filter===id}" ${id==="dm"?`title="${esc(TYPE_TIP["Developed market"])}"`:id==="em"?`title="${esc(TYPE_TIP["Emerging market"])} Includes frontier markets."`:""}>${esc(l)}</button>`).join("")}</div>
         <input class="search" id="search" type="search" placeholder="Search country, index or company (e.g. TSMC)" value="${esc(S.q)}" aria-label="Search"></div>
       <div class="toolbar"><span class="seg-lab">Columns</span>${seg("cols",S.cols,COLSETS,"Columns to show")}
-        <span class="seg-lab">Returns in</span>${seg("basis",S.basis,[["usd","US dollars"],["gbp","Pounds (£)"],["local","Local currency"]],"Return basis")}
+        <span class="seg-lab">Returns in</span>${seg("basis",basisNow(),[["gbp","Pounds (£)"],["usd","US dollars"],["local","Local currency"]],"Return basis")}
         <div class="tabs" role="group" aria-label="Buyable on IBKR"><button class="tab" type="button" id="ibkrOnly" aria-pressed="${S.ibkr}" title="Hide countries a UK investor can't buy on IBKR (no UCITS fund)">Only ones I can buy on IBKR</button></div></div>
       <div class="tablebox" id="tablebox"></div>
       <div style="margin-top:10px">${more("glossary",glossary(n),"What do the columns mean?")}</div></section>
@@ -223,13 +228,13 @@ function render(){
     <div class="two">
       <div class="card panel rrgbox">${secHead({eyebrow:"Cheapness vs score",title:"Cheap or pricey, strong or weak",h:"h3"})}
         <p class="note" style="margin:0 0 8px">Left = cheaper than world stocks; up = a higher score. Top-left is cheap and strong.</p>
-        ${more("vm-how",`<p>Cheapness here is the P/E (the share price divided by the last year's company profits) compared with world stocks: a lower P/E means paying less for each $1 of profit. Bottom-right is pricey and weak. Hover or click a dot or code for the country.</p>`,"How to read this chart")}
+        ${more("vm-how",`<p>Cheapness here is the P/E (the share price divided by the last year's company profits) compared with world stocks: a lower P/E means paying less for each $1 of profit. Bottom-right is pricey and weak. Hover or click a dot or name for the country; where there is no room for a name, the dot shows its two-letter code; hover or tap the dot for the full name.</p>`,"How to read this chart")}
         <div id="vm"></div></div>
       <div class="card panel rrgbox">${secHead({eyebrow:"Rotation map",title:"Who is gaining on world stocks?",h:"h3",
-          right:`<select id="rrgsel" class="btn" aria-label="Region for rotation map"><option value="all">All regions</option>${REGIONS.map(g=>`<option value="${g}" ${S.rrg===g?"selected":""}>${esc(g)}</option>`).join("")}</select>`})}
+          right:`<select id="rrgsel" class="btn" aria-label="Region for rotation map">${REGIONS.map(g=>`<option value="${g}" ${S.rrg===g?"selected":""}>${esc(g)}</option>`).join("")}<option value="all" ${S.rrg==="all"?"selected":""}>All regions (codes)</option></select>`})}
         <p class="note" style="margin:0 0 8px">Compared with world stocks in US dollars, over roughly the last two months.</p>
-        ${more("rrg-how",`<p>Right of centre = doing better than world stocks lately; left = doing worse. Above centre = gaining ground; below = losing ground. Markets tend to circle clockwise: Improving → Leading → Weakening → Lagging. The big dot is today; tails show the last 6 weeks.</p>`,"How to read this map")}
-        <div id="rrg"></div></div>
+        ${more("rrg-how",`<p>Right of centre = doing better than world stocks lately; left = doing worse. Above centre = gaining ground; below = losing ground. Markets tend to circle clockwise: Improving → Leading → Weakening → Lagging. The big dot is today; the line behind it shows where it stood each week for the last 5 weeks. With all regions at once, or where a name has no room, countries are shown by their two-letter codes.</p>`,"How to read this map")}
+        ${trailKey("where it was each week, last 5 weeks")}<div id="rrg"></div></div>
     </div></section>
     <section>${secHead({eyebrow:"By region",title:"Regional picture",lead:"The average score in each region, with its highest- and lowest-scoring market."})}
       <div class="regions">${REGIONS.map(regionCard).join("")}</div></section>
@@ -256,21 +261,24 @@ function render(){
   const press=(attr,v)=>app.querySelectorAll(`[data-${attr}]`).forEach(x=>x.setAttribute("aria-pressed",x.dataset[attr]===v));
   app.querySelectorAll("[data-pcur]").forEach(b=>b.onclick=()=>{S.pcur=b.dataset.pcur;store.set("pcur",S.pcur);const y=scrollY;render();scrollTo(0,y);});
   app.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;store.set("filter",S.filter);press("filter",S.filter);renderTable();});
-  app.querySelectorAll("[data-basis]").forEach(b=>b.onclick=()=>{S.basis=b.dataset.basis;store.set("basis",S.basis);press("basis",S.basis);renderTable();});
+  // the currency also words the intro, the first tile and the region cards, so the whole page redraws
+  app.querySelectorAll("[data-basis]").forEach(b=>b.onclick=()=>{S.basis=b.dataset.basis;store.set("basis2",S.basis);const y=scrollY;render();scrollTo(0,y);});
+  bindSeg(app,"short",v=>{ S.short=v; store.set("short",v); $("#shortbox").innerHTML=ideas(); });
   app.querySelectorAll("[data-cols]").forEach(b=>b.onclick=()=>{S.cols=b.dataset.cols;store.set("cols",S.cols);press("cols",S.cols);renderTable();});
   $("#metric").onchange=e=>{S.metric=e.target.value;store.set("metric",S.metric);renderMap();};
-  $("#rrgsel").onchange=e=>{S.rrg=e.target.value;store.set("rrg",S.rrg);renderRRG();};
+  $("#rrgsel").onchange=e=>{S.rrg=e.target.value;store.set("rrg2",S.rrg);renderRRG();};
   $("#search").oninput=e=>{S.q=e.target.value;renderTable();};
   $("#ibkrOnly").onclick=e=>{S.ibkr=!S.ibkr;store.set("ibkr",S.ibkr);e.currentTarget.setAttribute("aria-pressed",S.ibkr);renderTable();};
 }
 
 /* ---------------------------------------------------------------- overview */
 function heroCards(open){
-  const D=S.data, rs=rows().filter(r=>r.m.score!=null), n=rs.length, W=D.world.m, active=D.rules.filter(x=>x.active);
+  const D=S.data, rs=rows().filter(r=>r.m.score!=null), n=rs.length, active=D.rules.filter(x=>x.active);
+  const Wi=inv(), Wr=Wi.src==="gbp"? D.world.gbp : D.world.m;
   const top=rs.slice().sort((a,b)=>b.m.score-a.m.score)[0];
   const riser=rs.filter(r=>r.m.d1w!=null).sort((a,b)=>b.m.d1w-a.m.d1w)[0];
   return [
-    stat({label:"World stocks, latest session",ico:"globe",value:pct(W.r1d,2),tone:cls(W.r1d),sub:`MSCI ACWI, in US dollars · past year ${pct(W.r1y,1)}`}),
+    stat({label:"World stocks, latest session",ico:"globe",value:pct(Wr.r1d,2),tone:cls(Wr.r1d),sub:`MSCI ACWI, ${esc(Wi.word)} · past year ${pct(Wr.r1y,1)}`}),
     top&&stat({label:"Highest score",ico:"award",open:top.code,body:ringRow(top.m.score,top.name,`${esc(top.index.name)} · ${esc(top.m.signal)}`)}),
     riser&&riser.m.d1w>=1&&stat({label:"Biggest score rise this week",ico:"up",open:riser.code,body:ringRow(riser.m.score,riser.name,`up ${Math.round(riser.m.d1w)} this week · ${esc(riser.m.signal)}`)}),
     stat({label:`Signals across all ${n} markets`,ico:"bars",href:"#ranking",body:sigDist(rs.map(r=>r.m.signal))}),
@@ -291,21 +299,23 @@ function ruleCard(x){
 const MACRO_ORDER=["DX-Y.NYB","^VIX","^TNX","CL=F","HG=F","GC=F"];
 const REL_HINT={SMH:"Chip designers and makers compared with all world stocks. When they do better, it tends to lift tech-heavy markets (Taiwan, Korea, the Netherlands, the US, Israel).",
   EEM:"Less-developed markets such as China, Taiwan, India and Korea as a group, compared with all world stocks, which include them."};
+// pounds per US dollar: the UK row's currency rate ($1 buys this many pounds)
+const gbpPerUsd = () => { const gb=byCode("GB"); return gb&&gb.fx&&gb.fx.rate||null; };
 function macroTiles(){
-  const M=S.data.macro, DOLLAR=new Set(["CL=F","HG=F","GC=F"]);
+  const M=S.data.macro, DOLLAR=new Set(["CL=F","HG=F","GC=F"]), fx=gbpPerUsd();
   const before=(m,dp,u="")=>`prev close ${(m.price/(1+m.r1d)).toFixed(dp)}${u} · 3 mo ago ${(m.price/(1+m.r3m)).toFixed(dp)}${u}`;
   const tiles=MACRO_ORDER.map(sym=>{ const m=M[sym]; if(!m) return "";
-    const val= sym==="^TNX"? m.price.toFixed(2)+"%" : sym==="CL=F"? "$"+m.price.toFixed(3) : (DOLLAR.has(sym)?"$":"")+money(m.price);
+    const usd=DOLLAR.has(sym), val= sym==="^TNX"? m.price.toFixed(2)+"%" : usd? dollarPrice(m,sym,fx) : money(m.price);
     const chg= sym==="^TNX"? `<span class="muted">${before(m,2,"%")}</span>` : sym==="^VIX"? `<span class="muted">${before(m,1)}</span>`
       : `<span class="${cls(m.r1d)}">Latest ${pct(m.r1d)}</span><span class="${cls(m.r3m)}">3 mo ${pct(m.r3m)}</span>`;
-    return `<div class="tile" title="${esc(MACRO_HINT[sym]||"")}"><span class="lab">${esc(m.label)}</span><span class="val">${val}</span>
-      <span class="chg">${chg}</span>${sparkSVG(m.spark,{w:200,h:30,color:sym==="^VIX"||sym==="^TNX"||sym==="DX-Y.NYB"?"var(--warn)":null})}</div>`; });
+    return `<div class="tile" title="${esc((MACRO_HINT[sym]||"")+(usd&&fx?" Shown in pounds at today's exchange rate; the % changes and the chart are in US dollars.":""))}"><span class="lab">${esc(poundLabel(m.label,usd&&fx))}</span><span class="val">${val}</span>
+      <span class="chg">${chg}</span>${usd&&fx?'<span class="hint">Moves and chart in US$</span>':""}${sparkSVG(m.spark,{w:200,h:30,color:sym==="^VIX"||sym==="^TNX"||sym==="DX-Y.NYB"?"var(--warn)":null})}</div>`; });
   const rel=(l,v,h)=>`<div class="tile" title="${esc(h)}"><span class="lab">${l}</span><span class="val ${cls(v)}">${aheadBehind(v)}</span><span class="chg"><span class="muted">${relPrep(v)}world stocks, past 3 months</span></span></div>`;
   return tiles.join("")+rel("Chip stocks (SMH fund)",M.SMH_REL,REL_HINT.SMH)+rel("Emerging markets (EEM fund)",M.EEM_REL,REL_HINT.EEM);
 }
-function macroHints(){ const M=S.data.macro;
-  return `<ul>${MACRO_ORDER.map(sym=>M[sym]?`<li><b>${esc(M[sym].label)}</b>: ${esc(MACRO_HINT[sym]||"")}</li>`:"").join("")}
-    <li><b>Chip stocks (SMH fund)</b>: ${esc(REL_HINT.SMH)}</li><li><b>Emerging markets (EEM fund)</b>: ${esc(REL_HINT.EEM)}</li></ul><p>Each small chart shows the last 6 months.</p>`; }
+function macroHints(){ const M=S.data.macro, fx=gbpPerUsd();
+  return `<ul>${MACRO_ORDER.map(sym=>M[sym]?`<li><b>${esc(poundLabel(M[sym].label,fx))}</b>: ${esc(MACRO_HINT[sym]||"")}</li>`:"").join("")}
+    <li><b>Chip stocks (SMH fund)</b>: ${esc(REL_HINT.SMH)}</li><li><b>Emerging markets (EEM fund)</b>: ${esc(REL_HINT.EEM)}</li></ul><p>Each small chart shows the last 6 months.${fx?" Oil, copper and gold are priced in US dollars; the pound figure converts that at today's exchange rate, and their % changes and charts stay in dollars.":""}</p>`; }
 
 /* ---------------------------------------------------------------- the long run, and buying on IBKR */
 function longRunSection(){
@@ -317,12 +327,11 @@ function longRunSection(){
     wy5!=null&&stat({label:"Beat world stocks over 5 years",ico:"award",value:`${beat.length} <span class="muted" style="font-size:16px;font-weight:500">of ${buy.length}</span>`,body:meter(buy.length?beat.length/buy.length:0,"var(--accent)"),sub:"buyable countries, in pounds"}),
   ]);
   return `<section id="longrun">${secHead({eyebrow:"For the long run",title:"What has grown over the long run",
-      lead:`Over a year or more, single countries, and the top-scored ones in particular, have lagged simply owning all world stocks in our tests. The simplest long-term core is one fund holding the whole world.`})}
+      lead:`In our tests, single countries (and the top-scored ones in particular) lagged simply owning all world stocks over a year or more, so the simplest long-term core is one fund holding the whole world.`})}
     ${more("longrun-how",`${longTestText(lt,{noun:"countries",vs:"world stocks"})}
       <p><b>Why the whole world:</b> one fund holds thousands of companies in dozens of countries, so no single country's politics, currency or crash can sink it, and the yearly fee is low. Over long periods, world stocks have usually grown, as company profits grow. Usually is not always: markets can fall for years (Japan's took more than 30 years to regain its 1989 peak), so money needed within a few years is better kept somewhere safer.</p>
-      <p><b>Reading the figures:</b> they come from our ${years} years of data, in pounds, so currency moves are included. These ${years} years were good ones for shares; long-run studies going back to 1900 put world stocks at roughly 5% a year more than inflation on average, with long bad spells along the way. "3-year stretches that gained" counts every 3-year period in that data, one starting each month. Past results don't guarantee future ones. This is not advice: how much to invest, and for how long, depends on your own situation.</p>`,"What the tests found, and why the whole world")}
-    <div class="cores" style="margin-bottom:12px">${coreCard({eyebrow:"The simplest long-term core",title:"All world stocks (MSCI ACWI)",b:W.buy,L:W.longRun,main:true})}</div>
-    ${tiles}</section>`;
+      <p><b>Reading the figures:</b> they come from our ${years} years of data, in pounds, so currency moves are included. These ${years} years were good ones for shares; long-run studies going back to 1900 put world stocks at roughly 5% a year more than inflation on average, with long bad spells along the way. "3-yr periods up" is the share of every 3-year period in that data (one starting each month) that ended higher; "Worst 3 yrs" is the worst such period, as a yearly rate. Past results don't guarantee future ones. This is not advice: how much to invest, and for how long, depends on your own situation.</p>`,"What the tests found, and why the whole world")}
+    <div class="lr-split">${coreCard({eyebrow:"The simplest long-term core",title:"All world stocks (MSCI ACWI)",b:W.buy,L:W.longRun,main:true})}${tiles}</div></section>`;
 }
 function buyBox(r){
   const b=r.buy;
@@ -338,7 +347,7 @@ function buyBox(r){
 function pickRow(r,extra){
   const m=r.m, tags=extra?extra(r):[];
   if(!extra){
-    if(m.rs1y!=null) tags.push(tag(esc(`${aheadBehind(m.rs1y,0)} ${relPrep(m.rs1y)}world stocks, 1 yr`),near0(m.rs1y)?"":m.rs1y>0?"pos":"neg"));
+    if(m.rs1y!=null) tags.push(vsPill(m.rs1y,"world stocks"," (MSCI ACWI), in US dollars"));
     if(m.trend!=null) tags.push(tag(esc(cap(TREND_WORD[m.trend])),m.trend>=3?"pos":m.trend<=1?"neg":""));
     if(m.quad) tags.push(tag(esc(m.quad),QUAD_TONE[m.quad],`title="${esc(cap(QUAD_PLAIN[m.quad]))}"`));
     if(m.value!=null&&m.value>=60) tags.push(tag(`Cheap · value ${Math.round(m.value)}`,"info"));
@@ -357,18 +366,22 @@ function ideas(){
   const cheapTags=r=>[tag(`Value ${Math.round(r.m.value)}/100`,"info"),
     tag(esc(`P/E ${r.m.pe==null?"–":r.m.pe.toFixed(1)}${wpe?` vs ${wpe.toFixed(1)}`:""}`),"",`title="Price vs profits; world stocks ${wpe?wpe.toFixed(1):"–"}"`),
     tag(esc(`Yield ${pct(r.m.yld,1,false)}`),"",`title="Dividends over the past year, as a % of the price"`), tag(esc(`${cap(upDown(r.m.r1y,0))} in a year`),cls(r.m.r1y))];
-  const col=(title,ico,tone,desc,list,fx)=>`<div class="card pickcol"><h3><span class="pc-ico ${tone}">${icon(ico,16)}</span>${title}</h3><p>${desc}</p>${list.map(r=>pickRow(r,fx)).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div>`;
-  return col("Highest scores","trend","pos","Best on performance against world stocks, trend and risk.",lead)+
-    col("Cheap and holding up","coin","accent","Value score of 60+ and a score of at least 45.",value,cheapTags)+
-    col("Turnaround watch","up","info","Behind world stocks lately, but improving.",turn)+
-    col("Lowest scores","down","neg","Weakest on performance, trend and risk. Check whether cheapness or conditions offset it.",avoid);
+  const lists={lead:[lead],cheap:[value,cheapTags],turn:[turn],weak:[avoid]};
+  const [k,,ico,tone,title,desc]=SHORTLISTS.find(x=>x[0]===S.short)||SHORTLISTS[0], [list,fx]=lists[k];
+  return `<div class="short-head"><span class="pc-ico ${tone}">${icon(ico,16)}</span><span><b>${title}</b> · ${desc}</span></div>
+    <div class="picks fill">${list.map(r=>pickRow(r,fx)).join("")||'<p class="muted">Nothing qualifies right now.</p>'}</div>`;
 }
+// the four shortlists, shown one at a time: [key, button label, icon, tone, title, description]
+const SHORTLISTS=[["lead","Highest","trend","pos","Highest scores","Best on performance against world stocks, trend and risk."],
+  ["cheap","Cheap","coin","accent","Cheap and holding up","Value score of 60+ and a score of at least 45."],
+  ["turn","Turnaround","up","info","Turnaround watch","Behind world stocks lately, but improving."],
+  ["weak","Lowest","down","neg","Lowest scores","Weakest on performance, trend and risk. Check whether cheapness or conditions offset it."]];
 function regionCard(g){
   const rs=rows().filter(r=>r.region===g); if(!rs.length) return "";
-  const s=avgOf(rs,r=>r.m.score), y=avgOf(rs,r=>r.m.r1y), best=rs.slice().sort((a,b)=>b.m.score-a.m.score);
+  const I=inv(), s=avgOf(rs,r=>r.m.score), y=avgOf(rs,r=>I.src==="gbp"?(r.gbp||{}).r1y:r.m.r1y), best=rs.slice().sort((a,b)=>b.m.score-a.m.score);
   return `<div class="card region"><div class="eyebrow">${esc(g)}</div>
     <div class="stat-row">${ring(s,{size:56,stroke:6})}<div><div style="font-weight:600">Average score</div><div class="muted" style="font-size:12.5px">${rs.length} markets · ${rs.filter(isOpen).length} open now</div></div></div>
-    <div>Average country, past year in US$: <b class="${cls(y)}">${pct(y,1)}</b></div>
+    <div>Average country, past year ${esc(I.word)}: <b class="${cls(y)}">${pct(y,1)}</b></div>
     <div class="idea" data-open="${best[0].code}" role="button" tabindex="0" style="padding:6px 0"><span class="nm">Highest: ${esc(best[0].name)}</span><span class="sc">${sigPill(best[0].m.signal,Math.round(best[0].m.score))}</span></div>
     <div class="idea" data-open="${best.at(-1).code}" role="button" tabindex="0" style="padding:6px 0"><span class="nm">Lowest: ${esc(best.at(-1).name)}</span><span class="sc">${sigPill(best.at(-1).m.signal,Math.round(best.at(-1).m.score))}</span></div></div>`;
 }
@@ -397,30 +410,33 @@ async function renderMap(){
 }
 function renderVM(){
   const el=$("#vm"), rs=rows().filter(r=>r.m.peRel!=null&&r.m.score!=null); if(!el) return;
-  const W=Math.max(300,el.clientWidth||520), H=Math.round(Math.min(W*0.8,480)), P=36;
+  const W=Math.max(300,el.clientWidth||520), H=Math.round(Math.min(W*(W<480?1.05:0.8),480)), P=36;  // taller on a phone, so the names have room
   const ex=Math.max(.3,...rs.map(r=>Math.abs(r.m.peRel)))*1.1;
   const X=v=>P+(v+ex)/(2*ex)*(W-2*P), Y=v=>H-P-v/100*(H-2*P), cx=X(0), cy=Y(50);
+  // corner names on one line ("CHEAP AND STRONG"); on a narrow (phone) chart just CHEAP / PRICEY, the score axis says strong or weak
+  const taken=[], corner=(x,y,a,c,n,sub,below)=>quadName(x,y,a,c,W>=480?`${n} ${sub.toUpperCase()}`:n,"",below,taken);
   let s=`<rect x="${P}" y="${P}" width="${cx-P}" height="${cy-P}" fill="var(--pos)" fill-opacity=".07"/>
     <rect x="${cx}" y="${cy}" width="${W-P-cx}" height="${H-P-cy}" fill="var(--neg)" fill-opacity=".07"/>
     <line x1="${P}" x2="${W-P}" y1="${cy}" y2="${cy}" stroke="var(--line)"/><line x1="${cx}" x2="${cx}" y1="${P}" y2="${H-P}" stroke="var(--line)"/>
-    <text x="${P+6}" y="${P+16}" font-size="12" font-weight="600" fill="var(--pos)">CHEAP AND STRONG</text>
-    <text x="${W-P-6}" y="${P+16}" text-anchor="end" font-size="12" font-weight="600" fill="var(--warn)">PRICEY AND STRONG</text>
-    <text x="${P+6}" y="${H-P-8}" font-size="12" font-weight="600" fill="var(--info)">CHEAP BUT WEAK</text>
-    <text x="${W-P-6}" y="${H-P-8}" text-anchor="end" font-size="12" font-weight="600" fill="var(--neg)">PRICEY AND WEAK</text>
-    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">← cheaper   P/E compared with world stocks   pricier →</text>
-    <text x="12" y="${H/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 12 ${H/2})">Higher score →</text>`;
-  const placed=[];
-  rs.slice().sort((a,b)=>b.m.score-a.m.score).forEach(r=>{ const x=X(r.m.peRel), y=Y(r.m.score);
-    const t=`${r.name}: ${pct(Math.abs(r.m.peRel),0,false)} ${r.m.peRel>0?"pricier":"cheaper"} than world stocks (P/E), score ${Math.round(r.m.score)} of 100`;
-    s+=`<circle cx="${x}" cy="${y}" r="5" fill="${scoreColor(r.m.score)}" stroke="var(--surface)" stroke-width="1.5" data-open="${r.code}" style="cursor:pointer"><title>${esc(t)}</title></circle>`;
-    // nudge labels apart so neighbouring countries stay readable
-    let ly=y+4; while(placed.some(p=>Math.abs(p.y-ly)<11&&Math.abs(p.x-x)<24)) ly+=11; placed.push({x,y:ly});
-    s+=`<text x="${x+7}" y="${ly}" font-size="11" fill="var(--ink)" data-open="${r.code}" style="cursor:pointer"><title>${esc(t)}</title>${r.code}</text>`; });
+    ${corner(P+6,P+16,"start","var(--pos)","CHEAP","and strong",true)}
+    ${corner(W-P-6,P+16,"end","var(--warn)","PRICEY","and strong",true)}
+    ${corner(P+6,H-P-8,"start","var(--info)","CHEAP","but weak",false)}
+    ${corner(W-P-6,H-P-8,"end","var(--neg)","PRICEY","and weak",false)}
+    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">← cheaper   P/E compared with world stocks   pricier →</text>
+    <text x="12" y="${H/2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${H/2})">Higher score →</text>`;
+  // country names (a few shortened) beside their dots, never off the chart; with no room, the two-letter code, so every dot keeps a name
+  const SHORT={"United States":"US","United Kingdom":"UK","South Korea":"Korea"};
+  const pts=rs.map(r=>({x:X(r.m.peRel),y:Y(r.m.score),t:SHORT[r.name]||r.name,t2:r.code,r,tip:`${r.name}: ${pct(Math.abs(r.m.peRel),0,false)} ${r.m.peRel>0?"pricier":"cheaper"} than world stocks (P/E), score ${Math.round(r.m.score)} of 100`}));
+  pts.forEach(p=>s+=`<circle cx="${p.x}" cy="${p.y}" r="5" fill="${scoreColor(p.r.m.score)}" stroke="var(--surface)" stroke-width="1.5" data-open="${p.r.code}" style="cursor:pointer"><title>${esc(p.tip)}</title></circle>`);
+  // outermost first: the crowded middle takes the room that is left
+  placeLabels(pts.slice().sort((a,b)=>Math.abs(b.r.m.peRel)/ex+Math.abs(b.r.m.score-50)/50-Math.abs(a.r.m.peRel)/ex-Math.abs(a.r.m.score-50)/50),
+    {box:{x0:P+2,y0:P+2,x1:W-P-2,y1:H-P-2},avoid:taken,far:true,every:true});
+  s+=labelsSVG(pts,11.5,p=>`data-open="${p.r.code}" style="cursor:pointer"`);
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cheapness versus score">${s}</svg>`;
 }
 function renderRRG(){
   rrgChart($("#rrg"), rows().filter(r=>(S.rrg==="all"||r.region===S.rrg)&&r.m.rrg&&r.m.rrg.length)
-    .map(r=>({key:r.code,label:S.rrg==="all"?r.code:r.name,title:r.name,rrg:r.m.rrg,quad:r.m.quad})), {vs:"world stocks"});
+    .map(r=>({key:r.code,label:S.rrg==="all"?r.code:r.name,short:r.code,title:r.name,rrg:r.m.rrg,quad:r.m.quad})), {vs:"world stocks"});
 }
 
 /* ---------------------------------------------------------------- rankings */
@@ -435,8 +451,9 @@ function val(r,k){
 function tableCols(){
   const n=rows().length, wpe=(S.data.world.facts||{}).pe;
   const th=(k,l,c="",title="")=>`<th class="${c}" ${k?`data-k="${k}"`:'style="cursor:default"'} ${k&&S.sort.k===k?`data-dir="${S.sort.dir>0?"▲":"▼"}"`:""} title="${esc(title)}">${l}</th>`;
-  const basis=S.basis==="local"?"of the main index, in its own currency":S.basis==="gbp"?"in pounds (the country fund, dividends included)":"in US dollars (the country fund, dividends included)";
-  const IN={r1m:"kr",r3m:"r",ytd:"r",r1y:"kr",r3y:"r"};
+  const basis=basisNow()==="local"?"of the main index, in its own currency":basisNow()==="gbp"?"in pounds (the country fund, dividends included)":"in US dollars (the country fund, dividends included)";
+  // Key figures keeps to the essentials (rank, name, score, IBKR ticker, 1 yr, vs world, past year); the rest sit in the other sets
+  const IN={r1m:"r",r3m:"r",ytd:"r",r1y:"kr",r3y:"r"};
   return [
     {s:"krv",th:()=>th(null,"#","l"),td:(r,i)=>`<td class="rank l">${i+1}</td>`},
     {s:"krv",th:()=>th("name","Country","l sticky"),td:r=>{ const hit=holdingMatch(r);
@@ -444,16 +461,16 @@ function tableCols(){
     {s:"krv",th:()=>th("score","Score (0–100)","l",`Ranks each market against all ${n} on performance against world stocks, trend and risk, in US dollars. 50 = middle. Signals: 80+ Strong overweight · 60–79 Overweight · 40–59 Neutral · 20–39 Underweight · under 20 Avoid.`),
       td:r=>`<td class="l"><div class="scorecell"><span class="num" style="width:26px;text-align:right">${r.m.score==null?"–":Math.round(r.m.score)}</span><span class="bar"><i style="width:${r.m.score||0}%;background:${scoreColor(r.m.score)}"></i></span>${sigPill(r.m.signal)}</div></td>`},
     {s:"krv",th:()=>th("buy","Buy on IBKR","l","The ticker to buy on IBKR as a UK investor: a UCITS fund for the same country. – = not available"),
-      td:r=>`<td class="l">${r.buy?`<span class="tick">${esc(r.buy.ticker)}</span> <small class="muted">${esc(r.buy.exchange)} · ${r.buy.match} index</small>`:'<span class="muted" title="No UCITS fund on IBKR">–</span>'}</td>`},
-    {s:"k",th:()=>th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week"),td:r=>`<td>${delta(r.m.d1w,scoreChangeTip(r.m))}</td>`},
-    {s:"kr",th:()=>th("today","Latest session","","The main index's move in its latest trading session, in its own currency"),
+      td:r=>`<td class="l buycell">${r.buy?`<span class="tick">${esc(r.buy.ticker)}</span> <small class="muted">${esc(r.buy.exchange)} · ${r.buy.match} index</small>`:'<span class="muted" title="No UCITS fund on IBKR">–</span>'}</td>`},
+    {s:"r",th:()=>th("d1w","Score chg (wk)","","How much the score (out of 100) rose or fell over the past week"),td:r=>`<td>${delta(r.m.d1w,scoreChangeTip(r.m))}</td>`},
+    {s:"r",th:()=>th("today","Latest session","","The main index's move in its latest trading session, in its own currency"),
       td:r=>`<td class="n" style="${heat(r.local.r1d,.02)}">${isOpen(r)?'<span class="open" title="Trading now"></span> ':""}${pct(r.local.r1d)}</td>`},
     ...RET.map(c=>({s:IN[c.k],th:()=>th(c.k,c.l,"",`${c.tip}, ${basis}`),td:r=>{ const v=retSrc(r)[c.k]; return `<td class="n" style="${heat(v,c.cap)}">${pct(v)}</td>`; }})),
-    {s:"kr",th:()=>th("rs6m","vs world, 6 mo","","How far ahead (+) or behind (−) world stocks (MSCI ACWI) over 6 months, in US dollars, whichever view is selected"),
+    {s:"kr",th:()=>th("rs6m","vs world stocks, 6 mo","","How far ahead (+) or behind (−) world stocks (MSCI ACWI) over 6 months, in US dollars, whichever view is selected"),
       td:r=>`<td class="n" style="${heat(r.m.rs6m,.2)}" title="${esc(`${aheadBehind(r.m.rs6m)} ${relPrep(r.m.rs6m)}world stocks over 6 months`)}">${pct(r.m.rs6m)}</td>`},
-    {s:"kr",th:()=>th("fx","Currency, 1 yr","","The country's currency against the US dollar over the past year. + = got stronger, which adds to returns for dollar investors"),
+    {s:"r",th:()=>th("fx","Currency, 1 yr","","The country's currency against the US dollar over the past year. + = got stronger, which adds to returns for dollar investors"),
       td:r=>`<td class="n ${cls(r.fx&&r.fx.y1)}" title="${esc(r.fx?`The ${ccyName(r.index.ccy)} ${r.fx.y1>=0?"rose":"fell"} ${pct(Math.abs(r.fx.y1),1,false)} against the dollar`:"No currency conversion")}">${r.fx?pct(r.fx.y1,1):"–"}</td>`},
-    {s:"kv",th:()=>th("trend","Trend","","Uptrend checks passed in dollar terms, out of 4"),td:r=>`<td>${trendBars(r.m.trend)}</td>`},
+    {s:"v",th:()=>th("trend","Trend","","Uptrend checks passed in dollar terms, out of 4"),td:r=>`<td>${trendBars(r.m.trend)}</td>`},
     {s:"v",th:()=>th("rsi","Heat (RSI)","","Compares the size of recent gains with recent losses (14 trading days), in US dollars: 70 or more = sharp run-up, 30 or under = sharp fall"),
       td:r=>`<td class="n" style="${r.m.rsi>=70?"color:var(--warn)":r.m.rsi<=30?"color:var(--info)":""}">${r.m.rsi==null?"–":r.m.rsi.toFixed(0)}</td>`},
     {s:"v",th:()=>th("pe","P/E","",`Price vs profits of the country fund: what investors pay for each $1 of the last 12 months' profits. Lower = cheaper.${wpe?` World stocks: ${wpe.toFixed(1)}.`:""}`),
@@ -461,22 +478,23 @@ function tableCols(){
     {s:"v",th:()=>th("yld","Dividend","","Dividends paid by the country fund over the last 12 months, as a % of its price"),td:r=>`<td class="n">${pct(r.m.yld,1,false)}</td>`},
     {s:"v",th:()=>th("value","Value (0–100)","","Higher = cheaper P/E and a higher dividend yield than the other countries"),td:r=>`<td class="n" style="${r.m.value==null?"":`color:${scoreColor(r.m.value)}`}">${r.m.value==null?"–":Math.round(r.m.value)}</td>`},
     {s:"v",th:()=>th("corr","Moves with world","","Correlation of weekly returns with world stocks over the past year: 1 = in step, 0 = unrelated, below 0 = opposite. It measures direction, not size"),td:r=>`<td class="n">${r.m.corr==null?"–":r.m.corr.toFixed(2)}</td>`},
-    {s:"kv",th:()=>th("fit","Conditions","","How many of today's rules help this market minus how many hurt it"),
+    {s:"v",th:()=>th("fit","Conditions","","How many of today's rules help this market minus how many hurt it"),
       td:r=>`<td class="n ${cls(r.m.fit)}" title="${esc(`Helped by: ${r.m.tail.join(", ")||"none"} · Hurt by: ${r.m.head.join(", ")||"none"}`)}">${r.m.fit>0?"+":""}${r.m.fit}</td>`},
-    {s:"k",th:()=>th("quad","Rotation","l","Over roughly the last two months vs world stocks: Leading = ahead and pulling away · Weakening = ahead but its edge is fading · Lagging = behind and slipping · Improving = behind but improving"),
+    {s:"r",th:()=>th("quad","Rotation","l","Over roughly the last two months vs world stocks: Leading = ahead and pulling away · Weakening = ahead but its edge is fading · Lagging = behind and slipping · Improving = behind but improving"),
       td:r=>`<td class="l"><span class="q q-${r.m.quad}" title="${esc(r.m.quad?`${QUAD_PLAIN[r.m.quad]} vs world stocks`:"")}">${esc(r.m.quad||"–")}</span></td>`},
-    {s:"kv",th:()=>th(null,"Flags","l","Warnings: hover a flag for what it means"),td:r=>`<td class="l">${flagsHTML(r.m)}</td>`},
+    {s:"v",th:()=>th(null,"Flags","l","Warnings: hover a flag for what it means"),td:r=>`<td class="l flags">${flagsHTML(r.m)}</td>`},
     {s:"kr",th:()=>th(null,"Past year","","Fund price over the last 12 months"),td:r=>`<td>${sparkSVG(r.m.series.c.filter((_,j)=>j%3===0||j===r.m.series.c.length-1))}</td>`},
   ];
 }
 function renderTable(){
-  const q=S.q.trim().toLowerCase(), code={key:"k",returns:"r",risk:"v"}[S.cols];
+  const q=S.q.trim().toLowerCase(), code={key:"k",returns:"r",risk:"v"}[S.cols], cols=tableCols().filter(c=>!code||c.s.includes(code));
+  // a remembered sort on a column this set doesn't show would order the rows by something hidden: sort by score instead
+  if(!cols.some(c=>c.th().includes(`data-k="${S.sort.k}"`))) S.sort={k:"score",dir:-1};
   const list=rows().filter(r=>(S.filter==="all"||(S.filter==="dm"&&r.dm)||(S.filter==="em"&&!r.dm)||r.region===S.filter) && (!S.ibkr||r.buy) &&
       (!q||(r.name+" "+r.code+" "+r.index.name+" "+r.etf+" "+r.region).toLowerCase().includes(q)||holdingMatch(r)))
     .sort((a,b)=>{ const x=val(a,S.sort.k), y=val(b,S.sort.k); if(x==null) return 1; if(y==null) return -1;
       return (typeof x==="string"?x.localeCompare(y):x-y)*S.sort.dir; });
-  const cols=tableCols().filter(c=>!code||c.s.includes(code));
-  $("#tablebox").innerHTML = list.length? `<table><thead><tr>${cols.map(c=>c.th()).join("")}</tr></thead>
+  $("#tablebox").innerHTML = list.length? `<table class="set-${S.cols}"><thead><tr>${cols.map(c=>c.th()).join("")}</tr></thead>
     <tbody>${list.map((r,i)=>`<tr data-open="${r.code}">${cols.map(c=>c.td(r,i)).join("")}</tr>`).join("")}</tbody></table>`
     : `<p class="loading">No markets match “${esc(S.q)}”.</p>`;
   $("#tablebox").querySelectorAll("th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;
@@ -489,8 +507,8 @@ function holdingMatch(r){
 function glossary(n){ return `<div class="glossary">
   <div><b>Score (0–100)</b> ranks each market against all ${n} on performance against world stocks (3, 6 and 12 months), trend and risk. 50 = middle; 60+ = favoured; under 40 = weak.</div>
   <div><b>Latest session</b> the main index's move in its latest trading session, in its own currency. <span class="open"></span> = trading now.</div>
-  <div><b>Returns in</b> the return columns show what a US-dollar investor got in a US-listed fund for that country (dividends included), the same converted into pounds, or the country's main index in its own currency. The other columns stay in US dollars.</div>
-  <div><b>vs world, 6 mo</b> how far ahead (+) or behind (−) world stocks (MSCI ACWI) over 6 months, in US dollars.</div>
+  <div><b>Returns in</b> the return columns show what an investor got in a US-listed fund for that country (dividends included), in pounds or in US dollars, or the country's main index in its own currency. The other columns stay in US dollars.</div>
+  <div><b>vs world stocks, 6 mo</b> how far ahead (+) or behind (−) world stocks (MSCI ACWI) over 6 months, in US dollars.</div>
   <div><b>Currency, 1 yr</b> the country's currency against the US dollar. + = got stronger, which adds to returns for dollar investors.</div>
   <div><b>Heat (RSI)</b> compares recent gains with recent losses: 70 or more (amber) = sharp run-up; 30 or under (blue) = sharp fall.</div>
   <div><b>Value (0–100)</b> higher = cheaper P/E and a higher dividend yield than the other countries.</div>
@@ -587,7 +605,7 @@ function openDetail(code){
         <div title="${esc(w1==null?"":`Past year in US dollars: ${r.name} ${pct(m.r1y,1)}, world stocks ${pct(w1,1)}`)}"><span>vs world stocks, 1 yr</span><b class="${cls(m.rs1y)}">${aheadBehind(m.rs1y)}</b></div>
         ${riskTile("Biggest drop, 1 yr",`<span class="neg">${pct(m.mdd)}</span>`,"The largest fall from a high point to a later low in the past year, in US dollars.")}
         ${riskTile("Swings (volatility)",m.vol==null?"–":`${pct(m.vol,0,false)} a yr`,"How bumpy the price has been over the last 3 months, scaled to a year. Higher = bigger ups and downs.")}
-        ${riskTile("Heat (RSI)",m.rsi==null?"–":`${m.rsi.toFixed(0)} · ${m.rsi>=70?"hot":m.rsi<=30?"cold":"normal"}`,"Compares the size of recent gains with recent losses over 14 trading days. 70 or more = sharp run-up; 30 or under = sharp fall.")}
+        ${riskTile("Heat",m.rsi==null?"–":`${m.rsi.toFixed(0)} · ${m.rsi>=70?"hot":m.rsi<=30?"cold":"normal"}`,"Heat is the RSI (relative strength index). It compares the size of recent gains with recent losses over 14 trading days. 70 or more = sharp run-up; 30 or under = sharp fall.")}
         ${riskTile("Moves with world",m.corr==null?"–":m.corr.toFixed(2),"Correlation of weekly returns with world stocks over the past year: 1 = in step, 0 = unrelated. Lower = better for spreading risk.")}
         ${riskTile("Swing vs world (beta)",m.betaW==null?"–":`${m.betaW.toFixed(2)}×`,`From weekly returns over the past year: when world stocks moved 1%, ${r.name}'s fund moved about ${m.betaW==null?"–":m.betaW.toFixed(1)}% on average.`)}</div>
       <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:4px">What drives the score</div>

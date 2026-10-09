@@ -117,6 +117,10 @@ const more = (k,body,label="How this works") => `<details class="more" data-k="$
 const fold = (k,title,body,open=false) => `<details class="fold" data-k="${esc(k)}"${open?" open":""}><summary>${title}</summary><div class="fold-body">${body}</div></details>`;
 function secHead({eyebrow="",title,h="h2",lead="",right=""}){
   return `<div class="sec-head"><div class="grow">${eyebrow?`<div class="eyebrow">${eyebrow}</div>`:""}<${h}>${title}</${h}>${lead?`<p>${lead}</p>`:""}</div>${right}</div>`; }
+// a segmented control (one choice from a few, opts = [[value,label],...]); bindSeg moves the pressed state and calls onPick(value)
+const seg=(attr,cur,opts,label)=>`<span class="seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</span>`;
+function bindSeg(root,attr,onPick){ const bs=root.querySelectorAll(`[data-${attr}]`);
+  bs.forEach(b=>b.onclick=()=>{ bs.forEach(x=>x.setAttribute("aria-pressed",x===b)); onPick(b.dataset[attr]); }); }
 
 /* Section tabs. Each page's content is split into views (<div class="view" data-view="...">) shown one at a time;
    the address bar remembers the open one (#rankings), and a link to anything inside a view opens that view. */
@@ -176,6 +180,9 @@ function pickCard({key,name,sub,score,tags=[],spark="",title="",extra=""}){
 }
 // how far to trust the score, from the test on past data; links to the full test
 /* ---------------------------------------------------------------- buying on IBKR and the long run */
+// the 1-year pill on shortlist cards: "+33% vs S&P 500, 1 yr" (never splitting "1 yr"), the full sentence in its tooltip
+const vsPill = (v,bench,extra="") => v==null? "" : tag(esc(`${pct(v,0).replace("-","−")} vs ${bench}, 1\u00a0yr`),near0(v)?"":v>0?"pos":"neg",
+  `title="${esc(`${aheadBehind(v,1)} ${relPrep(v)}${bench} over the past year${extra}`)}"`);
 // b = {ticker, exchange, name, match: "itself" | "same" | "similar", differs}; scored = the fund the score is based on
 function buyMatchTag(b,scored="the fund scored here"){ if(!b) return "";
   return b.match==="itself"? tag("UCITS fund","pos",`title="A UCITS fund: you can buy it directly"`)
@@ -186,15 +193,19 @@ const buyLineHTML = (b,scored) => b? `<div class="buyline">Buy as <span class="t
 function coreCard({eyebrow,title,b,L,main=false}){
   if(!b||!L) return "";
   const y3=L.y3||{}, years=Math.round(L.yearsOfData);
-  return `<div class="card core${main?" main":""}"><div><div class="eyebrow">${eyebrow}</div><h3>${esc(title)}</h3></div>
+  return `<div class="card core${main?" main":""}"><div class="core-hd"><div class="eyebrow">${eyebrow}</div><h3>${esc(title)}</h3></div>
     <div class="buyline">Buy as <span class="tick big">${esc(b.ticker)}</span>${esc(b.exchange)} ${buyMatchTag(b,title)}</div>
     <div class="core-stats">
-      <div title="Average yearly growth over all ${years} years of our data, dividends included, in pounds"><span>Per year over ${years} years</span><b class="${cls(L.annAll)}">${pct(L.annAll,1)}</b></div>
-      <div title="Of every 3-year stretch in our data (one starting each month), the share that ended higher"><span>3-year stretches that gained</span><b>${y3.gainShare==null?"–":pct(y3.gainShare,0,false)}</b></div>
-      <div title="The worst 3-year stretch in our data, as a yearly rate"><span>Worst 3 years, per year</span><b class="${cls(y3.worst)}">${pct(y3.worst,1)}</b></div>
+      <div title="Average yearly growth over all ${years} years of our data, dividends included, in pounds"><span>Per year, ${years} yrs</span><b class="${cls(L.annAll)}">${pct(L.annAll,1)}</b></div>
+      <div title="Of every 3-year stretch in our data (one starting each month), the share that ended higher"><span>3-yr periods up</span><b>${y3.gainShare==null?"–":pct(y3.gainShare,0,false)}</b></div>
+      <div title="The worst 3-year stretch in our data, as a yearly rate"><span>Worst 3 yrs, per yr</span><b class="${cls(y3.worst)}">${pct(y3.worst,1)}</b></div>
       <div title="The largest fall from a high to a later low in our data, in pounds"><span>Biggest fall</span><b class="neg">${pct(L.mdd,0)}</b></div>
     </div>${b.match==="similar"?`<p class="note" style="margin:0">Tracks ${esc(b.differs)}.</p>`:""}</div>`;
 }
+// a commodity priced in US dollars: in pounds first when the pound rate is known (fx = pounds per US dollar), dollars small
+function dollarPrice(m,sym,fx){ const f=v=>sym==="CL=F"? v.toFixed(3) : money(v);
+  return fx? `£${f(m.price*fx)} <small class="alt">$${f(m.price)}</small>` : "$"+f(m.price); }
+const poundLabel = (label,fx) => fx? label.replace("($","(£") : label;
 // the 12-month test of the score (engine.long_hold_test), in words
 function longTestText(lt,{noun,vs}){
   if(!lt) return "<p>The test of holding for a year needs more history.</p>";
@@ -207,12 +218,13 @@ const niceDate = (iso,year=false) => new Date(iso+"T12:00:00Z").toLocaleDateStri
 const cap = s => s? s[0].toUpperCase()+s.slice(1) : s;
 
 /* ---------------------------------------------------------------- svg helpers */
+// one neutral colour: a sparkline's own window often differs from the % figures next to it, so green/red could contradict them
 function sparkSVG(vals,{w=96,h=24,color}={}){
   const v = vals.filter(x=>x!=null); if(v.length<2) return "";
   const mn=Math.min(...v), mx=Math.max(...v), r=mx-mn||1;
   const P = v.map((y,i)=>[i/(v.length-1)*(w-3)+1.5, h-2-(y-mn)/r*(h-4)]);
   const d = P.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join("");
-  const c = color || (v[v.length-1]>=v[0]?"var(--pos)":"var(--neg)");
+  const c = color || "var(--accent)";
   const last = P[P.length-1];
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
     <path d="${d}L${last[0]} ${h}L1.5 ${h}Z" fill="${c}" fill-opacity=".10"/>
@@ -223,16 +235,18 @@ function niceTicks(mn,mx,n=5){ const span=mx-mn||1, step0=span/n, mag=10**Math.f
   const step=[1,2,2.5,5,10].map(s=>s*mag).find(s=>span/s<=n)||mag*10; const out=[];
   for(let v=Math.ceil(mn/step)*step; v<=mx+1e-9; v+=step) out.push(+v.toFixed(10)); return out; }
 
-/* Line chart with hover crosshair. series: [{v:[], color, w, dash, name}] */
-function lineChart(el,{t,series,h=240,fmt=v=>v.toFixed(2),baseline=null,baselineLabel="",area=0}){
+/* Line chart with hover crosshair. series: [{v:[], color, w, dash, name}]; include = values the y-axis must always reach
+   (so a small move isn't blown up to fill the whole chart) */
+function lineChart(el,{t,series,h=240,fmt=v=>v.toFixed(2),baseline=null,baselineLabel="",baselineShort="",area=0,include=[]}){
   if(!el) return;
   const W = Math.max(280, el.clientWidth||600), H=h, L=8, R=58, T=10, B=24;
-  const all = series.flatMap(s=>s.v).filter(v=>v!=null); if(baseline!=null) all.push(baseline);
+  const all = series.flatMap(s=>s.v).filter(v=>v!=null); if(baseline!=null) all.push(baseline); all.push(...include);
   let mn=Math.min(...all), mx=Math.max(...all); const pad=(mx-mn)*.06||1; mn-=pad; mx+=pad;
   const X = i => L + i/(t.length-1)*(W-L-R), Y = v => T + (1-(v-mn)/(mx-mn))*(H-T-B);
-  const ticks = niceTicks(mn,mx,4);
+  const ticks = niceTicks(mn,mx,4), s0=series[0].v, li=s0.length-1, endY = s0[li]==null? null : Y(s0[li]);
+  // a tick label that the end-value tag would cover keeps its gridline but drops its number
   let g = ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${W-R+6}" y="${Y(v)+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">${fmt(v)}</text>`).join("");
+    ${endY!=null&&Math.abs(Y(v)-endY)<15?"":`<text x="${W-R+6}" y="${Y(v)+4}" font-size="11.5" fill="var(--muted)" font-family="var(--mono)">${fmt(v)}</text>`}`).join("");
   const span = (t[t.length-1]-t[0])/86400, years = span>800, short = span<150;
   const seen=new Set(); let xl="";
   // a few weeks of data (the practice portfolios early on): label individual days instead of months
@@ -245,13 +259,16 @@ function lineChart(el,{t,series,h=240,fmt=v=>v.toFixed(2),baseline=null,baseline
       if(short && d.getDate()>=15) return;
       const lab = years? d.getFullYear() : d.toLocaleString(undefined,{month:"short"});
       xl+=`<text x="${X(i)}" y="${H-6}" font-size="11" fill="var(--muted)" text-anchor="middle">${lab}</text>`; }});
-  if(baseline!=null) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(baseline)}" y2="${Y(baseline)}" stroke="var(--faint)" stroke-dasharray="3 3"/>`+
-    (baselineLabel?`<text x="${L+4}" y="${Y(baseline)-5}" font-size="11" fill="var(--muted)">${esc(baselineLabel)}</text>`:"");
+  if(baseline!=null) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(baseline)}" y2="${Y(baseline)}" stroke="var(--faint)" stroke-dasharray="3 3"/>`;
+  // the baseline's name sits at the right end, on the side of the line away from where the lines finish, with a halo
+  const ends=series.map(s=>lastVal(s.v)).filter(v=>v!=null), above=ends.filter(v=>v>baseline).length, below=ends.length-above;
+  const blText = baselineShort&&textW(baselineLabel,12)>W-L-R-30? baselineShort : baselineLabel;  // the short name on a narrow chart
+  const bl = baseline!=null&&baselineLabel? `<text x="${W-R-10}" y="${above>below? Y(baseline)+15 : Y(baseline)-6}" text-anchor="end" font-size="12" fill="var(--muted)"
+    paint-order="stroke" stroke="var(--surface)" stroke-width="4" stroke-linejoin="round">${esc(blText)}</text>` : "";
   const paths = series.map((s,si)=>{ let d="",on=false;
     s.v.forEach((v,i)=>{ if(v==null){on=false;return;} d+=(on?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1); on=true; });
     const fill = (si===0&&area) ? `<path d="${d}L${X(s.v.length-1)} ${H-B}L${X(s.v.findIndex(v=>v!=null))} ${H-B}Z" fill="${s.color}" fill-opacity=".08"/>` : "";
-    return fill+`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w||1.6}" ${s.dash?`stroke-dasharray="${s.dash}"`:""} stroke-linejoin="round"/>`; }).join("");
-  const s0=series[0].v, li=s0.length-1;
+    return fill+`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w||1.6}" ${s.dash?`stroke-dasharray="${s.dash}"`:""} stroke-linejoin="round"/>`; }).join("")+bl;
   const end = s0[li]==null? "" : `<circle cx="${X(li)}" cy="${Y(s0[li])}" r="3.5" fill="${series[0].color}"/>
     <rect x="${W-R+2}" y="${Y(s0[li])-9}" width="${R-4}" height="18" rx="4" fill="${series[0].color}"/>
     <text x="${W-R+6}" y="${Y(s0[li])+4}" font-size="11" fill="var(--surface)" font-family="var(--mono)">${fmt(s0[li])}</text>`;
@@ -271,18 +288,70 @@ function showTip(e){ const tip=$("#tip"); tip.hidden=false;
 
 /* Diverging horizontal bars: items [{label, v, sub}] */
 function barsSVG(items,{fmt=v=>pct(v,1)}={}){
-  const W=560, rowH=30, L=150, R=70, H=items.length*rowH+8;
+  // On a phone the chart is drawn at about its real width (so the text isn't shrunk below 12px) and drops the notes
+  // (they stay in each label's hover text). Elsewhere the label column fits the longest label plus its note
+  // (e.g. "Strong overweight  770 cases"), within limits.
+  const narrow=innerWidth<720, W=narrow? Math.max(300,innerWidth-64) : 560, rowH=30, R=narrow?8:70, H=items.length*rowH+8;
+  const need=Math.max(...items.map(x=>textW(x.label,12.5)+(!narrow&&x.sub?textW(x.sub,12)+18:0)+14));
+  const L=Math.round(narrow? Math.min(W*0.34,need) : Math.min(250,Math.max(150,need)));
   // the longest bar stops short of the labels on either side, leaving room for its value
   const mx=Math.max(0.001,...items.map(x=>Math.abs(x.v??0))), zero=L+(W-L-R)/2, scale=((W-L-R)/2-46)/mx;
   const rows=items.map((x,i)=>{ const y=4+i*rowH, v=x.v??0, w=Math.abs(v)*scale, x0=v>=0?zero:zero-w;
-    return `<text x="0" y="${y+18}" font-size="12.5" fill="var(--ink)">${esc(x.label)}</text>
-      ${x.sub?`<text x="${L-8}" y="${y+18}" font-size="11" fill="var(--faint)" text-anchor="end">${esc(x.sub)}</text>`:""}
+    return `<text x="0" y="${y+18}" font-size="12.5" fill="var(--ink)">${x.sub?`<title>${esc(x.label+": "+x.sub)}</title>`:""}${esc(x.label)}</text>
+      ${x.sub&&!narrow?`<text x="${L-8}" y="${y+18}" font-size="12" fill="var(--muted)" text-anchor="end">${esc(x.sub)}</text>`:""}
       <rect x="${x0}" y="${y+6}" width="${Math.max(1,w)}" height="16" rx="3" fill="${v>=0?"var(--pos)":"var(--neg)"}" fill-opacity=".85"/>
       <text x="${v>=0?x0+w+6:x0-6}" y="${y+18}" font-size="12" font-family="var(--mono)" fill="var(--ink)" text-anchor="${v>=0?"start":"end"}">${esc(x.v==null?"–":fmt(x.v))}</text>`; }).join("");
   return `<svg viewBox="0 0 ${W} ${H}" role="img"><line x1="${zero}" x2="${zero}" y1="0" y2="${H}" stroke="var(--line)"/>${rows}</svg>`;
 }
 
-/* Relative rotation graph. items: [{key, label, title, rrg:[[x,y]...], quad}]; vs = short name of what they're compared with */
+/* ---------------------------------------------------------------- chart labels */
+// width of a line of text in the page's body font (Barlow), for laying out chart labels; a wider fallback font only adds room
+const textW = (()=>{ let cx=null; return (t,fs=12,wt=400)=>{ try{ cx=cx||document.createElement("canvas").getContext("2d");
+  cx.font=`${wt} ${fs}px Barlow, system-ui, sans-serif`; return cx.measureText(String(t)).width; }catch(e){ return String(t).length*fs*0.55; } }; })();
+/* Put each label beside its dot without covering another label, another dot or the chart's edge.
+   pts: [{x,y,t,t2}] in the order to place them (t2 = an optional short name, e.g. a code); box: {x0,y0,x1,y1} the labels
+   must stay inside; avoid: space already taken ({x,y,w,h}, y = top). Three passes: full names where they fit; then the
+   short name for points still unlabelled; then, with every = true, a last resort (short name, else full) at the free-est
+   spot inside the chart even if it overlaps, so every dot keeps a name. Without every, a point with no room keeps only its
+   dot, with the name in its hover or tap text. Each placed point gets lt (the text used), lx, ly (start-anchored baseline),
+   lw, and lead = placed away from its dot (draw a line to it). */
+function placeLabels(pts,{box,fs=11.5,avoid=[],dots=pts,r=6,far=false,every=false}){
+  const taken=avoid.slice(), h=fs+3;
+  const inBox=b=> b.x>=box.x0&&b.x+b.w<=box.x1&&b.y>=box.y0&&b.y+b.h<=box.y1;
+  const hits=b=> taken.filter(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y).length
+    + dots.filter(d=>d.x+r>b.x&&d.x-r<b.x+b.w&&d.y+r>b.y&&d.y-r<b.y+b.h).length;
+  const offsets=(w,wide)=>{ const o=[[8,-h/2],[-8-w,-h/2],[6,-h-3],[-6-w,-h-3],[6,3],[-6-w,3],[-w/2,-h-7],[-w/2,7]];
+    return wide? o.concat([1,2,3,4].flatMap(k=>[[12,-h/2-k*h],[12,-h/2+k*h],[-12-w,-h/2-k*h],[-12-w,-h/2+k*h]])) : o; };
+  const put=(p,t,b,ox,oy)=>{ taken.push(b); Object.assign(p,{lt:t,lx:b.x,ly:b.y+fs,lw:b.w,lead:Math.abs(oy+h/2)>=h&&Math.abs(ox)>=12}); };
+  const fit=(p,t)=>{ const w=textW(t,fs)+3;
+    for(const [ox,oy] of offsets(w,far)){ const b={x:p.x+ox,y:p.y+oy,w,h}; if(inBox(b)&&!hits(b)){ put(p,t,b,ox,oy); return true; } }
+    return false; };
+  pts.forEach(p=>fit(p,p.t));
+  pts.forEach(p=>{ if(p.lx==null&&p.t2&&p.t2!==p.t) fit(p,p.t2); });
+  if(every) pts.forEach(p=>{ if(p.lx!=null) return; const t=p.t2||p.t, w=textW(t,fs)+3;
+    // the spot next to the dot that covers the fewest other names and dots; pulled inside the chart if it would stick out
+    const cands=offsets(w,false).map(([ox,oy])=>{ const b={x:Math.min(Math.max(p.x+ox,box.x0),box.x1-w),y:Math.min(Math.max(p.y+oy,box.y0),box.y1-h),w,h}; return {b,ox,oy,n:hits(b)}; });
+    const best=cands.reduce((a,c)=>c.n<a.n?c:a); put(p,t,best.b,best.ox,best.oy); });
+  return pts;
+}
+// draw the labels placeLabels found room for (ink text with a halo, so trails behind stay readable)
+const labelsSVG = (pts,fs=11.5,attr=p=>"") => pts.filter(p=>p.lx!=null).map(p=>
+  (p.lead?`<line x1="${p.x}" y1="${p.y}" x2="${p.lx<p.x?p.lx+p.lw:p.lx}" y2="${p.ly-fs/3}" stroke="var(--faint)" stroke-width="1"/>`:"")+
+  `<text x="${p.lx}" y="${p.ly}" font-size="${fs}" fill="var(--ink)" paint-order="stroke" stroke="var(--surface)" stroke-width="3" stroke-linejoin="round" ${attr(p)}>${esc(p.lt??p.t)}</text>`).join("");
+// a quadrant's name in a chart corner: ink text marked with a dot of the quadrant's colour; its space goes into taken
+function quadName(x,y,anchor,colour,name,sub,below,taken){
+  const end=anchor==="end", tx=end?x-13:x+13, dx=end?x-4:x+4, sy=below?y+14:y-15;
+  const w=Math.max(textW(name,12,600),sub?textW(sub,12):0)+16;
+  if(taken) taken.push({x:end?x-w:x, y:Math.min(y,sub?sy:y)-12, w, h:(sub?Math.abs(sy-y):0)+16});
+  return `<circle cx="${dx}" cy="${y-4}" r="4" fill="${colour}"/><text x="${tx}" y="${y}" text-anchor="${anchor}" font-size="12" font-weight="600" fill="var(--ink)">${name}</text>
+    ${sub?`<text x="${tx}" y="${sy}" text-anchor="${anchor}" font-size="12" fill="var(--muted)">${sub}</text>`:""}`;
+}
+// the key above a rotation map or the cycle clock: what the big dot and its tail show
+const trailKey = tail => `<div class="chartkey"><span><i class="k-dot"></i>Big dot = today</span><span><i class="k-tail"></i>Line = ${tail}</span></div>`;
+
+/* Relative rotation graph. items: [{key, label, short, title, rrg:[[x,y]...], quad}] (short = a code for tight spots);
+   vs = short name of what they're compared with.
+   Each tail is engine.rrg's weekly points: today and the 5 weeks before. */
 function rrgChart(el,items,{vs="the market"}={}){
   const W=Math.max(300,el.clientWidth||520), H=Math.round(Math.min(W*0.85,520)), P=34;
   const all=items.flatMap(r=>r.rrg); if(!all.length){el.innerHTML='<p class="muted">Not enough history.</p>';return;}
@@ -290,30 +359,30 @@ function rrgChart(el,items,{vs="the market"}={}){
   const ex=ext(all.map(p=>p[0])), ey=ext(all.map(p=>p[1]));
   const X=v=>P+(v-100+ex)/(2*ex)*(W-2*P), Y=v=>H-P-(v-100+ey)/(2*ey)*(H-2*P);
   const qcol={Leading:"var(--pos)",Weakening:"var(--warn)",Lagging:"var(--neg)",Improving:"var(--info)"};
-  const cx=X(100), cy=Y(100);
-  const corner=(x,y,anchor,colour,name,sub,below)=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="12" font-weight="600" fill="${colour}">${name}</text>
-    <text x="${x}" y="${below?y+13:y-14}" text-anchor="${anchor}" font-size="10.5" fill="${colour}" fill-opacity=".85">${sub}</text>`;
+  // on a phone-width chart the corner names lose their second line, which would run into each other
+  const cx=X(100), cy=Y(100), taken=[], sub=t=>W<480?"":t;
   let s=`<rect x="${cx}" y="${P}" width="${W-P-cx}" height="${cy-P}" fill="var(--pos)" fill-opacity=".06"/>
     <rect x="${cx}" y="${cy}" width="${W-P-cx}" height="${H-P-cy}" fill="var(--warn)" fill-opacity=".06"/>
     <rect x="${P}" y="${cy}" width="${cx-P}" height="${H-P-cy}" fill="var(--neg)" fill-opacity=".06"/>
     <rect x="${P}" y="${P}" width="${cx-P}" height="${cy-P}" fill="var(--info)" fill-opacity=".06"/>
     <line x1="${P}" x2="${W-P}" y1="${cy}" y2="${cy}" stroke="var(--line)"/><line x1="${cx}" x2="${cx}" y1="${P}" y2="${H-P}" stroke="var(--line)"/>
-    ${corner(W-P-6,P+16,"end","var(--pos)","LEADING","ahead, pulling away",true)}
-    ${corner(W-P-6,H-P-8,"end","var(--warn)","WEAKENING","ahead, losing ground",false)}
-    ${corner(P+6,H-P-8,"start","var(--neg)","LAGGING","behind, slipping",false)}
-    ${corner(P+6,P+16,"start","var(--info)","IMPROVING","behind, catching up",true)}
-    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">Doing better than ${esc(vs)} →</text>
-    <text x="12" y="${H/2}" text-anchor="middle" font-size="11" fill="var(--muted)" transform="rotate(-90 12 ${H/2})">Gaining ground →</text>`;
-  const labels=[];
+    ${quadName(W-P-6,P+16,"end",qcol.Leading,"LEADING",sub("ahead, pulling away"),true,taken)}
+    ${quadName(W-P-6,H-P-8,"end",qcol.Weakening,"WEAKENING",sub("ahead, losing ground"),false,taken)}
+    ${quadName(P+6,H-P-8,"start",qcol.Lagging,"LAGGING",sub("behind, slipping"),false,taken)}
+    ${quadName(P+6,P+16,"start",qcol.Improving,"IMPROVING",sub("behind, catching up"),true,taken)}
+    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">Doing better than ${esc(vs)} →</text>
+    <text x="12" y="${H/2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${H/2})">Gaining ground →</text>`;
+  const dots=[];
   items.forEach(r=>{ const tl=r.rrg, c=qcol[r.quad]||"var(--muted)", last=tl[tl.length-1];
     s+=`<polyline points="${tl.map(p=>X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join(" ")}" fill="none" stroke="${c}" stroke-opacity=".45" stroke-width="1.4"/>`;
     tl.slice(0,-1).forEach(p=>s+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="1.8" fill="${c}" fill-opacity=".45"/>`);
-    s+=`<circle cx="${X(last[0])}" cy="${Y(last[1])}" r="5" fill="${c}" stroke="var(--surface)" stroke-width="1.5" data-open="${esc(r.key)}" style="cursor:pointer"><title>${esc(r.title||r.label)}: ${esc(r.quad)}, ${esc(QUAD_PLAIN[r.quad]||"")} vs ${esc(vs)}</title></circle>`;
-    labels.push({x:X(last[0]),y:Y(last[1]),t:r.label.length>18?r.label.slice(0,17)+"…":r.label,key:r.key});
+    dots.push({x:X(last[0]),y:Y(last[1]),t:r.label,t2:r.short||r.key,key:r.key,d:Math.hypot((last[0]-100)/ex,(last[1]-100)/ey),c,r});
   });
-  labels.sort((a,b)=>a.y-b.y); const placed=[];
-  labels.forEach(l=>{ let y=l.y-8; while(placed.some(p=>Math.abs(p.y-y)<12&&Math.abs(p.x-l.x)<(l.t.length*6.5+10))) y+=12; placed.push({x:l.x,y});
-    const right=l.x>W-130; s+=`<text x="${l.x+(right?-8:8)}" y="${y}" text-anchor="${right?"end":"start"}" font-size="11.5" fill="var(--ink)" data-open="${esc(l.key)}" style="cursor:pointer">${esc(l.t)}</text>`; });
+  dots.forEach(p=>s+=`<circle cx="${p.x}" cy="${p.y}" r="5" fill="${p.c}" stroke="var(--surface)" stroke-width="1.5" data-open="${esc(p.key)}" style="cursor:pointer"><title>${esc(p.r.title||p.r.label)}: ${esc(p.r.quad)}, ${esc(QUAD_PLAIN[p.r.quad]||"")} vs ${esc(vs)}</title></circle>`);
+  // full names, placed outermost first (the crowded middle takes what room is left), never past the chart's edge;
+  // where a full name has no room, its short name (a code); every dot keeps a name
+  placeLabels(dots.slice().sort((a,b)=>b.d-a.d),{box:{x0:P+2,y0:P+2,x1:W-P-2,y1:H-P-2},avoid:taken,far:true,every:true});
+  s+=labelsSVG(dots,11.5,p=>`data-open="${esc(p.key)}" style="cursor:pointer"`);
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rotation map">${s}</svg>`;
 }
 
@@ -428,7 +497,7 @@ function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
     return `<tr><td title="${esc(partTip(k,vsShort))}">${esc(partName(k,vsShort))}</td><td>${Math.round((engineWeights[k]||0)*100)}%</td><td class="${e[0]}">${e[1]}</td><td>${confText(v.t)}</td></tr>`; }).join("");
   const c=bt.curves, end=k=>Math.round(c[k][c[k].length-1]*100);
   const worst=bt.worstMonth, strongHit=b["Strong overweight"]&&b["Strong overweight"].hit;
-  const vsWord=esc(vsShort);
+  const vsWord=esc(vsShort); btVs=vsShort;
   return `<section id="track">
     ${secHead({eyebrow:`Testing the score on the past · ${years} years · ${bt.months} months`,title:"Has the score worked?",
       lead:`Replaying the past month by month, the top-scored 20% of ${esc(noun)} went on to ${esc(beatTrail(bt.topAnn,vsShort,true))}, while the lowest-scored 20% ${esc(beatTrail(bt.botAnn,"it"))}.`})}
@@ -437,21 +506,22 @@ function backtestSection(bt,{noun,one,vs,vsShort,vsList=""}){
       <div class="hero n6">
         ${stat({label:"Top-scored 20%, per year",ico:"up",value:aheadBehind(bt.topAnn),tone:cls(bt.topAnn),sub:`${relPrep(bt.topAnn)}${vsWord}, on average`})}
         ${stat({label:"Lowest-scored 20%, per year",ico:"down",value:aheadBehind(bt.botAnn),tone:cls(bt.botAnn),sub:`${relPrep(bt.botAnn)}${vsWord}, on average`})}
-        ${stat({label:"Gap between them, per year",ico:"bars",value:betterWorse(bt.spreadAnn),tone:cls(bt.spreadAnn),sub:`Reliability: ${confText(bt.spreadT)}. 2 or more means unlikely to be luck.`})}
+        ${stat({label:"Gap between them, per year",ico:"bars",value:betterWorse(bt.spreadAnn),tone:cls(bt.spreadAnn),sub:(bt.spreadT??0)>=2?"Unlikely to be luck: it held up month after month.":"Could be luck: it swung a lot from month to month."})}
         ${stat({label:"Months the top group won",ico:"award",value:`${won} of ${bt.months}`,body:meter(bt.hit,"var(--accent)"),sub:"A coin toss would win about half."})}
         ${stat({label:"After trading costs, per year",ico:"trend",value:aheadBehind(bt.topNetAnn),tone:cls(bt.topNetAnn),sub:`top group ${relPrep(bt.topNetAnn)}${vsWord}, paying ${pct(bt.costPerTrade,2,false)} per trade`})}
         ${stat({label:"Last 12 months, top vs lowest",value:betterWorse(bt.recentSpreadAnn),tone:cls(bt.recentSpreadAnn),sub:`in total; the top group won ${wonRecent} of 12 months. One year is too short to judge.`})}
       </div>
       <div class="two">
-        <div class="card chartbox"><div class="row"><span class="eyebrow">Top vs lowest group, relative to the market</span></div>
+        <div class="card chartbox"><div class="row"><span class="eyebrow">Top vs lowest group, relative to ${vsWord}</span></div>
           <div class="row"><span class="key"><i style="background:var(--pos)"></i>Top-scored 20%</span><span class="key"><i style="background:var(--faint)"></i>All ${esc(noun)} (average)</span><span class="key"><i style="background:var(--neg)"></i>Lowest-scored 20%</span></div>
-          <div id="btchart"></div>${more("bt-chart",`<p>These lines track performance compared with ${esc(vs)}, not the value of an investment (which also rose and fell with the market). Each group's monthly result against the market is compounded, starting from 100.</p><p>By ${esc(monthYear(bt.to))} the top group was at ${end("top")} (${aheadBehind(end("top")/100-1,0)} ${relPrep(end("top")/100-1)}the market over the whole period), the lowest group at ${end("bot")}, and the average of all ${esc(noun)} at ${end("mid")}${end("mid")<100?", so the typical one lagged the market over this period":""}. Groups were re-picked every month, with no trading costs or taxes.</p>`,"How to read this chart")}</div>
+          <div id="btchart"></div>${more("bt-chart",`<p>These lines track performance compared with ${esc(vs)}, not the value of an investment (which also rose and fell with the market). Each group's monthly result against the market is compounded, starting from 100.</p><p>By ${esc(monthYear(bt.to))} the top group was at ${end("top")} (${aheadBehind(end("top")/100-1,0)} ${relPrep(end("top")/100-1)}${vsWord} over the whole period), the lowest group at ${end("bot")}, and the average of all ${esc(noun)} at ${end("mid")}${end("mid")<100?`, so the typical one lagged ${vsWord} over this period`:""}. Groups were re-picked every month, with no trading costs or taxes.</p>`,"How to read this chart")}</div>
         <div class="card panel"><div class="eyebrow" style="margin-bottom:8px">How each rating did next (per year, vs ${vsWord})</div>
           <div class="bars">${barsSVG(order.map(k=>({label:k,v:b[k].ann,sub:`${b[k].n.toLocaleString()} cases`})),{fmt:v=>Math.abs(v)<0.0005?"0.0%":pct(v,1)})}</div>
           ${more("bt-bars",`<p>Every time a ${esc(one)} had that rating, we measured how it did over the next month compared with ${esc(vs)}, then scaled the average up to a yearly rate (monthly average × 12). + = ahead, − = behind.${strongHit!=null?` Even "Strong overweight" ${esc(noun)} were ahead in only ${pct(strongHit,0,false)} of those cases.`:""}</p>`,"How to read this chart")}</div>
       </div>
       <div class="acc">
-        ${fold("bt-how",`How the test works`,`<p>We replayed the past. At the end of every month since ${esc(monthYear(bt.from))}, we scored every one of the ${esc(noun)} using only the prices known at the time, with the same recipe as today. Then we checked whether each did better or worse over the next month than ${esc(vs)}${vsList?`: ${esc(vsList)}`:""}. This is a simulation, not a record of real trades. About ${Math.round(bt.avgFunds)} ${esc(noun)} were in the test each month.</p>`)}
+        ${fold("bt-how",`How the test works`,`<p>We replayed the past. At the end of every month since ${esc(monthYear(bt.from))}, we scored every one of the ${esc(noun)} using only the prices known at the time, with the same recipe as today. Then we checked whether each did better or worse over the next month than ${esc(vs)}${vsList?`: ${esc(vsList)}`:""}. This is a simulation, not a record of real trades. About ${Math.round(bt.avgFunds)} ${esc(noun)} were in the test each month.</p>
+          <p><b>Could it be luck?</b> A t-statistic compares the average gap between the top and lowest groups with how much it wobbled from month to month; 2 or more means the gap is unlikely to be luck. Here it is ${bt.spreadT==null?"–":tval(bt.spreadT)}, so: ${(bt.spreadT??0)>=2?"unlikely to be luck":"it could be luck"}.</p>`)}
         ${fold("bt-full",`The full result, in words`,`<p>${esc(text)}</p><p>About ${pct(bt.turnover,0,false)} of the top group changed each month (about ${Math.round(bt.turnover*group)} of ${group}).</p>`)}
         ${fold("bt-strict",`Stricter checks <small>first half against second half, and after trading costs</small>`,strictChecks(bt,vsShort))}
         ${fold("bt-parts",`Which parts of the score helped?`,`<div style="overflow-x:auto"><table class="comp"><thead><tr><th>Part of the score</th><th>Share of score</th><th>Effect on the next month</th><th title="A t-statistic: how sure we can be the effect isn't luck">Reliability</th></tr></thead><tbody>${comp}</tbody></table></div>
@@ -478,12 +548,12 @@ function strictChecks(bt,vsShort){
       After estimated trading costs (${pct(bt.costPerTrade,2,false)} per trade, about ${pct(bt.costAnn,1,false)} a year at this level of swapping), the top-scored group was ${aheadBehind(bt.topNetAnn)} ${relPrep(bt.topNetAnn)}${esc(vsShort)} a year on average.
       Any future change to the score's recipe has to beat the current one on the first half and then again on the second half, which it never saw, before it is adopted.</p>`;
 }
-let engineWeights = {};
+let engineWeights = {}, btVs = "the market";  // btVs: what the test compares with, set by backtestSection
 function drawBacktest(bt){
   if(!bt||!$("#btchart")) return;
   const c=bt.curves;
   lineChart($("#btchart"),{t:c.t,series:[{v:c.top.map(v=>v*100),color:"var(--pos)",name:"Top 20%",w:2},{v:c.mid.map(v=>v*100),color:"var(--faint)",name:"All (average)",w:1.4},{v:c.bot.map(v=>v*100),color:"var(--neg)",name:"Lowest 20%",w:2}],
-    h:230,baseline:100,baselineLabel:"100 = level with the market",fmt:v=>v.toFixed(0)});
+    h:230,baseline:100,baselineLabel:`100 = level with ${btVs}`,baselineShort:"100 = level",fmt:v=>v.toFixed(0)});
 }
 
 /* ---------------------------------------------------------------- practice portfolios (live test) */
@@ -526,15 +596,17 @@ function drawPaper(p,cur,mkt){
   const L=p[cur], s=[{v:L.top,color:"var(--pos)",name:"Top",w:2},{v:L.bottom,color:"var(--neg)",name:"Lowest",w:2}];
   if(mkt) s.push({v:L.mkt,color:"var(--accent)",name:"Markets",w:1.4});
   s.push({v:L.world,color:"var(--faint)",name:"World",w:1.4});
-  lineChart(el,{t:p.t,series:s,h:220,baseline:10000,fmt:v=>moneyIn(v,cur)});
+  // the axis always spans at least 3% either side of the starting 10,000, so a few pounds' move doesn't look like a big one
+  lineChart(el,{t:p.t,series:s,h:220,baseline:10000,include:[9700,10300],fmt:v=>moneyIn(v,cur)});
 }
 /* Signal changes recorded from the daily snapshots: the latest few as cards, the rest folded away */
 function changesSection(ch,{nameOf,noun}){
   const list=(ch&&ch.changes||[]).slice().reverse().slice(0,80), rank=s=>SIG_ORDER.indexOf(s);
   const ups=list.filter(c=>rank(c.to)<rank(c.from)).length, downs=list.length-ups, since=ch&&ch.since;
+  // name and date on the first line, the from → to signals underneath
   const row=c=>{ const up=rank(c.to)<rank(c.from);
-    return `<div class="chcard" data-open="${esc(c.key)}" role="button" tabindex="0" title="${esc(SIGNAL_HELP[c.to]||"")}"><span class="chcard-ico ${up?"pos":"neg"}">${icon(up?"up":"down",15)}</span>
-      <span class="chcard-nm"><b>${esc(nameOf(c.key))}</b><small>${esc(niceDate(c.date))}${c.live?" · today, can still change":""}</small></span>
+    return `<div class="chcard" data-open="${esc(c.key)}" role="button" tabindex="0" title="${esc((SIGNAL_HELP[c.to]||"")+(c.live?" Today's change is live and can still change before the close.":""))}"><span class="chcard-ico ${up?"pos":"neg"}">${icon(up?"up":"down",15)}</span>
+      <span class="chcard-nm"><b>${esc(nameOf(c.key))}</b><small>${esc(niceDate(c.date))}${c.live?" (today)":""}</small></span>
       <span class="chcard-sig">${sigPill(c.from)}<span class="muted">→</span>${sigPill(c.to)}</span></div>`; };
   const head=secHead({eyebrow:"Signal changes",title:"What changed recently",
     lead: list.length? `${list.length} change${list.length>1?"s":""} since daily snapshots began on ${esc(niceDate(since))}: ${ups} up a band, ${downs} down.` : `Daily snapshots began on ${esc(since?niceDate(since):"today")}.`});

@@ -133,9 +133,9 @@ def backdrop_read(macro, world_m, smh_rel, eem_rel):
     oil = g("CL=F", "r3m")
     if oil is not None:
         if oil >= 0.10:
-            rule("Oil rising", True, f"Oil is up {oil:.0%} over 3 months: a boost for markets full of oil and gas companies, and a cost for countries that import a lot of oil.", tail=["oil"], head=["oil_user"])
+            rule("Oil rising", True, f"Oil is up {oil:.0%} over 3 months: a boost for oil-heavy markets, a cost for big oil importers.", tail=["oil"], head=["oil_user"])
         elif oil <= -0.10:
-            rule("Oil falling", True, f"Oil is down {abs(oil):.0%} over 3 months: relief for countries that import a lot of oil, a hit to markets full of oil and gas companies.", tail=["oil_user"], head=["oil"])
+            rule("Oil falling", True, f"Oil is down {abs(oil):.0%} over 3 months: relief for big oil importers, a hit to oil-heavy markets.", tail=["oil_user"], head=["oil"])
         else:
             rule("Oil", False, f"Oil is {updown(oil)} {abs(oil):.0%} over 3 months: not enough to matter (the rule needs a 10% move).")
     cu = g("HG=F", "r3m")
@@ -148,12 +148,12 @@ def backdrop_read(macro, world_m, smh_rel, eem_rel):
             rule("Metals", False, f"Copper, a gauge of demand for industrial metals, is {updown(cu)} {abs(cu):.0%} over 3 months: not enough to matter (the rule needs an 8% move).")
     vix, vs200 = g("^VIX", "price"), (world_m or {}).get("vs200")
     if vix is not None and vs200 is not None:
-        trend = f"world stocks are {abs(vs200):.1%} {'above' if vs200 >= 0 else 'below'} their average price over the last 200 trading days (about 10 months)"
+        trend = f"world stocks are {abs(vs200):.1%} {'above' if vs200 >= 0 else 'below'} their 200-day (about 10-month) average"
         if vix >= 25 or vs200 < 0:
             why = f"The fear gauge (VIX) is {'high' if vix >= 25 else 'at'} {vix:.1f}{' (over 25 = stressed)' if vix >= 25 else ''}, and {trend}."
-            rule("Investors nervous", True, f"{why} When investors are nervous, steadier markets tend to hold up better and emerging markets suffer most.", tail=["haven"], head=["em", "fragile"])
+            rule("Investors nervous", True, f"{why} Steadier markets then tend to hold up better, and emerging markets suffer most.", tail=["haven"], head=["em", "fragile"])
         elif vix <= 18 and vs200 > 0:
-            rule("Investors confident", True, f"The fear gauge (VIX) is a calm {vix:.1f} (18 or less), and {trend}. When investors feel confident, emerging markets usually benefit.", tail=["em"])
+            rule("Investors confident", True, f"The fear gauge (VIX) is a calm {vix:.1f} (18 or less), and {trend}. Emerging markets usually benefit.", tail=["em"])
         else:
             rule("Investor mood", False, f"The fear gauge (VIX) is {vix:.1f}, and {trend}: a mixed picture, so no push either way.")
     if smh_rel is not None:

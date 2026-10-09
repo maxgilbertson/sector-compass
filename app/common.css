@@ -70,9 +70,11 @@ section{margin-top:28px}
 .tile{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .tile .lab{font-size:12.5px;color:var(--muted);font-weight:500}
 .tile .val{font-family:var(--mono);font-size:20px;font-weight:500;letter-spacing:-.02em}
-.tile .chg{font-family:var(--mono);font-size:12px;display:flex;gap:10px}
-.tile .hint{font-size:11.5px;color:var(--faint);line-height:1.35;margin-top:2px}
+.tile .chg{font-family:var(--mono);font-size:12px;display:flex;flex-wrap:wrap;gap:0 10px}
+.tile .chg>span:not(.muted){white-space:nowrap}
+.tile .hint{font-size:12px;color:var(--muted);line-height:1.35;margin-top:2px}
 .tile svg{width:100%;height:30px;margin-top:4px}
+.tile .val small.alt{font-size:12.5px;color:var(--muted);letter-spacing:0;margin-left:4px}
 
 /* ideas */
 .ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -101,16 +103,22 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;tex
 th{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--surface);cursor:pointer;user-select:none;z-index:2}
 th:hover{color:var(--ink)}
 th[data-dir]::after{content:attr(data-dir);margin-left:3px;color:var(--accent)}
+/* long headers ("Score chg (wk)") and the flags may wrap when a column set is wide, so more of it fits without scrolling */
+thead th{white-space:normal;vertical-align:bottom;line-height:1.25}
+@media (max-width:720px){thead th{white-space:nowrap}}
+td.flags{white-space:normal;min-width:150px}
+table:not(.set-key) td.buycell small{display:block;margin-top:3px;font-size:12px}  /* under the ticker when the column set is wide */
+td.flags .flag{display:inline-block;white-space:nowrap;margin:1px 0 1px 3px}
 th.l,td.l{text-align:left}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:color-mix(in oklab,var(--accent) 6%,var(--surface))}
 tbody tr:last-child td{border-bottom:0}
 td.sticky,th.sticky{position:sticky;left:0;background:var(--surface);z-index:1;box-shadow:1px 0 0 var(--line)}
 th.sticky{z-index:3}
-.nmcell{display:flex;flex-direction:column;line-height:1.25;min-width:190px;max-width:240px;white-space:normal}
+.nmcell{display:flex;flex-direction:column;line-height:1.25;min-width:190px;max-width:300px;white-space:normal}
 .nmcell b{font-weight:600}
 .nmcell small{color:var(--muted);font-size:11.5px;font-family:var(--mono)}
-.rank{color:var(--faint);font-family:var(--mono);font-size:12px;width:28px}
+.rank{color:var(--muted);font-family:var(--mono);font-size:12px;width:28px}
 .scorecell{display:flex;align-items:center;gap:8px;min-width:150px}
 .bar{flex:0 0 56px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:3px}
@@ -125,7 +133,7 @@ th.sticky{z-index:3}
 .trend{display:inline-flex;gap:2px}
 .trend i{width:7px;height:12px;border-radius:2px;background:var(--line)}
 .trend i.on{background:var(--pos)}
-.flag{font-size:11px;padding:1px 6px;border-radius:4px;margin-left:3px;font-weight:500}
+.flag{font-size:12px;padding:1px 6px;border-radius:4px;margin-left:3px;font-weight:500}
 .f-warn{color:var(--warn);background:color-mix(in oklab,var(--warn) 14%,transparent)}
 .f-neg{color:var(--neg);background:color-mix(in oklab,var(--neg) 12%,transparent)}
 .f-pos{color:var(--pos);background:color-mix(in oklab,var(--pos) 12%,transparent)}
@@ -134,14 +142,14 @@ th.sticky{z-index:3}
 .spark{width:96px;height:24px;display:block}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .facts div{background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
-.facts span{font-size:11.5px;color:var(--muted)}
+.facts span{font-size:12px;color:var(--muted)}
 .facts b{font-family:var(--mono);font-weight:500;font-size:17px}
-.facts small{font-size:11.5px;color:var(--faint);line-height:1.35}
+.facts small{font-size:12px;color:var(--muted);line-height:1.35}
 .tops{display:flex;flex-direction:column;line-height:1.25;font-size:12.5px;max-width:220px;white-space:normal}
-.tops small{color:var(--muted);font-family:var(--mono);font-size:11px}
+.tops small{color:var(--muted);font-family:var(--mono);font-size:11.5px}
 .tops mark{background:color-mix(in oklab,var(--accent) 18%,transparent);color:var(--ink);padding:1px 5px;border-radius:4px}
 .holds{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(60px,160px) auto;gap:7px 12px;align-items:center;font-size:14px}
-.holds .hr{font-family:var(--mono);font-size:12px;color:var(--faint);text-align:right}
+.holds .hr{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
 .holds .hn{min-width:0;overflow-wrap:anywhere}
 .holds a{font-family:var(--mono);font-size:11.5px;color:var(--accent);text-decoration:none;margin-left:4px}
 .holds a:hover{text-decoration:underline}
@@ -151,7 +159,7 @@ th.sticky{z-index:3}
 .legend-row b{color:var(--ink);font-weight:600}
 
 /* two-up */
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .panel{padding:16px}
 .panel .sec-head{margin-bottom:6px}
 .rrgbox svg{width:100%;height:auto;display:block}
@@ -178,7 +186,7 @@ th.sticky{z-index:3}
 .parts .bar{flex:none;width:100%}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .stats div{background:var(--surface);padding:9px 12px}
-.stats span{display:block;font-size:11.5px;color:var(--muted)}
+.stats span{display:block;font-size:12px;color:var(--muted)}
 .stats b{font-family:var(--mono);font-weight:500;font-size:14px}
 .why{margin:0;padding-left:18px;display:grid;gap:6px}
 .chartbox{padding:14px 14px 8px}
@@ -198,11 +206,11 @@ th.sticky{z-index:3}
 .method h3{margin-bottom:6px}
 .method p,.method ul{margin:0 0 8px;color:var(--muted)}
 .method ul{padding-left:18px}
-.disclaimer{margin-top:18px;font-size:12.5px;color:var(--faint);max-width:100ch}
+.disclaimer{margin-top:18px;font-size:12.5px;color:var(--muted);max-width:100ch}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
 .err{color:var(--neg)}
 
-@media (max-width:1100px){.backdrop,.two{grid-template-columns:1fr}.ideas{grid-template-columns:1fr 1fr}.method{grid-template-columns:1fr}}
+@media (max-width:1100px){.backdrop,.two{grid-template-columns:minmax(0,1fr)}.ideas{grid-template-columns:1fr 1fr}.method{grid-template-columns:1fr}}
 @media (max-width:720px){
   .wrap{padding-inline:16px}.ideas{grid-template-columns:1fr}.macro{grid-template-columns:repeat(2,1fr)}
   .stats{grid-template-columns:repeat(2,1fr)}.search{width:100%}.brand h1{font-size:23px}
@@ -224,7 +232,7 @@ th.sticky{z-index:3}
 .kpi{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi span{font-size:12px;color:var(--muted)}
 .kpi b{font-family:var(--mono);font-weight:500;font-size:22px;letter-spacing:-.02em}
-.kpi small{font-size:11.5px;color:var(--faint);line-height:1.35}
+.kpi small{font-size:12px;color:var(--muted);line-height:1.35}
 .bt-verdict{padding:16px 18px;font-size:15.5px;line-height:1.55;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
 .bt-verdict .badge{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:8px;white-space:nowrap}
 .badge.good{background:color-mix(in oklab,var(--pos) 16%,transparent);color:var(--pos)}
@@ -243,7 +251,7 @@ th.sticky{z-index:3}
 .chip.off{color:var(--faint)}
 .open{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--pos)}
 .open::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--pos)}
-.closed{font-size:11.5px;color:var(--faint)}
+.closed{font-size:12px;color:var(--muted)}
 .mapwrap{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(260px,1fr);gap:16px}
 .mapbox{padding:12px 14px}
 .mapbox svg{display:block;width:100%;height:auto}
@@ -328,7 +336,7 @@ details.fold>summary:hover{color:var(--accent)}
 .ring text{font-family:var(--body);font-weight:600}
 .sigbar{display:flex;gap:2px;height:12px}
 .sigbar i{display:block;height:100%;border-radius:3px;min-width:3px}
-.siglegend{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:11.5px;color:var(--muted)}
+.siglegend{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:12px;color:var(--muted)}
 .siglegend span{display:inline-flex;align-items:center}
 .siglegend b{color:var(--ink);font-weight:600;margin-left:4px}
 .meter{height:8px;border-radius:4px;overflow:hidden}
@@ -344,6 +352,8 @@ details.fold>summary:hover{color:var(--accent)}
 /* shortlist cards */
 .picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .picks.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.picks.fill{display:flex;flex-wrap:wrap}
+.picks.fill>.pick{flex:1 1 calc((100% - 28px)/3);min-width:0}
 .pickcol{padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .pickcol h3{display:flex;align-items:center;gap:9px;font-size:19px}
 .pickcol>p{margin:0 0 2px;font-size:13px;color:var(--muted)}
@@ -356,9 +366,15 @@ details.fold>summary:hover{color:var(--accent)}
 .pick:hover{border-color:var(--accent);background:var(--surface)}
 .pick-main{min-width:0}
 .pick-name{font-weight:600;line-height:1.25}
-.pick-sub{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
-.pick-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.pick-sub{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.pick-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;min-width:0}
+.pick .tag{max-width:100%;white-space:normal}  /* a long pill wraps inside its card instead of running under the sparkline */
 .pick .spark{width:64px;height:28px}
+.short-head{display:flex;align-items:center;gap:10px;margin:2px 0 12px;font-size:14px;color:var(--muted)}
+.short-head b{color:var(--ink);font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.01em}
+.seg button .ico{margin-right:5px}
+.shared-note{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
+.more-body:has(>.picks){max-width:none;padding:0;border-left:0;background:none}
 .trust{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;text-decoration:none;white-space:nowrap}
 .trust.good{color:var(--pos);background:color-mix(in oklab,var(--pos) 12%,transparent)}
 .trust.weak{color:var(--warn);background:color-mix(in oklab,var(--warn) 13%,transparent)}
@@ -372,18 +388,19 @@ details.fold>summary:hover{color:var(--accent)}
 .toolbar .search{flex:1;min-width:200px;max-width:340px}
 
 /* signal changes */
-.chglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px}
-.chcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
+.chglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+/* icon | name and date on the first line, from → to signals underneath; cards in a row share one height */
+.chcard{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr;gap:6px 10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
 .chcard:hover{border-color:var(--accent)}
-.chcard-ico{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%}
+.chcard-ico{grid-row:1/span 2;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%}
 .chcard-ico.pos{color:var(--pos);background:color-mix(in oklab,var(--pos) 13%,transparent)}
 .chcard-ico.neg{color:var(--neg);background:color-mix(in oklab,var(--neg) 12%,transparent)}
-.chcard-nm{display:flex;flex-direction:column;min-width:0;line-height:1.25}
-.chcard-nm small{font-size:12px;color:var(--muted)}
-.chcard-sig{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.chcard-nm{display:flex;flex-direction:column;gap:1px;min-width:0;line-height:1.25}
+.chcard-nm small{font-size:12px;color:var(--muted);white-space:nowrap}
+.chcard-sig{grid-column:2;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 
 /* today's conditions (countries) */
-.rulegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.rulegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
 .rule{padding:14px 16px;display:grid;gap:9px;align-content:start;font-size:14px}
 .rule.off{opacity:.8}
 .rule-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -404,7 +421,8 @@ details.fold>summary:hover{color:var(--accent)}
 .dtabs button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 .ringbox{display:grid;justify-items:center;gap:4px}
 
-@media (max-width:1100px){.picks,.picks.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1100px){.picks,.picks.four{grid-template-columns:repeat(2,minmax(0,1fr))}.picks.fill>.pick{flex-basis:calc((100% - 14px)/2)}}
+@media (max-width:720px){.picks.fill>.pick{flex-basis:100%}}
 @media (max-width:720px){
   .picks,.picks.four,.chglist,.rulegrid{grid-template-columns:minmax(0,1fr)}
   .hero{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{padding:12px}.stat-val{font-size:22px}.stat-val.sm{font-size:15.5px}.stat .ring{width:40px;height:40px}
@@ -426,12 +444,25 @@ details.fold>summary:hover{color:var(--accent)}
 /* the long-term core */
 .cores{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
 .core{padding:16px;display:grid;gap:10px;align-content:start}
+/* cards side by side share their rows (title, buy line, figures), so the figures line up even when one title wraps */
+.cores>.core{grid-row:span 4;grid-template-rows:subgrid;row-gap:10px}
 .core.main{border-color:color-mix(in oklab,var(--accent) 45%,var(--line));background:color-mix(in oklab,var(--accent) 6%,var(--surface))}
-.core h3{font-size:19px}
+.core h3{font-size:19px;line-height:1.25}
 .core .buyline{margin:0}
-.core-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.core-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-self:start}
+.core-stats>div{display:flex;flex-direction:column;justify-content:space-between}
 .core-stats span{display:block;font-size:12px;color:var(--muted);line-height:1.3}
 .core-stats b{font-size:20px;font-weight:600}
+/* countries: the one whole-world card beside its stat tiles, rather than stretched across the page */
+.lr-split{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:720px){.lr-split .hero{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1100px){.lr-split{grid-template-columns:minmax(0,1fr)}}
+/* the key above a rotation map or cycle clock */
+.chartkey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:0 0 6px}
+.chartkey span{display:inline-flex;align-items:center;gap:6px}
+.chartkey .k-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);border:1.5px solid var(--surface);box-shadow:0 0 0 1px var(--muted)}
+.chartkey .k-tail{position:relative;width:24px;height:2px;background:var(--muted);opacity:.7}
+.chartkey .k-tail::after{content:"";position:absolute;left:10px;top:-1.5px;width:5px;height:5px;border-radius:50%;background:var(--muted)}
 
 /* cycles: cyclical indices */
 .tag.dip{color:var(--accent);border-color:color-mix(in oklab,var(--accent) 40%,var(--line));background:color-mix(in oklab,var(--accent) 9%,var(--surface))}
@@ -453,7 +484,7 @@ details.fold>summary:hover{color:var(--accent)}
 .dr-val{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
 .dr-val b{font-family:var(--mono);font-size:21px;font-weight:500}
 .dr-val b.dip{color:var(--accent)}
-.dr-val small{font-size:11px;color:var(--muted);white-space:nowrap}
+.dr-val small{font-size:12px;color:var(--muted);white-space:nowrap}
 .diprow .spark{width:84px;height:28px}
 .dipbar{position:relative;height:14px;border-radius:7px;background:var(--surface2);border:1px solid var(--line)}
 .dipbar.big{height:20px;border-radius:10px}
@@ -470,5 +501,9 @@ details.fold>summary:hover{color:var(--accent)}
 .diplegend .lg-typ{width:2px;height:14px;background:var(--ink);border-radius:1px}
 .diplegend .lg-worst{width:0;height:14px;border-left:2px dotted var(--neg);border-radius:0}
 table.falls th.r,table.falls td.r{text-align:right}
-@media (max-width:900px){.diprow{grid-template-columns:minmax(0,1fr) auto;padding:10px 12px}.dr-bar{grid-column:1/-1;grid-row:2}.diprow .spark{display:none}.dr-val b{font-size:18px}}
+/* the dip meter's scale, labelled once above the list, lined up with the bars */
+.dipscale{display:grid;grid-template-columns:minmax(200px,1.1fr) minmax(220px,1.7fr) 100px 84px;gap:0 18px;padding:0 15px;margin-bottom:4px;font-size:12px;color:var(--muted)}
+.dipscale .ds-bar{grid-column:2;display:flex;justify-content:space-between}
+@media (max-width:900px){.diprow{grid-template-columns:minmax(0,1fr) auto;padding:10px 12px}.dr-bar{grid-column:1/-1;grid-row:2}.diprow .spark{display:none}.dr-val b{font-size:18px}
+  .dipscale{grid-template-columns:minmax(0,1fr);padding:0 13px}.dipscale .ds-bar{grid-column:1}}
 .barwrap{max-width:600px}

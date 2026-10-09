@@ -188,4 +188,6 @@ def build():
         "benches": benches, "rows": rows, "macro": macro, "cycle": cyc, "histCuts": hist_cuts,
         "weights": engine.WEIGHTS, "errors": errors, "holdingsAt": fund["fetched"],
         "backtest": bt, "backtestSeconds": bt_seconds, "buyTest": buy_test, "longTest": long_test, "paper": paper, "changes": changes,
+        # pounds per US dollar today: the page shows oil, gold, copper and bitcoin in pounds first (display only)
+        "gbpPerUsd": gbp.get("price") if gbp else None,
     }
