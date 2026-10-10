@@ -1,0 +1,2042 @@
+{
+ "generated": "2026-10-10 06:52 UTC",
+ "weekEnding": "2026-10-09",
+ "worldStocks": {
+  "name": "MSCI ACWI (all world stocks)",
+  "weekUsd": 0.005059676935714075,
+  "weekGbp": 0.0025390554315882774,
+  "yearGbp": 0.18326286153368465
+ },
+ "usMarket": {
+  "name": "S&P 500",
+  "weekUsd": 0.01160280804220104,
+  "weekGbp": 0.009065776809031423
+ },
+ "economicRead": {
+  "phase": "Mid cycle",
+  "notes": [
+   "The 10-year US interest rate (5.24%) is 1.19% above the 3-month rate (4.06%), and that gap has widened by 0.31% in 3 months: often a sign that growth is picking up.",
+   "Copper and gold have moved about the same over 3 months (+2.0% for copper vs gold): no strong growth signal.",
+   "Fear gauge (VIX) at 14.8: markets are calm (under 16 = calm, over 25 = stressed).",
+   "The US stock market (S&P 500) is above its average price over the last 200 trading days (about 10 months): its long-term uptrend is intact."
+  ],
+  "sectorsThatUsuallyDoWell": [
+   "tech",
+   "comm",
+   "indu",
+   "fin"
+  ]
+ },
+ "todaysConditions": [
+  {
+   "rule": "Oil rising",
+   "note": "Oil is up 18% over 3 months: a boost for oil-heavy markets, a cost for big oil importers."
+  },
+  {
+   "rule": "Investors confident",
+   "note": "The fear gauge (VIX) is a calm 14.8 (18 or less), and world stocks are 6.3% above their 200-day (about 10-month) average. Emerging markets usually benefit."
+  }
+ ],
+ "sectors": {
+  "count": 86,
+  "highestScores": [
+   {
+    "name": "Energy",
+    "region": "Canada",
+    "vs": "Canada's 60 biggest companies (S&P/TSX 60)",
+    "score": 89,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 2.5,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": 0.02118787999564331,
+    "weekReturnGbp": 0.018390501892741495,
+    "yearReturnGbp": 0.605950579145238,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend"
+    ]
+   },
+   {
+    "name": "Oil & Gas",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 86,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 1.8,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": 0.03989936439080166,
+    "weekReturnGbp": 0.033223081250926434,
+    "yearReturnGbp": 0.46547987245576383,
+    "rotation": "Leading",
+    "flags": [
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "Energy",
+    "region": "United States",
+    "vs": "the whole US market (S&P 500)",
+    "score": 85,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 5.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.035975808916821395,
+    "weekReturnGbp": 0.03337765185049535,
+    "yearReturnGbp": 0.5260828876478363,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "Technology",
+    "region": "Global",
+    "vs": "all world stocks (MSCI ACWI)",
+    "score": 85,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": -0.3,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.013821261074522417,
+    "weekReturnGbp": -0.016294530466670287,
+    "yearReturnGbp": 0.4403837451937831,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend"
+    ]
+   },
+   {
+    "name": "Technology",
+    "region": "United States",
+    "vs": "the whole US market (S&P 500)",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 0.3,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.005154884996641407,
+    "weekReturnGbp": -0.007649889072217642,
+    "yearReturnGbp": 0.39421362471993393,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high"
+    ]
+   }
+  ],
+  "lowestScores": [
+   {
+    "name": "China Internet",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 3,
+    "signal": "Avoid",
+    "scoreChangeWeek": 0.5,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": 0.04484490202335634,
+    "weekReturnGbp": 0.04222450187304294,
+    "yearReturnGbp": -0.36568736071739405,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Homebuilders",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 7,
+    "signal": "Avoid",
+    "scoreChangeWeek": -1.0,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": -0.02169897741103921,
+    "weekReturnGbp": -0.024152490024901385,
+    "yearReturnGbp": -0.16037153607500776,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Uranium & Nuclear",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 7,
+    "signal": "Avoid",
+    "scoreChangeWeek": -1.2,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": -0.022367451496590363,
+    "weekReturnGbp": -0.024819287622783515,
+    "yearReturnGbp": -0.18979260694805122,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Real Estate",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 8,
+    "signal": "Avoid",
+    "scoreChangeWeek": -1.9,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": -0.007659574468085073,
+    "weekReturnGbp": -0.012143676045450191,
+    "yearReturnGbp": -0.04578894477376905,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Solar",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 11,
+    "signal": "Avoid",
+    "scoreChangeWeek": -1.4,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": -0.006810425476878268,
+    "weekReturnGbp": -0.009301277569213062,
+    "yearReturnGbp": -0.038309514679430445,
+    "rotation": "Improving",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ]
+   }
+  ],
+  "biggestScoreRises": [
+   {
+    "name": "Consumer Staples",
+    "region": "United States",
+    "vs": "the whole US market (S&P 500)",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": 10.9,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.0360114400181597,
+    "weekReturnGbp": 0.03341319359144812,
+    "yearReturnGbp": 0.1176123732947949,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Consumer Staples",
+    "region": "Global",
+    "vs": "all world stocks (MSCI ACWI)",
+    "score": 51,
+    "signal": "Neutral",
+    "scoreChangeWeek": 9.9,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.03453566264656738,
+    "weekReturnGbp": 0.03194111736941285,
+    "yearReturnGbp": 0.09469764364876054,
+    "rotation": "Improving",
+    "flags": []
+   },
+   {
+    "name": "Media",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 49,
+    "signal": "Neutral",
+    "scoreChangeWeek": 8.0,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.04541970100077708,
+    "weekReturnGbp": 0.03870797661389491,
+    "yearReturnGbp": -0.030821287063905967,
+    "rotation": "Leading",
+    "flags": []
+   },
+   {
+    "name": "Oil & Gas Exploration",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 81,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 7.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.03563514619163133,
+    "weekReturnGbp": 0.03303784348431549,
+    "yearReturnGbp": 0.47998096646638366,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend"
+    ]
+   },
+   {
+    "name": "Software",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": 7.1,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.03910356619838384,
+    "weekReturnGbp": 0.03649756492892786,
+    "yearReturnGbp": -0.012064156051789343,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend",
+     "Big fall this year"
+    ]
+   }
+  ],
+  "biggestScoreFalls": [
+   {
+    "name": "Robotics & AI",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 22,
+    "signal": "Underweight",
+    "scoreChangeWeek": -11.9,
+    "signalWeekAgo": "Underweight",
+    "weekReturnOwnCurrency": -0.01526502353402559,
+    "weekReturnGbp": -0.017734672067844626,
+    "yearReturnGbp": -0.029049449306722375,
+    "rotation": "Improving",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "US Regional Banks",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 47,
+    "signal": "Neutral",
+    "scoreChangeWeek": -10.0,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": -0.025007047327254228,
+    "weekReturnGbp": -0.02745226352612795,
+    "yearReturnGbp": 0.13312318994006933,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Machinery",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 34,
+    "signal": "Underweight",
+    "scoreChangeWeek": -9.1,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": -0.010945039425679703,
+    "weekReturnGbp": -0.015414294929842698,
+    "yearReturnGbp": 0.17099381799045354,
+    "rotation": "Improving",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Construction & Materials",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 22,
+    "signal": "Underweight",
+    "scoreChangeWeek": -7.7,
+    "signalWeekAgo": "Underweight",
+    "weekReturnOwnCurrency": -0.02421724663034308,
+    "weekReturnGbp": -0.03048189316017258,
+    "yearReturnGbp": -0.0606465595028477,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "US Infrastructure",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 43,
+    "signal": "Neutral",
+    "scoreChangeWeek": -7.2,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": -0.007980717512823032,
+    "weekReturnGbp": -0.010468634592103676,
+    "yearReturnGbp": 0.1326215740177623,
+    "rotation": "Improving",
+    "flags": []
+   }
+  ],
+  "signalChanges": [
+   {
+    "name": "Energy",
+    "region": "United States",
+    "vs": "the whole US market (S&P 500)",
+    "score": 85,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 5.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.035975808916821395,
+    "weekReturnGbp": 0.03337765185049535,
+    "yearReturnGbp": 0.5260828876478363,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "Energy",
+    "region": "Global",
+    "vs": "all world stocks (MSCI ACWI)",
+    "score": 82,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 3.8,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.03437555072262466,
+    "weekReturnGbp": 0.031781406995316175,
+    "yearReturnGbp": 0.5020862267189634,
+    "rotation": "Weakening",
+    "flags": [
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "Financial Services",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 60,
+    "signal": "Neutral",
+    "scoreChangeWeek": -1.6,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.01271044985826153,
+    "weekReturnGbp": 0.006208722928247479,
+    "yearReturnGbp": 0.059758517485638984,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Automobiles & Parts",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 21,
+    "signal": "Underweight",
+    "scoreChangeWeek": 5.8,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": 0.008250145862040759,
+    "weekReturnGbp": 0.001777054637931208,
+    "yearReturnGbp": -0.16059520349440048,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "IT & Services",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 61,
+    "signal": "Overweight",
+    "scoreChangeWeek": 2.8,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.015390929612148607,
+    "weekReturnGbp": 0.010802669422430355,
+    "yearReturnGbp": 0.09694220583854163,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "Electric Appliances & Precision",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 81,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 3.1,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.015985790408525657,
+    "weekReturnGbp": 0.011394842213596101,
+    "yearReturnGbp": 0.517433323603637,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend"
+    ]
+   },
+   {
+    "name": "Energy Resources",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 55,
+    "signal": "Neutral",
+    "scoreChangeWeek": -6.1,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": -0.014643762320473153,
+    "weekReturnGbp": -0.01909630435742271,
+    "yearReturnGbp": 0.3492710323780326,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year"
+    ]
+   },
+   {
+    "name": "Machinery",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 34,
+    "signal": "Underweight",
+    "scoreChangeWeek": -9.1,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": -0.010945039425679703,
+    "weekReturnGbp": -0.015414294929842698,
+    "yearReturnGbp": 0.17099381799045354,
+    "rotation": "Improving",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Trading Companies",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 56,
+    "signal": "Neutral",
+    "scoreChangeWeek": -5.8,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": -0.00814216176032434,
+    "weekReturnGbp": -0.012624082664220326,
+    "yearReturnGbp": 0.2732135229064303,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Financials",
+    "region": "Canada",
+    "vs": "Canada's 60 biggest companies (S&P/TSX 60)",
+    "score": 78,
+    "signal": "Overweight",
+    "scoreChangeWeek": -3.0,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.014503783996774433,
+    "weekReturnGbp": -0.017203390591353007,
+    "yearReturnGbp": 0.2872087247022186,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Biotech",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 80,
+    "signal": "Overweight",
+    "scoreChangeWeek": -2.3,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.004273733776358202,
+    "weekReturnGbp": -0.006770947719433207,
+    "yearReturnGbp": 0.48546205837701795,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Aerospace & Defense",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 18,
+    "signal": "Avoid",
+    "scoreChangeWeek": -6.4,
+    "signalWeekAgo": "Underweight",
+    "weekReturnOwnCurrency": -0.005486276158462533,
+    "weekReturnGbp": -0.007980449127480749,
+    "yearReturnGbp": -0.023441177331669394,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Oil & Gas Exploration",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 81,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 7.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.03563514619163133,
+    "weekReturnGbp": 0.03303784348431549,
+    "yearReturnGbp": 0.47998096646638366,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend"
+    ]
+   }
+  ],
+  "bestWeekGbp": [
+   {
+    "name": "Cybersecurity",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 83,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 1.0,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": 0.05062085201757771,
+    "weekReturnGbp": 0.04798596617641815,
+    "yearReturnGbp": 0.43416666345573596,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high"
+    ]
+   },
+   {
+    "name": "China Internet",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 3,
+    "signal": "Avoid",
+    "scoreChangeWeek": 0.5,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": 0.04484490202335634,
+    "weekReturnGbp": 0.04222450187304294,
+    "yearReturnGbp": -0.36568736071739405,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Media",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 49,
+    "signal": "Neutral",
+    "scoreChangeWeek": 8.0,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": 0.04541970100077708,
+    "weekReturnGbp": 0.03870797661389491,
+    "yearReturnGbp": -0.030821287063905967,
+    "rotation": "Leading",
+    "flags": []
+   },
+   {
+    "name": "Cloud Computing",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 77,
+    "signal": "Overweight",
+    "scoreChangeWeek": -0.4,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": 0.04011538381608215,
+    "weekReturnGbp": 0.0375068449766649,
+    "yearReturnGbp": 0.2897037677493355,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend",
+     "Near 1-yr high",
+     "Big fall this year"
+    ]
+   },
+   {
+    "name": "Utilities",
+    "region": "United States",
+    "vs": "the whole US market (S&P 500)",
+    "score": 14,
+    "signal": "Avoid",
+    "scoreChangeWeek": 0.3,
+    "signalWeekAgo": "Avoid",
+    "weekReturnOwnCurrency": 0.03966854371855466,
+    "weekReturnGbp": 0.03706112552379648,
+    "yearReturnGbp": -0.04852472394541585,
+    "rotation": "Improving",
+    "flags": [
+     "Downtrend"
+    ]
+   }
+  ],
+  "worstWeekGbp": [
+   {
+    "name": "Semiconductors",
+    "region": "Themes & Industries",
+    "vs": "the whole US market (S&P 500)",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": -2.9,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.04324449197860958,
+    "weekReturnGbp": -0.04564396990320618,
+    "yearReturnGbp": 0.7736791119154338,
+    "rotation": "Leading",
+    "flags": [
+     "Far above trend"
+    ]
+   },
+   {
+    "name": "Telecommunications",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 42,
+    "signal": "Neutral",
+    "scoreChangeWeek": -3.3,
+    "signalWeekAgo": "Neutral",
+    "weekReturnOwnCurrency": -0.0294391321566978,
+    "weekReturnGbp": -0.03567025353256381,
+    "yearReturnGbp": 0.05896634396115785,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   },
+   {
+    "name": "Banks",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 80,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": -7.1,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnOwnCurrency": -0.030595037340399922,
+    "weekReturnGbp": -0.03497550014361317,
+    "yearReturnGbp": 0.5773084346096267,
+    "rotation": "Lagging",
+    "flags": []
+   },
+   {
+    "name": "Steel & Nonferrous",
+    "region": "Japan",
+    "vs": "the whole Japanese market (TOPIX)",
+    "score": 72,
+    "signal": "Overweight",
+    "scoreChangeWeek": 1.9,
+    "signalWeekAgo": "Overweight",
+    "weekReturnOwnCurrency": -0.029639559130175797,
+    "weekReturnGbp": -0.03402433946519512,
+    "yearReturnGbp": 0.7332990319471451,
+    "rotation": "Leading",
+    "flags": [
+     "Big fall this year"
+    ]
+   },
+   {
+    "name": "Construction & Materials",
+    "region": "Europe",
+    "vs": "the whole European market (STOXX Europe 600)",
+    "score": 22,
+    "signal": "Underweight",
+    "scoreChangeWeek": -7.7,
+    "signalWeekAgo": "Underweight",
+    "weekReturnOwnCurrency": -0.02421724663034308,
+    "weekReturnGbp": -0.03048189316017258,
+    "yearReturnGbp": -0.0606465595028477,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ]
+   }
+  ]
+ },
+ "countries": {
+  "count": 36,
+  "highestScores": [
+   {
+    "name": "Poland",
+    "index": "MSCI Poland (via EPOL)",
+    "score": 91,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 2.8,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": 0.018359313109792996,
+    "weekReturnGbp": 0.015805337020156962,
+    "weekReturnLocalIndex": 0.021364660111584444,
+    "yearReturnGbp": 0.4187803043800973,
+    "currencyWeekVsUsd": -0.004643513662449639,
+    "currency": "PLN",
+    "valueScore": 68.0,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Taiwan",
+    "index": "TAIEX",
+    "score": 91,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 0.9,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.017364409862112073,
+    "weekReturnGbp": -0.019828793277405943,
+    "weekReturnLocalIndex": 0.019852791450461815,
+    "yearReturnGbp": 0.8471073886799176,
+    "currencyWeekVsUsd": -0.002556705821470384,
+    "currency": "TWD",
+    "valueScore": 2.3,
+    "rotation": "Weakening",
+    "flags": [
+     "Far above trend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "South Korea",
+    "index": "KOSPI",
+    "score": 86,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": -0.5,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.0762977095594386,
+    "weekReturnGbp": -0.07861429225609351,
+    "weekReturnLocalIndex": -0.031019127973924587,
+    "yearReturnGbp": 1.1831449184641407,
+    "currencyWeekVsUsd": 0.0012380181920723654,
+    "currency": "KRW",
+    "valueScore": 57.1,
+    "rotation": "Weakening",
+    "flags": [
+     "Big fall this year"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Japan",
+    "index": "Nikkei 225",
+    "score": 81,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 0.0,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.010715711570626452,
+    "weekReturnGbp": -0.013196769470304126,
+    "weekReturnLocalIndex": 0.010561627227011705,
+    "yearReturnGbp": 0.2663644173585975,
+    "currencyWeekVsUsd": -0.0032355097109978415,
+    "currency": "JPY",
+    "valueScore": 44.6,
+    "rotation": "Leading",
+    "flags": [
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   }
+  ],
+  "lowestScores": [
+   {
+    "name": "Indonesia",
+    "index": "Jakarta Composite",
+    "score": 5,
+    "signal": "Avoid",
+    "scoreChangeWeek": -1.1,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": 0.017979425456963627,
+    "weekReturnGbp": 0.015426402099795622,
+    "weekReturnLocalIndex": 0.009420551561780677,
+    "yearReturnGbp": -0.2890986827536275,
+    "currencyWeekVsUsd": 0.0019020979020978324,
+    "currency": "IDR",
+    "valueScore": 81.1,
+    "rotation": "Lagging",
+    "flags": [
+     "Big fall this year",
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Philippines",
+    "index": "MSCI Philippines (via EPHE)",
+    "score": 9,
+    "signal": "Avoid",
+    "scoreChangeWeek": -2.7,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": 0.006625468833720172,
+    "weekReturnGbp": 0.004100920429709998,
+    "weekReturnLocalIndex": 0.009902001801871174,
+    "yearReturnGbp": -0.07455492066824143,
+    "currencyWeekVsUsd": -0.004219747652673411,
+    "currency": "PHP",
+    "valueScore": 78.9,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "India",
+    "index": "Nifty 50",
+    "score": 14,
+    "signal": "Avoid",
+    "scoreChangeWeek": -2.9,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": -0.010533113777772884,
+    "weekReturnGbp": -0.013014629620330842,
+    "weekReturnLocalIndex": 0.004393051660630531,
+    "yearReturnGbp": -0.11296155602115865,
+    "currencyWeekVsUsd": -0.004183788648574049,
+    "currency": "INR",
+    "valueScore": 6.9,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "China",
+    "index": "Shanghai Composite",
+    "score": 15,
+    "signal": "Avoid",
+    "scoreChangeWeek": 4.9,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": 0.025565930496128653,
+    "weekReturnGbp": 0.022993880698858105,
+    "weekReturnLocalIndex": -0.019181031194001497,
+    "yearReturnGbp": -0.17879057452401792,
+    "currencyWeekVsUsd": 0.004524848802759607,
+    "currency": "CNY",
+    "valueScore": 63.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "Vietnam",
+    "index": "Vietnam equities (via VNM)",
+    "score": 15,
+    "signal": "Avoid",
+    "scoreChangeWeek": -2.3,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": 4.1067316658427444e-08,
+    "weekReturnGbp": -0.0025078912132082687,
+    "weekReturnLocalIndex": -0.0034642956544993497,
+    "yearReturnGbp": -0.07797203534170682,
+    "currencyWeekVsUsd": 0.004057343792263968,
+    "currency": "VND",
+    "valueScore": 38.9,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   }
+  ],
+  "biggestScoreRises": [
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Argentina",
+    "index": "S&P Merval",
+    "score": 52,
+    "signal": "Neutral",
+    "scoreChangeWeek": 8.3,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": 0.04779937905102849,
+    "weekReturnGbp": 0.04517156927270971,
+    "weekReturnLocalIndex": 0.021810386596923026,
+    "yearReturnGbp": 0.3118714548428474,
+    "currencyWeekVsUsd": 0.003844349525016444,
+    "currency": "ARS",
+    "valueScore": 40.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Turkey",
+    "index": "BIST 100",
+    "score": 26,
+    "signal": "Underweight",
+    "scoreChangeWeek": 6.1,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": -0.004375693834255956,
+    "weekReturnGbp": -0.006872652068420804,
+    "weekReturnLocalIndex": -0.0003439385866020883,
+    "yearReturnGbp": 0.05297527453420847,
+    "currencyWeekVsUsd": -0.002133585116362746,
+    "currency": "TRY",
+    "valueScore": 59.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "Hong Kong",
+    "index": "Hang Seng",
+    "score": 44,
+    "signal": "Neutral",
+    "scoreChangeWeek": 6.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.022716750677254538,
+    "weekReturnGbp": 0.020151846429731446,
+    "weekReturnLocalIndex": 0.009972386736899708,
+    "yearReturnGbp": 0.08939179090292337,
+    "currencyWeekVsUsd": -2.5471241931862565e-05,
+    "currency": "HKD",
+    "valueScore": 78.9,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Sweden",
+    "index": "OMX Stockholm 30",
+    "score": 52,
+    "signal": "Neutral",
+    "scoreChangeWeek": 5.7,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": 0.013186828631372771,
+    "weekReturnGbp": 0.010645824781997604,
+    "weekReturnLocalIndex": -0.0007256563416577766,
+    "yearReturnGbp": 0.11321601561169081,
+    "currencyWeekVsUsd": 0.004071433185839357,
+    "currency": "SEK",
+    "valueScore": 62.3,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   }
+  ],
+  "biggestScoreFalls": [
+   {
+    "name": "Singapore",
+    "index": "Straits Times",
+    "score": 72,
+    "signal": "Overweight",
+    "scoreChangeWeek": -12.9,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.041262109291542615,
+    "weekReturnGbp": -0.0436665588974684,
+    "weekReturnLocalIndex": -0.04133758158825329,
+    "yearReturnGbp": 0.13677223172959252,
+    "currencyWeekVsUsd": -0.0007497302743278977,
+    "currency": "SGD",
+    "valueScore": 44.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Israel",
+    "index": "TA-125",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -12.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.034764165853597206,
+    "weekReturnGbp": -0.037184911860958736,
+    "weekReturnLocalIndex": -0.0359772234539264,
+    "yearReturnGbp": 0.21176180632079933,
+    "currencyWeekVsUsd": -0.0027517059853763293,
+    "currency": "ILS",
+    "valueScore": 25.1,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Italy",
+    "index": "FTSE MIB",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -7.6,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.018815357093535656,
+    "weekReturnGbp": -0.02127610163157989,
+    "weekReturnLocalIndex": -0.0145928332309887,
+    "yearReturnGbp": 0.1285246996791738,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 51.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Belgium",
+    "index": "BEL 20",
+    "score": 43,
+    "signal": "Neutral",
+    "scoreChangeWeek": -5.9,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": -0.008280780965984835,
+    "weekReturnGbp": -0.010767945506475973,
+    "weekReturnLocalIndex": -0.009246847011118109,
+    "yearReturnGbp": 0.09476788375336787,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 39.4,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "France",
+    "index": "CAC 40",
+    "score": 23,
+    "signal": "Underweight",
+    "scoreChangeWeek": -4.3,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": -0.016812681741239843,
+    "weekReturnGbp": -0.01927844885324126,
+    "weekReturnLocalIndex": -0.011885232861644557,
+    "yearReturnGbp": -0.021790973947939163,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 42.3,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   }
+  ],
+  "signalChanges": [
+   {
+    "name": "Mexico",
+    "index": "S&P/BMV IPC",
+    "score": 40,
+    "signal": "Neutral",
+    "scoreChangeWeek": 1.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.012097393535115408,
+    "weekReturnGbp": 0.009559121915073687,
+    "weekReturnLocalIndex": 0.023506134039059212,
+    "yearReturnGbp": 0.14815691003794473,
+    "currencyWeekVsUsd": -0.012350439636350075,
+    "currency": "MXN",
+    "valueScore": 73.7,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "United Kingdom",
+    "index": "FTSE 100",
+    "score": 60,
+    "signal": "Overweight",
+    "scoreChangeWeek": 3.3,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": 0.0073624879293496814,
+    "weekReturnGbp": 0.004836091131434239,
+    "weekReturnLocalIndex": 0.00860734085260928,
+    "yearReturnGbp": 0.14297106957935224,
+    "currencyWeekVsUsd": -0.0007675276147132148,
+    "currency": "GBP",
+    "valueScore": 47.4,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Oil rising"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Italy",
+    "index": "FTSE MIB",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -7.6,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.018815357093535656,
+    "weekReturnGbp": -0.02127610163157989,
+    "weekReturnLocalIndex": -0.0145928332309887,
+    "yearReturnGbp": 0.1285246996791738,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 51.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Hong Kong",
+    "index": "Hang Seng",
+    "score": 44,
+    "signal": "Neutral",
+    "scoreChangeWeek": 6.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.022716750677254538,
+    "weekReturnGbp": 0.020151846429731446,
+    "weekReturnLocalIndex": 0.009972386736899708,
+    "yearReturnGbp": 0.08939179090292337,
+    "currencyWeekVsUsd": -2.5471241931862565e-05,
+    "currency": "HKD",
+    "valueScore": 78.9,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Singapore",
+    "index": "Straits Times",
+    "score": 72,
+    "signal": "Overweight",
+    "scoreChangeWeek": -12.9,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.041262109291542615,
+    "weekReturnGbp": -0.0436665588974684,
+    "weekReturnLocalIndex": -0.04133758158825329,
+    "yearReturnGbp": 0.13677223172959252,
+    "currencyWeekVsUsd": -0.0007497302743278977,
+    "currency": "SGD",
+    "valueScore": 44.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Malaysia",
+    "index": "FTSE Bursa Malaysia KLCI",
+    "score": 39,
+    "signal": "Underweight",
+    "scoreChangeWeek": -1.7,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": -0.014781946557161585,
+    "weekReturnGbp": -0.017252806615275174,
+    "weekReturnLocalIndex": -0.013747260777568271,
+    "yearReturnGbp": 0.07763260323374976,
+    "currencyWeekVsUsd": -0.0004896606863720177,
+    "currency": "MYR",
+    "valueScore": 93.1,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Israel",
+    "index": "TA-125",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -12.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.034764165853597206,
+    "weekReturnGbp": -0.037184911860958736,
+    "weekReturnLocalIndex": -0.0359772234539264,
+    "yearReturnGbp": 0.21176180632079933,
+    "currencyWeekVsUsd": -0.0027517059853763293,
+    "currency": "ILS",
+    "valueScore": 25.1,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   }
+  ],
+  "bestWeekGbp": [
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Argentina",
+    "index": "S&P Merval",
+    "score": 52,
+    "signal": "Neutral",
+    "scoreChangeWeek": 8.3,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": 0.04779937905102849,
+    "weekReturnGbp": 0.04517156927270971,
+    "weekReturnLocalIndex": 0.021810386596923026,
+    "yearReturnGbp": 0.3118714548428474,
+    "currencyWeekVsUsd": 0.003844349525016444,
+    "currency": "ARS",
+    "valueScore": 40.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "China",
+    "index": "Shanghai Composite",
+    "score": 15,
+    "signal": "Avoid",
+    "scoreChangeWeek": 4.9,
+    "signalWeekAgo": "Avoid",
+    "weekReturnUsd": 0.025565930496128653,
+    "weekReturnGbp": 0.022993880698858105,
+    "weekReturnLocalIndex": -0.019181031194001497,
+    "yearReturnGbp": -0.17879057452401792,
+    "currencyWeekVsUsd": 0.004524848802759607,
+    "currency": "CNY",
+    "valueScore": 63.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "Hong Kong",
+    "index": "Hang Seng",
+    "score": 44,
+    "signal": "Neutral",
+    "scoreChangeWeek": 6.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.022716750677254538,
+    "weekReturnGbp": 0.020151846429731446,
+    "weekReturnLocalIndex": 0.009972386736899708,
+    "yearReturnGbp": 0.08939179090292337,
+    "currencyWeekVsUsd": -2.5471241931862565e-05,
+    "currency": "HKD",
+    "valueScore": 78.9,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Poland",
+    "index": "MSCI Poland (via EPOL)",
+    "score": 91,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 2.8,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": 0.018359313109792996,
+    "weekReturnGbp": 0.015805337020156962,
+    "weekReturnLocalIndex": 0.021364660111584444,
+    "yearReturnGbp": 0.4187803043800973,
+    "currencyWeekVsUsd": -0.004643513662449639,
+    "currency": "PLN",
+    "valueScore": 68.0,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   }
+  ],
+  "worstWeekGbp": [
+   {
+    "name": "South Korea",
+    "index": "KOSPI",
+    "score": 86,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": -0.5,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.0762977095594386,
+    "weekReturnGbp": -0.07861429225609351,
+    "weekReturnLocalIndex": -0.031019127973924587,
+    "yearReturnGbp": 1.1831449184641407,
+    "currencyWeekVsUsd": 0.0012380181920723654,
+    "currency": "KRW",
+    "valueScore": 57.1,
+    "rotation": "Weakening",
+    "flags": [
+     "Big fall this year"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   },
+   {
+    "name": "Singapore",
+    "index": "Straits Times",
+    "score": 72,
+    "signal": "Overweight",
+    "scoreChangeWeek": -12.9,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": -0.041262109291542615,
+    "weekReturnGbp": -0.0436665588974684,
+    "weekReturnLocalIndex": -0.04133758158825329,
+    "yearReturnGbp": 0.13677223172959252,
+    "currencyWeekVsUsd": -0.0007497302743278977,
+    "currency": "SGD",
+    "valueScore": 44.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Israel",
+    "index": "TA-125",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -12.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.034764165853597206,
+    "weekReturnGbp": -0.037184911860958736,
+    "weekReturnLocalIndex": -0.0359772234539264,
+    "yearReturnGbp": 0.21176180632079933,
+    "currencyWeekVsUsd": -0.0027517059853763293,
+    "currency": "ILS",
+    "valueScore": 25.1,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Italy",
+    "index": "FTSE MIB",
+    "score": 54,
+    "signal": "Neutral",
+    "scoreChangeWeek": -7.6,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.018815357093535656,
+    "weekReturnGbp": -0.02127610163157989,
+    "weekReturnLocalIndex": -0.0145928332309887,
+    "yearReturnGbp": 0.1285246996791738,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 51.4,
+    "rotation": "Lagging",
+    "flags": [
+     "Fell fast"
+    ],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Netherlands",
+    "index": "AEX",
+    "score": 70,
+    "signal": "Overweight",
+    "scoreChangeWeek": -1.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.018267491213776244,
+    "weekReturnGbp": -0.020729609762289325,
+    "weekReturnLocalIndex": 0.012751779388217477,
+    "yearReturnGbp": 0.21308927380685572,
+    "currencyWeekVsUsd": -0.004336602481583851,
+    "currency": "EUR",
+    "valueScore": 48.6,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   }
+  ],
+  "biggestCurrencyMoves": [
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Mexico",
+    "index": "S&P/BMV IPC",
+    "score": 40,
+    "signal": "Neutral",
+    "scoreChangeWeek": 1.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.012097393535115408,
+    "weekReturnGbp": 0.009559121915073687,
+    "weekReturnLocalIndex": 0.023506134039059212,
+    "yearReturnGbp": 0.14815691003794473,
+    "currencyWeekVsUsd": -0.012350439636350075,
+    "currency": "MXN",
+    "valueScore": 73.7,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "South Africa",
+    "index": "FTSE/JSE All Share",
+    "score": 29,
+    "signal": "Underweight",
+    "scoreChangeWeek": -2.0,
+    "signalWeekAgo": "Underweight",
+    "weekReturnUsd": 0.009653448117550312,
+    "weekReturnGbp": 0.007121305746861317,
+    "weekReturnLocalIndex": 0.0013505603017782697,
+    "yearReturnGbp": 0.04406588845068393,
+    "currencyWeekVsUsd": 0.009294567686138677,
+    "currency": "ZAR",
+    "valueScore": 96.6,
+    "rotation": "Lagging",
+    "flags": [
+     "Downtrend"
+    ],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Norway",
+    "index": "Oslo B\u00f8rs Benchmark",
+    "score": 76,
+    "signal": "Overweight",
+    "scoreChangeWeek": 2.1,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.0022535211267604716,
+    "weekReturnGbp": -0.00026006272891687665,
+    "weekReturnLocalIndex": 0.0027196344796716065,
+    "yearReturnGbp": 0.29678437531315494,
+    "currencyWeekVsUsd": 0.0065145903245962256,
+    "currency": "NOK",
+    "valueScore": 81.7,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Oil rising"
+    ],
+    "conditionsHurting": []
+   }
+  ],
+  "cheapWithHoldingUp": [
+   {
+    "name": "Brazil",
+    "index": "Ibovespa",
+    "score": 84,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 10.7,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.14008906953846756,
+    "weekReturnGbp": 0.1372298034757209,
+    "weekReturnLocalIndex": 0.08823829477136091,
+    "yearReturnGbp": 0.5447571909945361,
+    "currencyWeekVsUsd": 0.046336028165048226,
+    "currency": "BRL",
+    "valueScore": 88.6,
+    "rotation": "Leading",
+    "flags": [
+     "Rose fast",
+     "Far above trend",
+     "Near 1-yr high"
+    ],
+    "conditionsHelping": [
+     "Oil rising",
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Sweden",
+    "index": "OMX Stockholm 30",
+    "score": 52,
+    "signal": "Neutral",
+    "scoreChangeWeek": 5.7,
+    "signalWeekAgo": "Neutral",
+    "weekReturnUsd": 0.013186828631372771,
+    "weekReturnGbp": 0.010645824781997604,
+    "weekReturnLocalIndex": -0.0007256563416577766,
+    "yearReturnGbp": 0.11321601561169081,
+    "currencyWeekVsUsd": 0.004071433185839357,
+    "currency": "SEK",
+    "valueScore": 62.3,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Norway",
+    "index": "Oslo B\u00f8rs Benchmark",
+    "score": 76,
+    "signal": "Overweight",
+    "scoreChangeWeek": 2.1,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": 0.0022535211267604716,
+    "weekReturnGbp": -0.00026006272891687665,
+    "weekReturnLocalIndex": 0.0027196344796716065,
+    "yearReturnGbp": 0.29678437531315494,
+    "currencyWeekVsUsd": 0.0065145903245962256,
+    "currency": "NOK",
+    "valueScore": 81.7,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Oil rising"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Poland",
+    "index": "MSCI Poland (via EPOL)",
+    "score": 91,
+    "signal": "Strong overweight",
+    "scoreChangeWeek": 2.8,
+    "signalWeekAgo": "Strong overweight",
+    "weekReturnUsd": 0.018359313109792996,
+    "weekReturnGbp": 0.015805337020156962,
+    "weekReturnLocalIndex": 0.021364660111584444,
+    "yearReturnGbp": 0.4187803043800973,
+    "currencyWeekVsUsd": -0.004643513662449639,
+    "currency": "PLN",
+    "valueScore": 68.0,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": []
+   },
+   {
+    "name": "Thailand",
+    "index": "MSCI Thailand (via THD)",
+    "score": 72,
+    "signal": "Overweight",
+    "scoreChangeWeek": 0.0,
+    "signalWeekAgo": "Overweight",
+    "weekReturnUsd": -0.00013966414686450435,
+    "weekReturnGbp": -0.002647246056187269,
+    "weekReturnLocalIndex": -0.0012986976631155223,
+    "yearReturnGbp": 0.2496189200202923,
+    "currencyWeekVsUsd": 0.0014933924521169928,
+    "currency": "THB",
+    "valueScore": 62.9,
+    "rotation": "Lagging",
+    "flags": [],
+    "conditionsHelping": [
+     "Investors confident"
+    ],
+    "conditionsHurting": [
+     "Oil rising"
+    ]
+   }
+  ]
+ },
+ "practicePortfolios": {
+  "sectors": {
+   "started": "2026-09-29",
+   "holdings": [
+    {
+     "name": "Cybersecurity (Themes & Industries)",
+     "sinceStartGbp": 0.062465184428271536
+    },
+    {
+     "name": "Cloud Computing (Themes & Industries)",
+     "sinceStartGbp": 0.049967343376313034
+    },
+    {
+     "name": "Oil & Gas Exploration (Themes & Industries)",
+     "sinceStartGbp": 0.04165637101171149
+    },
+    {
+     "name": "Energy (United States)",
+     "sinceStartGbp": 0.040436745515769035
+    },
+    {
+     "name": "Energy (Global)",
+     "sinceStartGbp": 0.040259418467540664
+    },
+    {
+     "name": "Energy (Canada)",
+     "sinceStartGbp": 0.03855846001778174
+    },
+    {
+     "name": "Oil & Gas (Europe)",
+     "sinceStartGbp": 0.03473726371508423
+    },
+    {
+     "name": "Electric Appliances & Precision (Japan)",
+     "sinceStartGbp": 0.010096549883858552
+    },
+    {
+     "name": "Technology (Europe)",
+     "sinceStartGbp": 0.007343681818392289
+    },
+    {
+     "name": "Technology (United States)",
+     "sinceStartGbp": 0.007303011786138347
+    },
+    {
+     "name": "Technology (Global)",
+     "sinceStartGbp": 0.002588343963847217
+    },
+    {
+     "name": "Biotech (Themes & Industries)",
+     "sinceStartGbp": -0.0024131377057805548
+    },
+    {
+     "name": "Financials (Canada)",
+     "sinceStartGbp": -0.0050242186587889925
+    },
+    {
+     "name": "Financials ex Banks (Japan)",
+     "sinceStartGbp": -0.018274320910904196
+    },
+    {
+     "name": "Semiconductors (Themes & Industries)",
+     "sinceStartGbp": -0.02110598632042393
+    },
+    {
+     "name": "Banks (Europe)",
+     "sinceStartGbp": -0.030644528760827017
+    },
+    {
+     "name": "Banks (Japan)",
+     "sinceStartGbp": -0.04900049924735028
+    }
+   ],
+   "bottomHoldings": [
+    {
+     "name": "Utilities (United States)",
+     "sinceStartGbp": 0.04609047441338476
+    },
+    {
+     "name": "Consumer Discretionary (United States)",
+     "sinceStartGbp": 0.039605208430014915
+    },
+    {
+     "name": "Utilities (Global)",
+     "sinceStartGbp": 0.036651656752576756
+    },
+    {
+     "name": "Consumer Discretionary (Global)",
+     "sinceStartGbp": 0.029699689174018218
+    },
+    {
+     "name": "Clean Energy (Themes & Industries)",
+     "sinceStartGbp": 0.028578236298258286
+    },
+    {
+     "name": "China Internet (Themes & Industries)",
+     "sinceStartGbp": 0.0271073918122422
+    },
+    {
+     "name": "Medical Devices (Themes & Industries)",
+     "sinceStartGbp": 0.023959183546129914
+    },
+    {
+     "name": "Solar (Themes & Industries)",
+     "sinceStartGbp": 0.01821355070762265
+    },
+    {
+     "name": "Communication Services (United States)",
+     "sinceStartGbp": 0.006399312101174948
+    },
+    {
+     "name": "Automobiles & Parts (Europe)",
+     "sinceStartGbp": -0.0023048285302612603
+    },
+    {
+     "name": "Real Estate (Europe)",
+     "sinceStartGbp": -0.004297130821164674
+    },
+    {
+     "name": "Aerospace & Defense (Themes & Industries)",
+     "sinceStartGbp": -0.0043097319437755965
+    },
+    {
+     "name": "Automobiles (Japan)",
+     "sinceStartGbp": -0.00896803223784548
+    },
+    {
+     "name": "Uranium & Nuclear (Themes & Industries)",
+     "sinceStartGbp": -0.015082664104426047
+    },
+    {
+     "name": "Construction & Materials (Europe)",
+     "sinceStartGbp": -0.01808501776212823
+    },
+    {
+     "name": "Homebuilders (Themes & Industries)",
+     "sinceStartGbp": -0.027556713368727337
+    },
+    {
+     "name": "Real Estate (Japan)",
+     "sinceStartGbp": -0.03607169167701174
+    }
+   ],
+   "valueGbp": {
+    "top": 10096.54,
+    "bottom": 9978.98,
+    "mkt": 10074.84,
+    "world": 10106.75
+   },
+   "startValue": 10000,
+   "nextPicks": "2026-11-01"
+  },
+  "countries": {
+   "started": "2026-09-29",
+   "holdings": [
+    {
+     "name": "United States",
+     "sinceStartGbp": 0.02151719325283108
+    },
+    {
+     "name": "Taiwan",
+     "sinceStartGbp": 0.01598623267710031
+    },
+    {
+     "name": "Poland",
+     "sinceStartGbp": 0.015598253178089827
+    },
+    {
+     "name": "Japan",
+     "sinceStartGbp": 0.007328536621039605
+    },
+    {
+     "name": "Spain",
+     "sinceStartGbp": 0.0030805597515737304
+    },
+    {
+     "name": "South Korea",
+     "sinceStartGbp": -0.04538618609952838
+    },
+    {
+     "name": "Singapore",
+     "sinceStartGbp": -0.04592026202365729
+    }
+   ],
+   "bottomHoldings": [
+    {
+     "name": "Indonesia",
+     "sinceStartGbp": 0.026562348582765294
+    },
+    {
+     "name": "Philippines",
+     "sinceStartGbp": 0.014856200668064368
+    },
+    {
+     "name": "China",
+     "sinceStartGbp": 0.010851420930903188
+    },
+    {
+     "name": "Saudi Arabia",
+     "sinceStartGbp": 0.000999614932959414
+    },
+    {
+     "name": "India",
+     "sinceStartGbp": -0.004747618004374066
+    },
+    {
+     "name": "Vietnam",
+     "sinceStartGbp": -0.0047553176558520205
+    },
+    {
+     "name": "Turkey",
+     "sinceStartGbp": -0.005480025328724714
+    }
+   ],
+   "valueGbp": {
+    "top": 9810.81,
+    "bottom": 9904.87,
+    "mkt": 10106.75,
+    "world": 10106.75
+   },
+   "startValue": 10000,
+   "nextPicks": "2026-11-01"
+  }
+ },
+ "scoreTestOnThePast": {
+  "sectors": {
+   "topVsLowestGroupPerYear": 0.060459561647161555,
+   "reliabilityT": 1.3261375127634758,
+   "topAfterCostsPerYear": 0.007018457785205403
+  },
+  "countries": {
+   "topVsLowestGroupPerYear": -0.014545072397878264,
+   "reliabilityT": -0.3417512505790359,
+   "topAfterCostsPerYear": -0.028385422456740667
+  }
+ }
+}
