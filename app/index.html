@@ -696,26 +696,35 @@ function drawCycles(){
 }
 const cycRows = () => S.cyc.rows.filter(r=>S.creg==="all"||r.region===S.creg).sort((a,b)=>a.dd5-b.dd5);
 
-// how far below its 5-year high: right end = at the high, left end = 90% below; shaded = the deep-dip zone.
-// One bar colour throughout. The list shows one marker (its typical big fall); the index's own panel adds its worst fall.
-const DIP_SCALE = 0.9;
-function dipBar(r,big=false){
-  const x = v => (Math.min(DIP_SCALE,Math.abs(v))/DIP_SCALE*100).toFixed(1), fs=fallsOf(r), typ=medianOf(fs), worst=fs.length?Math.min(...fs):null, d=r.dd5;
-  const say=[cap(belowHigh(d)), typ!=null?`its typical big fall ${pct(Math.abs(typ),0,false)}`:"", worst!=null?`its worst ${pct(Math.abs(worst),0,false)}`:""].filter(Boolean).join("; ");
-  return `<div class="dipbar${big?" big":""}" role="img" aria-label="${esc(say)}" title="${esc(say)}">
-    <i class="zone" style="right:${x(dipLine())}%"></i>
-    <i class="fill" style="width:calc(${x(d)}% - 2px);background:var(--accent)"></i>
-    ${typ!=null?`<i class="typ" style="right:${x(typ)}%" title="${esc(`Its typical big fall: ${pct(Math.abs(typ),0,false)} (the median of ${fs.length})`)}"></i>`:""}
-    ${big&&worst!=null?`<i class="worst" style="right:${x(worst)}%" title="${esc(`Its worst fall: ${pct(Math.abs(worst),0,false)}`)}"></i>`:""}</div>`;
+// how deep today's dip is, in words, against the index's own past big falls
+function dipVerdict(r){
+  const fs=fallsOf(r), typ=medianOf(fs), worst=fs.length?Math.min(...fs):null, d=r.dd5;
+  if(d>-0.005) return "At its 5-year high";
+  if(d>-0.10) return "Close to its 5-year high";
+  if(worst!=null&&d<=worst*0.9) return `Near its worst fall since ${yearOf(r.since)} (${pct(worst,0)})`;
+  if(typ!=null&&d<=typ) return `Deeper than its usual big fall (${pct(typ,0)})`;
+  if(typ!=null) return d<=dipLine()? `Not yet as deep as its usual big fall (${pct(typ,0)})` : `Less than its usual big fall (${pct(typ,0)})`;
+  return d<=dipLine()? "A deep dip" : "A pullback";
 }
-const dipLegend = (big=false) => `<div class="diplegend"><span><i class="lg-fill"></i>How far below its 5-year high today</span><span><i class="lg-zone"></i>Deep-dip zone (30% or more below)</span>
-  <span><i class="lg-typ"></i>Its typical big fall</span>${big?'<span><i class="lg-worst"></i>Its worst fall</span>':""}</div>`;
+// the last 5 years of month-end levels, with its 5-year high as a dashed line and today as a dot
+function peakSpark(r,{w=300,h=54}={}){
+  // drawn to the full width of its column at a fixed height; strokes and the dot keep their size however wide it is
+  const v=r.long.c.slice(-61), hi=r.hi5||Math.max(...v); if(v.length<2) return "";
+  const mn=Math.min(...v), mx=Math.max(hi,...v), span=mx-mn||1, ns='vector-effect="non-scaling-stroke"';
+  const X=i=>2+i/(v.length-1)*(w-6), Y=y=>5+(1-(y-mn)/span)*(h-10), li=v.length-1;
+  const d=v.map((y,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(y).toFixed(1)).join("");
+  return `<svg class="pspark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${esc(`Last 5 years: ${belowHigh(r.dd5)}`)}">
+    <line x1="2" x2="${w-2}" y1="${Y(hi).toFixed(1)}" y2="${Y(hi).toFixed(1)}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 4" ${ns}/>
+    <path d="${d}L${X(li).toFixed(1)} ${h}L2 ${h}Z" fill="var(--accent)" fill-opacity=".10"/>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round" ${ns}/>
+    <line x1="${X(li).toFixed(1)}" x2="${X(li).toFixed(1)}" y1="${Y(v[li]).toFixed(1)}" y2="${Y(v[li]).toFixed(1)}" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" ${ns}/></svg>`;
+}
+const dipHead = () => `<div class="diphead" aria-hidden="true"><span>Index</span><span>Last 5 years <i class="dash"></i> its 5-year high</span><span>Below its 5-year high</span></div>`;
 function dipRow(r){
-  const sp=sparkSVG(r.long.c.slice(-61),{w:84,h:28});
   return `<div class="diprow" data-open="cyc:${esc(r.key)}" role="button" tabindex="0" title="${esc(`${PHASE_HELP[r.phase]||""} ${pct(r.vs5y,0)} vs its 5-year average, ${pct(r.vs200,0)} vs its 200-day average.`)}">
     <div class="dr-name"><b>${esc(r.name)} <span class="dr-reg">${esc(regName(r))}</span></b><span class="dr-sub">${esc(r.full)}</span><span class="dr-tags">${phaseTag(r.phase)}${dipTag(r)}</span></div>
-    <div class="dr-bar">${dipBar(r)}<div class="dr-meta"><span>1 yr <b class="${cls(r.r1y)}">${pct(r.r1y,0)}</b></span></div></div>
-    <div class="dr-val"><b class="${r.dd5<=dipLine()?"dip":""}">${r.dd5>-0.005?"0%":pct(r.dd5,0)}</b><small>from its 5-yr high</small></div>${sp}</div>`;
+    <div class="dr-chart">${peakSpark(r)}</div>
+    <div class="dr-val"><b class="${r.dd5<=dipLine()?"dip":""}">${r.dd5>-0.005?"0%":pct(r.dd5,0)}</b><small>${esc(dipVerdict(r))}</small></div></div>`;
 }
 
 function cyclesHTML(){
@@ -733,12 +742,11 @@ function cyclesHTML(){
   ];
   return `<div class="intro">${icon("cycles",17)}<span><b>Indices, not funds:</b> ${all.length} stock-market indices for industries that boom and bust with the economy and with commodity prices, such as mining, oil, banks, chips and housebuilding. See how far each is below its recent peak, whether it is still falling or turning up, and how its past dips played out. Click any index for its full history.</span></div>
   <section>${secHead({eyebrow:"Cycles",title:"Where is each cyclical index in its cycle?"})}${heroGrid(tiles)}</section>
-  <section>${secHead({eyebrow:"Dip meter",title:"How far below its peak",lead:"Deepest first. The bar runs from the 5-year high (right) to 90% below it (left).",right:regTabs})}
-    ${more("dip-how",`<p><b>From its 5-year high:</b> how far the index is below its highest close of the past five years. Cyclical industries often fall 40% or more in a downturn; the markers show how deep this index's own past big falls went.</p>
+  <section>${secHead({eyebrow:"Dip meter",title:"How far below its peak",lead:"Deepest first: each index's last 5 years, and how today's dip compares with its own past falls.",right:regTabs})}
+    ${more("dip-how",`<p><b>Below its 5-year high:</b> how far the index is below its highest close of the past five years (the dashed line on its chart). Cyclical industries often fall 40% or more in a downturn, so the line under each number compares today's dip with that index's own past big falls: its usual (median) one and its worst.</p>
       <p><b>Deep dip</b> = 30% or more below. Buying at that depth has beaten buying at any time on average in our test (below), but often only after falling further first.</p>
       <p><b>The phase</b> combines two simple measures. Below its <b>5-year average</b> = low in its recent cycle; above = high. Above its <b>200-day average</b> (about 10 months) = rising lately; below = falling. ${Object.keys(PHASE_TONE).map(p=>phaseTag(p)).join(" ")}</p>`,"How to read the dip meter")}
-    ${dipLegend()}<div class="dipscale" aria-hidden="true"><span class="ds-bar"><span>−90%</span><span>5-yr high</span></span></div>
-    <div class="diplist">${rows.map(dipRow).join("")}</div></section>
+    ${dipHead()}<div class="diplist">${rows.map(dipRow).join("")}</div></section>
   <section><div class="card panel">${secHead({eyebrow:"Cycle clock",title:"Low or high in the cycle, falling or rising",h:"h3"})}
     ${more("clock-how",`<p>Left of centre = below its 5-year average (low in its recent cycle); right = above it. Above centre = above its 200-day average (rising lately); below = falling. Indices tend to go round clockwise: <b>turning up</b> (top left) → <b>rising</b> (top right) → <b>turning down</b> (bottom right) → <b>falling</b> (bottom left). The big dot is today; the line behind it shows where it stood at each of the last 3 month-ends. The across scale is compressed, so the very big moves (some indices are 100% or more above their 5-year average) fit without squashing the rest. Click a dot for its history.</p>`,"How to read the clock")}
     ${trailKey("where it was at each of the last 3 month-ends")}<div id="cyclock"></div></div></section>
@@ -813,12 +821,19 @@ function cycleTestSection(T){
 
 /* ---------------------------------------------------------------- one index's detail panel */
 const CTABS=[["cycle","Cycle"],["falls","Past falls"],["dips","Its dips"],["about","About & buying"]];
+// today's depth beside its usual and worst past falls, as three plain numbers
+function depthTrio(r){
+  const all=r.falls||[], fs=fallsOf(r), typ=medianOf(fs), w=all.length?all.reduce((a,b)=>b.fall<a.fall?b:a):null;
+  return `<div class="trio">
+    <div><span>Below its 5-year high</span><b class="${r.dd5<=dipLine()?"dip":""}">${r.dd5>-0.005?"0%":pct(r.dd5,0)}</b><small>${esc(dipVerdict(r))}</small></div>
+    <div><span>Its usual big fall</span><b>${typ==null?"–":pct(typ,0)}</b><small>${fs.length?`the middle of its ${fs.length} big fall${fs.length>1?"s":""} since ${yearOf(r.since)}`:"no big falls in its history here"}</small></div>
+    <div><span>Its worst fall</span><b>${w?pct(w.fall,0):"–"}</b><small>${w?`${yearOf(w.peak)===yearOf(w.trough)?yearOf(w.peak):`${yearOf(w.peak)} to ${yearOf(w.trough)}`}`:""}</small></div></div>`;
+}
 function cycleText(r){
   const fs=fallsOf(r), typ=medianOf(fs), worst=fs.length?Math.min(...fs):null, low=r.vs5y<0, up=r.vs200>0;
   const where=low? `${pct(Math.abs(r.vs5y),0,false)} below its 5-year average, so low in its recent cycle` : `${pct(r.vs5y,0,false)} above its 5-year average, so high in its recent cycle`;
   const dir=low? (up?"it has started to recover":"it is still falling") : (up?"it is still rising":"it has started to slip");
   let s=`${r.name} (${regName(r)}) is ${belowHigh(r.dd5)} (${dayStr(r.hi5At)}) and ${where}. It is ${up?"above":"below"} its 200-day average (${pct(r.vs200,0)}), so ${dir}.`;
-  if(typ!=null) s+=` Its ${fs.length} big fall${fs.length>1?"s":""} since ${yearOf(r.since)} (${pct(r.swing,0,false)} or more) went ${fs.length>1?`a median ${pct(Math.abs(typ),0,false)} deep, the worst ${pct(Math.abs(worst),0,false)}`:`${pct(Math.abs(typ),0,false)} deep`}.`;
   if(isDeep(r)) s+=` At this depth it is in a deep dip: in our test, buying at such moments beat buying at any time over the next year on average, but about a quarter of those buys fell another 20% or more first.`;
   return s;
 }
@@ -848,10 +863,10 @@ function openCycle(key){
       <button class="btn close" type="button" id="closeD" aria-label="Close">Close ✕</button></div>
     ${dTabs(CTABS,S.ctab)}
     <div class="dgrid" data-pane="cycle">
-      <div class="card" style="padding:16px;display:grid;gap:12px"><div class="eyebrow">Where it is now</div>${dipBar(r,true)}${dipLegend(true)}
+      <div class="card" style="padding:16px;display:grid;gap:12px"><div class="eyebrow">Where it is now</div>${depthTrio(r)}
         <p style="margin:0;font-size:15px">${esc(cycleText(r))}</p></div>
       <div class="stats">${[
-        tile("From its 5-yr high",pct(r.dd5,0),r.dd5,`Its highest close of the past 5 years: ${lvl(r.hi5)} on ${dayStr(r.hi5At)}`),
+        tile("Its 5-yr high",lvl(r.hi5),null,`Its highest close of the past 5 years, on ${dayStr(r.hi5At)}`),
         tile("From its 5-yr low",pct(r.level/r.lo5-1,0),1,`Its lowest close of the past 5 years: ${lvl(r.lo5)} on ${dayStr(r.lo5At)}`),
         tile("vs its 5-yr average",pct(r.vs5y,0),r.vs5y,"Below = low in its recent cycle; above = high"),
         tile("vs its 200-day avg",pct(r.vs200,0),r.vs200,"Above = rising lately; below = falling"),
