@@ -190,9 +190,12 @@ def from_lse():
     missing = sorted(t for t in held if t not in info)
     if len(missing) > 0.03 * len(held):
         raise RuntimeError(f"London Stock Exchange data missing for {len(missing)} of {len(held)} companies")
-    # the fund's ticker should be the same company on the exchange: compare the first word of the two names
-    first = lambda n: re.sub(r"[^A-Z0-9]", "", (n or "").upper().split(" ")[0] if n else "")
-    odd = sorted(t for t in held if t in info and first(members[t][2]) and first(members[t][2]) != first(info[t]["name"]))
+    # the fund's ticker should be the same company on the exchange: the two names should share a word
+    # ("WETHERSPOON(J.D.) PLC" and "WETHERSPOON ( J.D.) PLC", "PPH HOTEL GROUP" and "PPHE HOTEL GROUP LIMITED")
+    common = {"THE", "PLC", "GROUP", "HOLDINGS", "LIMITED", "LTD", "TRUST", "FUND", "INVESTMENT", "AG", "SA", "CO", "COMPANY", "INC"}
+    words = lambda n: {w for w in re.sub(r"[^A-Z0-9]+", " ", (n or "").upper()).split() if len(w) >= 3 and w not in common}
+    same = lambda a, b: not words(a) or not words(b) or bool(words(a) & words(b)) or any(x.startswith(y) or y.startswith(x) for x in words(a) for y in words(b))
+    odd = sorted(t for t in held if t in info and not same(members[t][2], info[t]["name"]))
     for t in odd:
         print(f"[lse] {t}: fund says {members[t][2]!r}, exchange says {info[t]['name']!r}; left out", flush=True)
         info.pop(t)
