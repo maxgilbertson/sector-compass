@@ -1,0 +1,43 @@
+name: Index constituents
+
+# Once a week: the biggest companies in each cyclical index on the Cycles tab (app/constituents.py), saved to
+# data/constituents.json so the record is kept even if a source is down the next week.
+on:
+  schedule:
+    - cron: "10 7 * * 0"   # Sundays, 07:10 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: repo-writes
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/requirements.txt
+      - run: pip install -r app/requirements.txt
+      - run: python app/constituents.py
+      - name: Save to the repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/constituents.json
+          if git diff --cached --quiet; then echo "Nothing new to save"; exit 0; fi
+          git commit -m "Index constituents $(date -u +%F)"
+          git pull --rebase
+          git push
+      - name: Publish the site with the new data
+        run: gh workflow run deploy.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
