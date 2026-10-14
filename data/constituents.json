@@ -1,5 +1,5 @@
 {
- "generated": 1791987486.1755357,
+ "generated": 1791987643.51321,
  "indices": {
   "eu-resources": {
    "kind": "fund",
@@ -554,7 +554,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 7,
-   "total": 201355855304.32877,
+   "total": 201367194616.48865,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -564,17 +564,17 @@
     {
      "sym": "RIO",
      "name": "Rio Tinto",
-     "w": 0.37631
+     "w": 0.37633
     },
     {
      "sym": "GLEN",
      "name": "Glencore",
-     "w": 0.30234
+     "w": 0.30236
     },
     {
      "sym": "AAL",
      "name": "Anglo American",
-     "w": 0.23357
+     "w": 0.23358
     },
     {
      "sym": "ANTO",
@@ -584,17 +584,17 @@
     {
      "sym": "HILS",
      "name": "Hill & Smith",
-     "w": 0.01232
+     "w": 0.01229
     },
     {
      "sym": "ATYM",
      "name": "Atalaya Mining Copper",
-     "w": 0.00672
+     "w": 0.00671
     },
     {
      "sym": "MNO",
      "name": "Meridian Mining",
-     "w": 0.00256
+     "w": 0.00255
     }
    ],
    "asOf": "2026-10-14",
@@ -604,7 +604,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 6,
-   "total": 328926362051.3424,
+   "total": 328950375200.34216,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -614,22 +614,22 @@
     {
      "sym": "SHEL",
      "name": "Shell",
-     "w": 0.69744
+     "w": 0.69746
     },
     {
      "sym": "BP.",
      "name": "BP",
-     "w": 0.28676
+     "w": 0.28677
     },
     {
      "sym": "HBR",
      "name": "Harbour Energy",
-     "w": 0.00832
+     "w": 0.00831
     },
     {
      "sym": "ENOG",
      "name": "Energean",
-     "w": 0.00343
+     "w": 0.00342
     },
     {
      "sym": "ITH",
@@ -643,13 +643,13 @@
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 1.0
+   "topShare": 0.9999999999999999
   },
   "uk-banks": {
    "kind": "lse",
    "basis": "estimated",
    "count": 12,
-   "total": 479317931997.32874,
+   "total": 479355661009.3668,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -659,12 +659,12 @@
     {
      "sym": "HSBA",
      "name": "HSBC Holdings",
-     "w": 0.52331
+     "w": 0.52332
     },
     {
      "sym": "LLOY",
      "name": "Lloyds Banking Group",
-     "w": 0.13028
+     "w": 0.13029
     },
     {
      "sym": "BARC",
@@ -674,7 +674,7 @@
     {
      "sym": "NWG",
      "name": "NatWest Group",
-     "w": 0.1112
+     "w": 0.11121
     },
     {
      "sym": "STAN",
@@ -694,27 +694,27 @@
     {
      "sym": "TBCG",
      "name": "TBC Bank Group",
-     "w": 0.00477
+     "w": 0.00476
     },
     {
      "sym": "PAG",
      "name": "Paragon Banking Group",
-     "w": 0.00276
+     "w": 0.00275
     },
     {
      "sym": "CBG",
      "name": "Close Brothers Group",
-     "w": 0.00128
+     "w": 0.00127
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.998185545257388
+   "topShare": 0.9981892077534977
   },
   "uk-homes": {
    "kind": "lse",
    "basis": "estimated",
    "count": 6,
-   "total": 16546010044.726028,
+   "total": 16521908087.23043,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -724,32 +724,32 @@
     {
      "sym": "PSN",
      "name": "Persimmon",
-     "w": 0.24335
+     "w": 0.24323
     },
     {
      "sym": "BTRW",
      "name": "Barratt Redrow",
-     "w": 0.23687
+     "w": 0.23724
     },
     {
      "sym": "BKG",
      "name": "Berkeley Group Holdings",
-     "w": 0.17326
+     "w": 0.17318
     },
     {
      "sym": "TW.",
      "name": "Taylor Wimpey",
-     "w": 0.16158
+     "w": 0.1615
     },
     {
      "sym": "BWY",
      "name": "Bellway",
-     "w": 0.14017
+     "w": 0.1401
     },
     {
      "sym": "VTY",
      "name": "Vistry Group",
-     "w": 0.04478
+     "w": 0.04475
     }
    ],
    "asOf": "2026-10-14",
@@ -759,7 +759,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 9,
-   "total": 13908290688.273973,
+   "total": 13889838893.383839,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -769,47 +769,47 @@
     {
      "sym": "BBY",
      "name": "Balfour Beatty",
-     "w": 0.30058
+     "w": 0.30101
     },
     {
      "sym": "KLR",
      "name": "Keller Group",
-     "w": 0.16212
+     "w": 0.16202
     },
     {
      "sym": "MGNS",
      "name": "Morgan Sindall Group",
-     "w": 0.13201
+     "w": 0.13193
     },
     {
      "sym": "FAN",
      "name": "Volution Group",
-     "w": 0.09727
+     "w": 0.09721
     },
     {
      "sym": "KIE",
      "name": "Kier Group",
-     "w": 0.09495
+     "w": 0.0949
     },
     {
      "sym": "BREE",
      "name": "Breedon Group",
-     "w": 0.06485
+     "w": 0.06481
     },
     {
      "sym": "GEN",
      "name": "Genuit Group",
-     "w": 0.05327
+     "w": 0.05323
     },
     {
      "sym": "COST",
      "name": "Costain Group",
-     "w": 0.04864
+     "w": 0.04861
     },
     {
      "sym": "GFRD",
      "name": "Galliford Try Holdings",
-     "w": 0.04632
+     "w": 0.04629
     }
    ],
    "asOf": "2026-10-14",
@@ -819,7 +819,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 5,
-   "total": 15630257351.684933,
+   "total": 15624991254.321339,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -829,27 +829,27 @@
     {
      "sym": "WEIR",
      "name": "Weir",
-     "w": 0.45135
+     "w": 0.45154
     },
     {
      "sym": "SPX",
      "name": "Spirax Group",
-     "w": 0.33433
+     "w": 0.33448
     },
     {
      "sym": "BOY",
      "name": "Bodycote",
-     "w": 0.10304
+     "w": 0.10288
     },
     {
      "sym": "VSVS",
      "name": "Vesuvius",
-     "w": 0.0577
+     "w": 0.05761
     },
     {
      "sym": "MGAM",
      "name": "Morgan Advanced Materials",
-     "w": 0.05358
+     "w": 0.0535
     }
    ],
    "asOf": "2026-10-14",
@@ -859,7 +859,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 3,
-   "total": 3575436190.2739725,
+   "total": 3568500003.1212125,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -889,7 +889,7 @@
    "kind": "lse",
    "basis": "estimated",
    "count": 5,
-   "total": 10211197680.986301,
+   "total": 10200984290.852274,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -899,37 +899,37 @@
     {
      "sym": "CRDA",
      "name": "Croda International",
-     "w": 0.46058
+     "w": 0.46109
     },
     {
      "sym": "JMAT",
      "name": "Johnson Matthey",
-     "w": 0.30283
+     "w": 0.30255
     },
     {
      "sym": "ELM",
      "name": "Elementis",
-     "w": 0.1041
+     "w": 0.104
     },
     {
      "sym": "VCT",
      "name": "Victrex",
-     "w": 0.08202
+     "w": 0.08194
     },
     {
      "sym": "RHIM",
      "name": "RHI Magnesita",
-     "w": 0.05047
+     "w": 0.05042
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 1.0
+   "topShare": 0.9999999999999999
   },
   "uk-travel": {
    "kind": "lse",
    "basis": "estimated",
-   "count": 15,
-   "total": 49636040067.50685,
+   "count": 17,
+   "total": 50585239686.247475,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -939,62 +939,62 @@
     {
      "sym": "IHG",
      "name": "InterContinental Hotels Group",
-     "w": 0.34742
+     "w": 0.34094
     },
     {
      "sym": "IAG",
      "name": "IAG (British Airways)",
-     "w": 0.27899
+     "w": 0.27378
     },
     {
      "sym": "EZJ",
      "name": "easyJet",
-     "w": 0.08949
+     "w": 0.08782
     },
     {
      "sym": "WTB",
      "name": "Whitbread",
-     "w": 0.08422
+     "w": 0.08265
     },
     {
      "sym": "ENT",
      "name": "Entain",
-     "w": 0.05776
+     "w": 0.05656
     },
     {
      "sym": "SSPG",
      "name": "SSP Group",
-     "w": 0.02855
+     "w": 0.02796
     },
     {
      "sym": "DOM",
      "name": "Domino's Pizza Group",
-     "w": 0.01817
+     "w": 0.01779
     },
     {
      "sym": "WIZZ",
      "name": "Wizz Air Holdings",
-     "w": 0.01817
+     "w": 0.01779
     },
     {
      "sym": "MAB",
      "name": "Mitchells & Butlers",
-     "w": 0.01557
+     "w": 0.01525
     },
     {
      "sym": "PTEC",
      "name": "Playtech",
-     "w": 0.01557
+     "w": 0.01525
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.9539247951047066
+   "topShare": 0.9358110481141736
   },
   "uk-retail": {
    "kind": "lse",
    "basis": "estimated",
    "count": 16,
-   "total": 40458791681.26028,
+   "total": 40437878699.92172,
    "ccy": "GBP",
    "holdingsAsOf": "2026-10-12",
    "missing": [
@@ -1004,56 +1004,56 @@
     {
      "sym": "NXT",
      "name": "Next",
-     "w": 0.41977
+     "w": 0.42003
     },
     {
      "sym": "KGF",
      "name": "Kingfisher",
-     "w": 0.12916
+     "w": 0.12924
     },
     {
      "sym": "HWDN",
      "name": "Howden Joinery Group",
-     "w": 0.10333
+     "w": 0.10339
     },
     {
      "sym": "BME",
      "name": "B&M European Value Retail",
-     "w": 0.07086
+     "w": 0.07076
     },
     {
      "sym": "INCH",
      "name": "Inchcape",
-     "w": 0.05334
+     "w": 0.05327
     },
     {
      "sym": "JD.",
      "name": "JD Sports Fashion",
-     "w": 0.04521
+     "w": 0.04523
     },
     {
      "sym": "CURY",
      "name": "Currys",
-     "w": 0.03583
+     "w": 0.03578
     },
     {
      "sym": "DNLM",
      "name": "Dunelm Group",
-     "w": 0.02548
+     "w": 0.02544
     },
     {
      "sym": "PETS",
      "name": "Pets at Home Group",
-     "w": 0.02388
+     "w": 0.02385
     },
     {
      "sym": "MOON",
      "name": "Moonpig Group",
-     "w": 0.0207
+     "w": 0.02067
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.9275506427285284
+   "topShare": 0.927653795806269
   },
   "us-housing": {
    "kind": "capped",
@@ -1090,36 +1090,36 @@
     {
      "sym": "WY",
      "name": "Weyerhaeuser",
-     "w": 0.07826
+     "w": 0.07831
     },
     {
      "sym": "MAS",
      "name": "Masco",
-     "w": 0.07774
+     "w": 0.07777
     },
     {
      "sym": "TOL",
      "name": "Toll Brothers",
-     "w": 0.06822
+     "w": 0.06829
     },
     {
      "sym": "LII",
      "name": "Lennox International",
-     "w": 0.06813
+     "w": 0.06823
     },
     {
      "sym": "OC",
      "name": "Owens Corning",
-     "w": 0.05046
+     "w": 0.05036
     },
     {
      "sym": "AWI",
      "name": "Armstrong World Industries",
-     "w": 0.03953
+     "w": 0.03945
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.8423475495445911
+   "topShare": 0.8424156058703938
   },
   "us-oilserv": {
    "kind": "capped",
@@ -1161,31 +1161,31 @@
     {
      "sym": "GLNG",
      "name": "Golar LNG",
-     "w": 0.0739
+     "w": 0.07377
     },
     {
      "sym": "WHD",
      "name": "Cactus",
-     "w": 0.06899
+     "w": 0.0693
     },
     {
      "sym": "OII",
      "name": "Oceaneering International",
-     "w": 0.0686
+     "w": 0.06851
     },
     {
      "sym": "TDW",
      "name": "Tidewater",
-     "w": 0.06585
+     "w": 0.0661
     },
     {
      "sym": "HP",
      "name": "Helmerich & Payne",
-     "w": 0.06103
+     "w": 0.06096
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.8783751940862881
+   "topShare": 0.8786297557591212
   },
   "us-gold": {
    "kind": "capped",
@@ -1261,17 +1261,17 @@
     {
      "sym": "NSC",
      "name": "Norfolk Southern",
-     "w": 0.10353
+     "w": 0.10359
     },
     {
      "sym": "FDX",
      "name": "FedEx",
-     "w": 0.09372
+     "w": 0.0937
     },
     {
      "sym": "UNP",
      "name": "Union Pacific",
-     "w": 0.09116
+     "w": 0.09117
     },
     {
      "sym": "R",
@@ -1281,36 +1281,36 @@
     {
      "sym": "MATX",
      "name": "Matson",
-     "w": 0.07475
+     "w": 0.07486
     },
     {
      "sym": "JBHT",
      "name": "J.B. Hunt",
-     "w": 0.0742
+     "w": 0.07426
     },
     {
      "sym": "EXPD",
      "name": "Expeditors International",
-     "w": 0.06305
+     "w": 0.06297
     },
     {
      "sym": "ODFL",
      "name": "Old Dominion Freight Line",
-     "w": 0.05845
+     "w": 0.05851
     },
     {
      "sym": "LSTR",
      "name": "Landstar System",
-     "w": 0.05435
+     "w": 0.05432
     },
     {
-     "sym": "KEX",
-     "name": "Kirby",
-     "w": 0.04495
+     "sym": "CHRW",
+     "name": "C.H. Robinson",
+     "w": 0.04493
     }
    ],
    "asOf": "2026-10-14",
-   "topShare": 0.7345971994100651
+   "topShare": 0.7347667834755894
   }
  },
  "errors": []
