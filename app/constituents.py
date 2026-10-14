@@ -90,8 +90,8 @@ def yahoo_info(symbols):
 
 ACRONYMS = {"HSBC", "BP", "IAG", "JD", "BAE", "BT", "GSK", "RELX", "ITV", "IMI", "WPP", "SSE", "DCC", "ICG", "ASOS", "B&M", "TBC", "IG",
             "US", "UK", "SPX", "AJ", "LSEG", "IHG", "BBVA", "BNP", "ING", "UPM", "ABB", "DSV", "CRH", "TUI", "SEB", "KBC", "NN",
-            "NVIDIA", "AMD", "ASML", "BASF", "BMW", "UBS", "AIB", "RWE", "SAP", "ENI", "OMV", "SSAB", "NXP", "KLA", "SLB", "NOV", "CSX", "UPS", "ON", "TSMC", "PNC", "KB", "LNG", "II", "III"}
-_LEGAL = r"(PLC|P\.L\.C\.?|Inc\.?|Incorporated|Corp(oration)?\.?|Company|Co\.?|Ltd\.?|Limited|S\.A\.?|SA|N\.V\.?|NV|AG|SE|ASA|AB( \(publ\))?|S\.p\.A\.?|SpA|Oyj|Group Plc|Aktiengesellschaft|KGaA)"
+            "NVIDIA", "AMD", "ASML", "BASF", "BMW", "UBS", "AIB", "RWE", "SAP", "ENI", "OMV", "SSAB", "NXP", "KLA", "SLB", "NOV", "CSX", "UPS", "ON", "TSMC", "PNC", "KB", "LNG", "II", "III", "SSP", "IMCD", "EMS", "RHI", "PZ", "TP", "FD", "CVS", "JTC"}
+_LEGAL = r"(PLC|P\.L\.C\.?|Inc\.?|Incorporated|Corp(oration)?\.?|Company|Co\.?|Ltd\.?|Limited|S\.A\.?|SA|N\.V\.?|NV|AG|SE|ASA|AB( \(publ\))?|S\.p\.A\.?|SpA|Oyj|Aktiengesellschaft|KGaA)"
 
 
 SHORT = {"Compagnie Générale des Établissements Michelin": "Michelin", "L'Air Liquide": "Air Liquide",
@@ -105,14 +105,15 @@ def tidy(name):
     if not name:
         return name
     n = re.sub(r"^The\s+", "", name.strip())
-    n = re.sub(r"\s*\((The|Holding|Holdings|Switzerland|publ|[A-Z]{2,3})\)\s*$", "", n)                   # "(The)", "(Switzerland)"
+    n = re.sub(r"\s*\((the|holding|holdings|switzerland|publ)\)", "", n, flags=re.I)                     # "(The)", "(Switzerland)"
+    n = re.sub(r"\s*\([A-Z]{2,3}\)\s*$", "", n)
     n = re.sub(r"\s+(Ord(inary)?( Shares)?|Class [A-Z]|Registered Shares|Shs|ADR|NY Reg|Reg|Pref)\b.*$", "", n, flags=re.I)
     n = re.sub(r"\s+(AG|SA|SE|NV|ASA|AB|SpA|Oyj|PLC)\b\.?\s+\S.*$", "", n, flags=re.I)                     # "Volkswagen AG Vz"
     n = re.sub(r"\s+N$", "", n)                                                                             # "Givaudan N" (registered shares)
     for _ in range(2):                                                                                      # "Co., Inc." takes two
         n = re.sub(r"(,|\s)+(&\s+)?" + _LEGAL + r"$", "", n.strip(" ,."), flags=re.I)
     if n.isupper():  # the exchange's capitals: "LLOYDS BANKING GROUP" -> "Lloyds Banking Group", but keep HSBC, BP...
-        n = " ".join(w if w in ACRONYMS else w.capitalize() for w in n.split())
+        n = " ".join(w if w in ACRONYMS else "-".join(x.capitalize() for x in w.split("-")) for w in n.split())
     n = re.sub(r"\s+(Soci[ée]t[ée] en commandite par actions|SCA|S\.C\.A\.)$", "", n.strip(" ,."))
     return SHORT.get(n, n) or name
 
@@ -139,7 +140,7 @@ def from_funds():
 
 
 def ishares_members():
-    """The FTSE 350 (FTSE 100 + FTSE 250) as held by iShares' funds: {ticker: (index, weight in that fund)}, and the date."""
+    """The FTSE 350 (FTSE 100 + FTSE 250) as held by iShares' funds: {ticker: (index, weight, name)}, and the date."""
     members, dates = {}, []
     for index, url in ISHARES.items():
         text = _get(url).decode("utf-8-sig")
@@ -154,10 +155,10 @@ def ishares_members():
                     w = float((row.get("Weight (%)") or "0").replace(",", "")) / 100
                 except ValueError:
                     w = 0.0
-                members[t] = (index, w)
+                members[t] = (index, w, (row.get("Name") or "").strip())
     if len(members) < 300:
         raise RuntimeError(f"only {len(members)} FTSE 350 members found")
-    return members, max(d for d in dates if d)
+    return members, max((d for d in dates if d), default=None)
 
 
 def lse_info(tickers):
@@ -173,26 +174,42 @@ def lse_info(tickers):
             print(f"[lse {t}] {e}", flush=True)
             return t, None
     with ThreadPoolExecutor(max_workers=3) as ex:
-        return {t: v for t, v in ex.map(one, sorted(tickers)) if v}
+        got = {t: v for t, v in ex.map(one, sorted(tickers)) if v}
+    for t in sorted(set(tickers) - set(got)):  # one at a time, after a pause
+        time.sleep(2)
+        t, v = one(t)
+        if v:
+            got[t] = v
+    return got
 
 
 def from_lse():
     members, as_of = ishares_members()
-    info = lse_info(members)
-    if len(info) < 0.9 * len(members):
-        raise RuntimeError(f"London Stock Exchange data for only {len(info)} of {len(members)} companies")
+    info = lse_info([t for t, (_, w, _) in members.items() if w > 0])
+    held = [t for t, (_, w, _) in members.items() if w > 0]
+    missing = sorted(t for t in held if t not in info)
+    if len(missing) > 0.03 * len(held):
+        raise RuntimeError(f"London Stock Exchange data missing for {len(missing)} of {len(held)} companies")
+    # the fund's ticker should be the same company on the exchange: compare the first word of the two names
+    first = lambda n: re.sub(r"[^A-Z0-9]", "", (n or "").upper().split(" ")[0] if n else "")
+    odd = sorted(t for t in held if t in info and first(members[t][2]) and first(members[t][2]) != first(info[t]["name"]))
+    for t in odd:
+        print(f"[lse] {t}: fund says {members[t][2]!r}, exchange says {info[t]['name']!r}; left out", flush=True)
+        info.pop(t)
+    if missing:
+        print(f"[lse] no exchange data for {missing}", flush=True)
     # each fund's weights on one scale: value = weight x the fund's typical market value per unit of weight
     # (a company whose shares are nearly all freely traded sits at the typical ratio; one with a big controlling
     # owner, such as Antofagasta, has a smaller weight for its size, as in FTSE's own index)
     scale = {}
     for index in ISHARES:
-        ratios = sorted(float(info[t]["cap"]) / w for t, (ix, w) in members.items() if ix == index and w > 0 and (info.get(t) or {}).get("cap"))
+        ratios = sorted(float(info[t]["cap"]) / w for t, (ix, w, _) in members.items() if ix == index and w > 0 and (info.get(t) or {}).get("cap"))
         scale[index] = ratios[len(ratios) // 2] if ratios else None
     out = {}
     for key, code in LSE_SECTOR.items():
         rows = []
         for t, v in info.items():
-            ix, w = members.get(t, (None, 0))
+            ix, w, _ = members.get(t, (None, 0, ""))
             if v.get("sector") == code and w > 0 and scale.get(ix):
                 rows.append({"sym": t, "name": v["name"], "cap": w * scale[ix]})
         rows.sort(key=lambda r: -r["cap"])
@@ -202,7 +219,7 @@ def from_lse():
         for r in rows:
             r["w"] = r["cap"] / total
         out[key] = {"kind": "lse", "basis": "estimated", "count": len(rows), "total": total, "ccy": "GBP", "holdingsAsOf": as_of,
-                    "top": rows[:TOP]}
+                    "missing": [t for t in missing], "top": rows[:TOP]}
     names = yahoo_info([r["sym"].rstrip(".") + ".L" for v in out.values() for r in v["top"]])
     for v in out.values():
         for r in v["top"]:
@@ -236,8 +253,8 @@ def cap_weights(caps, c1, k, c2):
             fixed |= set(over)
             free = [i for i in range(len(w)) if i not in fixed]
             left, room = total - cap * len(fixed), sum(base[i] for i in free)
-            if not free or room <= 0:
-                return [cap if i in fixed else 0.0 for i in range(len(w))]
+            if not free or room <= 0:  # every company at the cap: share the rest in proportion to size
+                return [b * total / sum(base) for b in base] if cap * len(base) < total else [cap if i in fixed else 0.0 for i in range(len(w))]
             w = [cap if i in fixed else base[i] * left / room for i in range(len(w))]
     w1 = capped(caps, c1, 1.0)
     rest = w1[k:]
@@ -255,8 +272,8 @@ def from_capped():
         info = yahoo_info([s for s, _ in members])
         rows = sorted(({"sym": s, "name": tidy((info.get(s) or {}).get("name") or n), "cap": float(info[s]["cap"])}
                        for s, n in members if (info.get(s) or {}).get("cap")), key=lambda r: -r["cap"])
-        if len(rows) < 0.8 * len(members):
-            print(f"[{key}] market values for only {len(rows)} of {len(members)}", flush=True)
+        if len(rows) < len(members):  # a missing big company would push up everyone else's share
+            print(f"[{key}] no market value for {[s for s, _ in members if not (info.get(s) or {}).get('cap')]}; kept the last copy", flush=True)
             continue
         for r, w in zip(rows, cap_weights([r["cap"] for r in rows], c1, k, c2)):
             r["w"] = w
