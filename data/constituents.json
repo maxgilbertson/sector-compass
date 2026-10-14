@@ -1,0 +1,1292 @@
+{
+ "generated": 1791986859.5188403,
+ "indices": {
+  "eu-resources": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV6.DE",
+   "fundName": "iShares STOXX Europe 600 Basic Resources",
+   "differs": "",
+   "top": [
+    {
+     "sym": "RIO.L",
+     "name": "Rio Tinto Group",
+     "w": 0.26271
+    },
+    {
+     "sym": "AAL.L",
+     "name": "Anglo American",
+     "w": 0.15356
+    },
+    {
+     "sym": "GLEN.L",
+     "name": "Glencore",
+     "w": 0.144
+    },
+    {
+     "sym": "MT.AS",
+     "name": "ArcelorMittal",
+     "w": 0.07685
+    },
+    {
+     "sym": "ANTO.L",
+     "name": "Antofagasta",
+     "w": 0.05039
+    },
+    {
+     "sym": "UPM.HE",
+     "name": "UPM-Kymmene",
+     "w": 0.03866
+    },
+    {
+     "sym": "BOL.ST",
+     "name": "Boliden",
+     "w": 0.03802
+    },
+    {
+     "sym": "EDV.L",
+     "name": "Endeavour Mining",
+     "w": 0.03177
+    },
+    {
+     "sym": "KGH.WA",
+     "name": "KGHM Polska Miedz",
+     "w": 0.03045
+    },
+    {
+     "sym": "NHY.OL",
+     "name": "Norsk Hydro",
+     "w": 0.02915
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.855550801
+  },
+  "eu-autos": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV5.DE",
+   "fundName": "iShares STOXX Europe 600 Automobiles & Parts",
+   "differs": "",
+   "top": [
+    {
+     "sym": "RACE.MI",
+     "name": "Ferrari",
+     "w": 0.26301
+    },
+    {
+     "sym": "ML.PA",
+     "name": "Compagnie Générale des Établissements Michelin Société en commandite par actions",
+     "w": 0.14608
+    },
+    {
+     "sym": "MBG.DE",
+     "name": "Mercedes-Benz Group",
+     "w": 0.13886
+    },
+    {
+     "sym": "BMW.DE",
+     "name": "Bayerische Motoren Werke Aktiengesellschaft",
+     "w": 0.11639
+    },
+    {
+     "sym": "VOW3.DE",
+     "name": "Volkswagen",
+     "w": 0.0892
+    },
+    {
+     "sym": "STLAM.MI",
+     "name": "Stellantis",
+     "w": 0.04977
+    },
+    {
+     "sym": "CON.DE",
+     "name": "Continental Aktiengesellschaft",
+     "w": 0.04563
+    },
+    {
+     "sym": "RNO.PA",
+     "name": "Renault",
+     "w": 0.03374
+    },
+    {
+     "sym": "P911.DE",
+     "name": "Dr. Ing. h.c. F. Porsche",
+     "w": 0.03079
+    },
+    {
+     "sym": "PAH3.DE",
+     "name": "Porsche Automobil Holding",
+     "w": 0.02407
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.937548792
+  },
+  "eu-banks": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV1.DE",
+   "fundName": "iShares STOXX Europe 600 Banks",
+   "differs": "",
+   "top": [
+    {
+     "sym": "HSBA.L",
+     "name": "HSBC Holdings",
+     "w": 0.14008
+    },
+    {
+     "sym": "SAN.MC",
+     "name": "Banco Santander",
+     "w": 0.08619
+    },
+    {
+     "sym": "BBVA.MC",
+     "name": "Banco Bilbao Vizcaya Argentaria",
+     "w": 0.06446
+    },
+    {
+     "sym": "UCG.MI",
+     "name": "UniCredit",
+     "w": 0.05819
+    },
+    {
+     "sym": "ISP.MI",
+     "name": "Intesa Sanpaolo",
+     "w": 0.04815
+    },
+    {
+     "sym": "BNP.PA",
+     "name": "BNP Paribas",
+     "w": 0.04592
+    },
+    {
+     "sym": "INGA.AS",
+     "name": "ING Groep",
+     "w": 0.04211
+    },
+    {
+     "sym": "LLOY.L",
+     "name": "Lloyds Banking",
+     "w": 0.03379
+    },
+    {
+     "sym": "BARC.L",
+     "name": "Barclays",
+     "w": 0.03352
+    },
+    {
+     "sym": "NWG.L",
+     "name": "NatWest",
+     "w": 0.0305
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.582918205
+  },
+  "eu-chem": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV7.DE",
+   "fundName": "iShares STOXX Europe 600 Chemicals",
+   "differs": "",
+   "top": [
+    {
+     "sym": "AI.PA",
+     "name": "L'Air Liquide",
+     "w": 0.3047
+    },
+    {
+     "sym": "BAS.DE",
+     "name": "BASF",
+     "w": 0.13988
+    },
+    {
+     "sym": "GIVN.SW",
+     "name": "Givaudan",
+     "w": 0.12872
+    },
+    {
+     "sym": "SY1.DE",
+     "name": "Symrise",
+     "w": 0.05692
+    },
+    {
+     "sym": "HEN3.DE",
+     "name": "Henkel",
+     "w": 0.05166
+    },
+    {
+     "sym": "AKZA.AS",
+     "name": "Akzo Nobel",
+     "w": 0.04544
+    },
+    {
+     "sym": "BNR.DE",
+     "name": "Brenntag",
+     "w": 0.03189
+    },
+    {
+     "sym": "YAR.OL",
+     "name": "Yara International",
+     "w": 0.02941
+    },
+    {
+     "sym": "EMSN.SW",
+     "name": "Ems-chemie Holding",
+     "w": 0.02747
+    },
+    {
+     "sym": "IMCD.AS",
+     "name": "Imcd",
+     "w": 0.02668
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.842766292
+  },
+  "eu-build": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV8.DE",
+   "fundName": "iShares STOXX Europe 600 Construction & Materials",
+   "differs": "",
+   "top": [
+    {
+     "sym": "DG.PA",
+     "name": "Vinci",
+     "w": 0.14837
+    },
+    {
+     "sym": "HOLN.SW",
+     "name": "Holcim",
+     "w": 0.09417
+    },
+    {
+     "sym": "SGO.PA",
+     "name": "Compagnie de Saint-Gobain",
+     "w": 0.08567
+    },
+    {
+     "sym": "ASSA-B.ST",
+     "name": "Assa Abloy",
+     "w": 0.07858
+    },
+    {
+     "sym": "SIKA.SW",
+     "name": "Sika",
+     "w": 0.07808
+    },
+    {
+     "sym": "FER",
+     "name": "Ferrovial",
+     "w": 0.05781
+    },
+    {
+     "sym": "GEBN.SW",
+     "name": "Geberit",
+     "w": 0.04894
+    },
+    {
+     "sym": "ACS.MC",
+     "name": "ACS, Actividades de Construcción y Servicios",
+     "w": 0.04703
+    },
+    {
+     "sym": "HEI.DE",
+     "name": "Heidelberg Materials",
+     "w": 0.04467
+    },
+    {
+     "sym": "KRX.IR",
+     "name": "Kingspan",
+     "w": 0.03978
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.723091192
+  },
+  "eu-travel": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXV9.DE",
+   "fundName": "iShares STOXX Europe 600 Travel & Leisure",
+   "differs": "",
+   "top": [
+    {
+     "sym": "IHG.L",
+     "name": "InterContinental Hotels",
+     "w": 0.21707
+    },
+    {
+     "sym": "RYA.IR",
+     "name": "Ryanair Holdings",
+     "w": 0.15456
+    },
+    {
+     "sym": "IAG.L",
+     "name": "International Consolidated Airlines Group",
+     "w": 0.12364
+    },
+    {
+     "sym": "AC.PA",
+     "name": "Accor",
+     "w": 0.09567
+    },
+    {
+     "sym": "EVO.ST",
+     "name": "Evolution",
+     "w": 0.07582
+    },
+    {
+     "sym": "LTMC.MI",
+     "name": "Lottomatica Group",
+     "w": 0.06218
+    },
+    {
+     "sym": "WTB.L",
+     "name": "Whitbread",
+     "w": 0.04902
+    },
+    {
+     "sym": "LHA.DE",
+     "name": "Deutsche Lufthansa",
+     "w": 0.04828
+    },
+    {
+     "sym": "SW.PA",
+     "name": "Sodexo",
+     "w": 0.04808
+    },
+    {
+     "sym": "TUI1.DE",
+     "name": "TUI",
+     "w": 0.03272
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.907038698
+  },
+  "eu-energy": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "EXH1.DE",
+   "fundName": "iShares STOXX Europe 600 Oil & Gas",
+   "differs": "the STOXX Europe 600 Oil & Gas index, almost the same companies",
+   "top": [
+    {
+     "sym": "SHEL.L",
+     "name": "Shell",
+     "w": 0.27227
+    },
+    {
+     "sym": "TTE.PA",
+     "name": "TotalEnergies",
+     "w": 0.14501
+    },
+    {
+     "sym": "ENR.DE",
+     "name": "Siemens Energy",
+     "w": 0.13605
+    },
+    {
+     "sym": "BP.L",
+     "name": "BP",
+     "w": 0.12425
+    },
+    {
+     "sym": "ENI.MI",
+     "name": "Eni",
+     "w": 0.05709
+    },
+    {
+     "sym": "REP.MC",
+     "name": "Repsol",
+     "w": 0.0383
+    },
+    {
+     "sym": "VWS.CO",
+     "name": "Vestas Wind Systems A/S",
+     "w": 0.03064
+    },
+    {
+     "sym": "EQNR.OL",
+     "name": "Equinor",
+     "w": 0.02916
+    },
+    {
+     "sym": "PKN.WA",
+     "name": "Orlen",
+     "w": 0.02284
+    },
+    {
+     "sym": "NESTE.HE",
+     "name": "Neste",
+     "w": 0.01648
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.8720989
+  },
+  "us-chips": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "SOXQ",
+   "fundName": "Invesco PHLX Semiconductor ETF",
+   "differs": "",
+   "top": [
+    {
+     "sym": "NVDA",
+     "name": "NVIDIA",
+     "w": 0.11353
+    },
+    {
+     "sym": "AVGO",
+     "name": "Broadcom",
+     "w": 0.08673
+    },
+    {
+     "sym": "MU",
+     "name": "Micron Technology",
+     "w": 0.08128
+    },
+    {
+     "sym": "INTC",
+     "name": "Intel",
+     "w": 0.04914
+    },
+    {
+     "sym": "AMD",
+     "name": "Advanced Micro Devices",
+     "w": 0.04755
+    },
+    {
+     "sym": "MRVL",
+     "name": "Marvell Technology",
+     "w": 0.04567
+    },
+    {
+     "sym": "AMAT",
+     "name": "Applied Materials",
+     "w": 0.04081
+    },
+    {
+     "sym": "KLAC",
+     "name": "KLA",
+     "w": 0.04065
+    },
+    {
+     "sym": "TSM",
+     "name": "Taiwan Semiconductor Manufacturing",
+     "w": 0.04018
+    },
+    {
+     "sym": "ADI",
+     "name": "Analog Devices",
+     "w": 0.04007
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.585594794
+  },
+  "us-banks": {
+   "kind": "fund",
+   "basis": "exact",
+   "fund": "KBWB",
+   "fundName": "Invesco KBW Bank ETF",
+   "differs": "",
+   "top": [
+    {
+     "sym": "JPM",
+     "name": "JPMorgan Chase",
+     "w": 0.0809
+    },
+    {
+     "sym": "WFC",
+     "name": "Wells Fargo",
+     "w": 0.08067
+    },
+    {
+     "sym": "MS",
+     "name": "Morgan Stanley",
+     "w": 0.07676
+    },
+    {
+     "sym": "GS",
+     "name": "Goldman Sachs Group",
+     "w": 0.07653
+    },
+    {
+     "sym": "BAC",
+     "name": "Bank of America",
+     "w": 0.0765
+    },
+    {
+     "sym": "C",
+     "name": "Citigroup",
+     "w": 0.04282
+    },
+    {
+     "sym": "FITB",
+     "name": "Fifth Third Bancorp",
+     "w": 0.04095
+    },
+    {
+     "sym": "USB",
+     "name": "U.S. Bancorp",
+     "w": 0.04083
+    },
+    {
+     "sym": "TFC",
+     "name": "Truist Financial",
+     "w": 0.04065
+    },
+    {
+     "sym": "PNC",
+     "name": "PNC Financial Services Group",
+     "w": 0.04037
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.596974798
+  },
+  "uk-mining": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 8,
+   "total": 245848447959.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "RIO",
+     "name": "Rio Tinto Group",
+     "w": 0.35723
+    },
+    {
+     "sym": "GLEN",
+     "name": "Glencore",
+     "w": 0.27799
+    },
+    {
+     "sym": "AAL",
+     "name": "Anglo American",
+     "w": 0.19742
+    },
+    {
+     "sym": "ANTO",
+     "name": "Antofagasta",
+     "w": 0.14388
+    },
+    {
+     "sym": "HILS",
+     "name": "Hill & Smith",
+     "w": 0.00965
+    },
+    {
+     "sym": "ATYM",
+     "name": "Atalaya Mining Copper",
+     "w": 0.00666
+    },
+    {
+     "sym": "EVR",
+     "name": "Evraz",
+     "w": 0.0048
+    },
+    {
+     "sym": "MNO",
+     "name": "Meridian Mining",
+     "w": 0.00237
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-oil": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 6,
+   "total": 328065662902.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "SHEL",
+     "name": "Shell",
+     "w": 0.67368
+    },
+    {
+     "sym": "BP.",
+     "name": "BP",
+     "w": 0.29203
+    },
+    {
+     "sym": "ITH",
+     "name": "Ithaca Energy",
+     "w": 0.01483
+    },
+    {
+     "sym": "HBR",
+     "name": "Harbour Energy",
+     "w": 0.01339
+    },
+    {
+     "sym": "ENOG",
+     "name": "Energean",
+     "w": 0.00421
+    },
+    {
+     "sym": "HTG",
+     "name": "Hunting",
+     "w": 0.00186
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-banks": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 12,
+   "total": 479659967348.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "HSBA",
+     "name": "HSBC Holdings",
+     "w": 0.51113
+    },
+    {
+     "sym": "LLOY",
+     "name": "Lloyds Banking",
+     "w": 0.12483
+    },
+    {
+     "sym": "BARC",
+     "name": "Barclays",
+     "w": 0.12138
+    },
+    {
+     "sym": "NWG",
+     "name": "NatWest",
+     "w": 0.11028
+    },
+    {
+     "sym": "STAN",
+     "name": "Standard Chartered",
+     "w": 0.098
+    },
+    {
+     "sym": "BGEO",
+     "name": "Lion Finance",
+     "w": 0.01133
+    },
+    {
+     "sym": "INVP",
+     "name": "Investec Group",
+     "w": 0.00793
+    },
+    {
+     "sym": "TBCG",
+     "name": "TBC Bank",
+     "w": 0.0058
+    },
+    {
+     "sym": "SHAW",
+     "name": "Shawbrook",
+     "w": 0.00315
+    },
+    {
+     "sym": "PAG",
+     "name": "Paragon Banking",
+     "w": 0.00267
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.9965106925156718
+  },
+  "uk-homes": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 6,
+   "total": 16249118956.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "BTRW",
+     "name": "Barratt Redrow",
+     "w": 0.24827
+    },
+    {
+     "sym": "PSN",
+     "name": "Persimmon",
+     "w": 0.24136
+    },
+    {
+     "sym": "BKG",
+     "name": "Berkeley Group Holdings",
+     "w": 0.1776
+    },
+    {
+     "sym": "TW.",
+     "name": "Taylor Wimpey",
+     "w": 0.15559
+    },
+    {
+     "sym": "BWY",
+     "name": "Bellway",
+     "w": 0.13388
+    },
+    {
+     "sym": "VTY",
+     "name": "Vistry",
+     "w": 0.0433
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-build": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 9,
+   "total": 13848394916.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "BBY",
+     "name": "Balfour Beatty",
+     "w": 0.29043
+    },
+    {
+     "sym": "KLR",
+     "name": "Keller",
+     "w": 0.16089
+    },
+    {
+     "sym": "MGNS",
+     "name": "Morgan Sindall",
+     "w": 0.13909
+    },
+    {
+     "sym": "KIE",
+     "name": "Kier",
+     "w": 0.09302
+    },
+    {
+     "sym": "FAN",
+     "name": "Volution",
+     "w": 0.09239
+    },
+    {
+     "sym": "BREE",
+     "name": "Breedon",
+     "w": 0.0766
+    },
+    {
+     "sym": "GEN",
+     "name": "Genuit",
+     "w": 0.05239
+    },
+    {
+     "sym": "GFRD",
+     "name": "Galliford Try Holdings",
+     "w": 0.04922
+    },
+    {
+     "sym": "COST",
+     "name": "Costain",
+     "w": 0.04598
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-eng": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 5,
+   "total": 15867436542.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "WEIR",
+     "name": "Weir",
+     "w": 0.44176
+    },
+    {
+     "sym": "SPX",
+     "name": "Spirax",
+     "w": 0.33895
+    },
+    {
+     "sym": "BOY",
+     "name": "Bodycote",
+     "w": 0.0976
+    },
+    {
+     "sym": "VSVS",
+     "name": "Vesuvius",
+     "w": 0.07148
+    },
+    {
+     "sym": "MGAM",
+     "name": "Morgan Advanced Materials",
+     "w": 0.05022
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-transport": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 3,
+   "total": 3687485042.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "CKN",
+     "name": "Clarkson",
+     "w": 0.445
+    },
+    {
+     "sym": "FGP",
+     "name": "FirstGroup",
+     "w": 0.28132
+    },
+    {
+     "sym": "ZIG",
+     "name": "Zigup",
+     "w": 0.27368
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-chem": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 5,
+   "total": 11250316905.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "CRDA",
+     "name": "Croda International",
+     "w": 0.43652
+    },
+    {
+     "sym": "JMAT",
+     "name": "Johnson Matthey",
+     "w": 0.27647
+    },
+    {
+     "sym": "RHIM",
+     "name": "RHI Magnesita",
+     "w": 0.12317
+    },
+    {
+     "sym": "ELM",
+     "name": "Elementis",
+     "w": 0.09087
+    },
+    {
+     "sym": "VCT",
+     "name": "Victrex",
+     "w": 0.07298
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 1.0
+  },
+  "uk-travel": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 17,
+   "total": 58680210590.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "IAG",
+     "name": "International Consolidated Airlines Group",
+     "w": 0.30686
+    },
+    {
+     "sym": "IHG",
+     "name": "InterContinental Hotels",
+     "w": 0.29933
+    },
+    {
+     "sym": "EZJ",
+     "name": "easyJet",
+     "w": 0.08719
+    },
+    {
+     "sym": "WTB",
+     "name": "Whitbread",
+     "w": 0.07329
+    },
+    {
+     "sym": "ENT",
+     "name": "Entain",
+     "w": 0.04887
+    },
+    {
+     "sym": "MAB",
+     "name": "Mitchells & Butlers",
+     "w": 0.03011
+    },
+    {
+     "sym": "SSPG",
+     "name": "Ssp",
+     "w": 0.02223
+    },
+    {
+     "sym": "SAGA",
+     "name": "Saga",
+     "w": 0.0196
+    },
+    {
+     "sym": "PTEC",
+     "name": "Playtech",
+     "w": 0.01911
+    },
+    {
+     "sym": "JDW",
+     "name": "J D Wetherspoon",
+     "w": 0.01812
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.9247184373814634
+  },
+  "uk-retail": {
+   "kind": "lse",
+   "basis": "estimated",
+   "count": 16,
+   "total": 47797649976.0,
+   "ccy": "GBP",
+   "holdingsAsOf": "2026-10-12",
+   "top": [
+    {
+     "sym": "NXT",
+     "name": "Next",
+     "w": 0.3705
+    },
+    {
+     "sym": "KGF",
+     "name": "Kingfisher",
+     "w": 0.11188
+    },
+    {
+     "sym": "HWDN",
+     "name": "Howden Joinery",
+     "w": 0.08747
+    },
+    {
+     "sym": "JD.",
+     "name": "JD Sports Fashion",
+     "w": 0.08686
+    },
+    {
+     "sym": "FRAS",
+     "name": "Frasers",
+     "w": 0.07867
+    },
+    {
+     "sym": "BME",
+     "name": "B&M European Value Retail",
+     "w": 0.05766
+    },
+    {
+     "sym": "INCH",
+     "name": "Inchcape",
+     "w": 0.04764
+    },
+    {
+     "sym": "DNLM",
+     "name": "Dunelm",
+     "w": 0.0344
+    },
+    {
+     "sym": "CURY",
+     "name": "Currys",
+     "w": 0.03278
+    },
+    {
+     "sym": "PETS",
+     "name": "Pets at Home",
+     "w": 0.01932
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.9271887535109473
+  },
+  "us-housing": {
+   "kind": "capped",
+   "basis": "estimated",
+   "index": "HGX",
+   "count": 20,
+   "membersAsOf": "2026-10-13",
+   "caps": [
+    0.15,
+    2,
+    0.08
+   ],
+   "top": [
+    {
+     "sym": "DHI",
+     "name": "D.R. Horton",
+     "w": 0.15
+    },
+    {
+     "sym": "VMC",
+     "name": "Vulcan Materials",
+     "w": 0.15
+    },
+    {
+     "sym": "PHM",
+     "name": "PulteGroup",
+     "w": 0.08
+    },
+    {
+     "sym": "LEN",
+     "name": "Lennar",
+     "w": 0.08
+    },
+    {
+     "sym": "WY",
+     "name": "Weyerhaeuser",
+     "w": 0.07831
+    },
+    {
+     "sym": "MAS",
+     "name": "Masco",
+     "w": 0.07785
+    },
+    {
+     "sym": "LII",
+     "name": "Lennox International",
+     "w": 0.06829
+    },
+    {
+     "sym": "TOL",
+     "name": "Toll Brothers",
+     "w": 0.06824
+    },
+    {
+     "sym": "OC",
+     "name": "Owens Corning",
+     "w": 0.05032
+    },
+    {
+     "sym": "AWI",
+     "name": "Armstrong World Industries",
+     "w": 0.03953
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.8425515309841538
+  },
+  "us-oilserv": {
+   "kind": "capped",
+   "basis": "estimated",
+   "index": "OSX",
+   "count": 15,
+   "membersAsOf": "2026-10-13",
+   "caps": [
+    0.15,
+    2,
+    0.08
+   ],
+   "top": [
+    {
+     "sym": "SLB",
+     "name": "SLB",
+     "w": 0.15
+    },
+    {
+     "sym": "HAL",
+     "name": "Halliburton",
+     "w": 0.15
+    },
+    {
+     "sym": "NOV",
+     "name": "NOV",
+     "w": 0.08
+    },
+    {
+     "sym": "RIG",
+     "name": "Transocean",
+     "w": 0.08
+    },
+    {
+     "sym": "WFRD",
+     "name": "Weatherford International",
+     "w": 0.08
+    },
+    {
+     "sym": "GLNG",
+     "name": "Golar LNG",
+     "w": 0.07448
+    },
+    {
+     "sym": "WHD",
+     "name": "Cactus",
+     "w": 0.06896
+    },
+    {
+     "sym": "OII",
+     "name": "Oceaneering International",
+     "w": 0.0687
+    },
+    {
+     "sym": "TDW",
+     "name": "Tidewater",
+     "w": 0.06606
+    },
+    {
+     "sym": "HP",
+     "name": "Helmerich & Payne",
+     "w": 0.06044
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.8786302044669596
+  },
+  "us-gold": {
+   "kind": "capped",
+   "basis": "estimated",
+   "index": "XAU",
+   "count": 30,
+   "membersAsOf": "2026-10-13",
+   "caps": [
+    0.08,
+    5,
+    0.04
+   ],
+   "top": [
+    {
+     "sym": "NEM",
+     "name": "Newmont",
+     "w": 0.08
+    },
+    {
+     "sym": "FCX",
+     "name": "Freeport-McMoRan",
+     "w": 0.08
+    },
+    {
+     "sym": "AEM",
+     "name": "Agnico Eagle Mines",
+     "w": 0.08
+    },
+    {
+     "sym": "B",
+     "name": "Barrick Mining",
+     "w": 0.08
+    },
+    {
+     "sym": "WPM",
+     "name": "Wheaton Precious Metals",
+     "w": 0.08
+    },
+    {
+     "sym": "FNV",
+     "name": "Franco-Nevada",
+     "w": 0.04
+    },
+    {
+     "sym": "AU",
+     "name": "AngloGold Ashanti",
+     "w": 0.04
+    },
+    {
+     "sym": "GFI",
+     "name": "Gold Fields",
+     "w": 0.04
+    },
+    {
+     "sym": "KGC",
+     "name": "Kinross Gold",
+     "w": 0.04
+    },
+    {
+     "sym": "RGLD",
+     "name": "Royal Gold",
+     "w": 0.04
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.6
+  },
+  "us-transport": {
+   "kind": "price",
+   "basis": "exact",
+   "count": 20,
+   "top": [
+    {
+     "sym": "NSC",
+     "name": "Norfolk Southern",
+     "w": 0.10356
+    },
+    {
+     "sym": "FDX",
+     "name": "FedEx",
+     "w": 0.09379
+    },
+    {
+     "sym": "UNP",
+     "name": "Union Pacific",
+     "w": 0.09114
+    },
+    {
+     "sym": "R",
+     "name": "Ryder",
+     "w": 0.07649
+    },
+    {
+     "sym": "MATX",
+     "name": "Matson",
+     "w": 0.07589
+    },
+    {
+     "sym": "JBHT",
+     "name": "J.B. Hunt",
+     "w": 0.07369
+    },
+    {
+     "sym": "EXPD",
+     "name": "Expeditors International",
+     "w": 0.06299
+    },
+    {
+     "sym": "ODFL",
+     "name": "Old Dominion Freight Line",
+     "w": 0.05848
+    },
+    {
+     "sym": "LSTR",
+     "name": "Landstar System",
+     "w": 0.05386
+    },
+    {
+     "sym": "CHRW",
+     "name": "C.H. Robinson",
+     "w": 0.04484
+    }
+   ],
+   "asOf": "2026-10-14",
+   "topShare": 0.7347195547947025
+  }
+ },
+ "errors": []
+}
