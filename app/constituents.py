@@ -4,10 +4,12 @@ Index providers don't publish their constituent weights for free, so each index 
   fund     A fund that tracks the index (the iShares STOXX Europe 600 funds, Invesco's SOXQ for the PHLX
            Semiconductor index, KBWB for the KBW Bank index): its latest published top-10 holdings, from Yahoo
            Finance. The fund's weights follow the index's, so these count as exact.
-  lse      UK FTSE 350 sectors: the FTSE 350's members (from the iShares FTSE 100 and FTSE 250 funds' daily
-           holdings files; the FTSE 250 fund holds about 237 of the 250, leaving out only small ones), and each
-           company's sector code and market value from the London Stock Exchange. A company's share is its market
-           value over the sector's total. FTSE counts only freely traded shares, so its own figures differ a little.
+  lse      UK FTSE 350 sectors: the FTSE 350's members and their weights from the iShares FTSE 100 and FTSE 250
+           funds' daily holdings files (the FTSE 250 fund holds about 237 of the 250, leaving out only small ones),
+           and each company's sector code and market value from the London Stock Exchange. The funds follow FTSE's
+           weights, which count only freely traded shares; they are put on one scale using the market values (for a
+           typical company, freely traded value = market value), and a company's share is its freely traded value
+           over the sector's total.
   capped   PHLX Housing, Oil Service and Gold/Silver: the members from Nasdaq (which runs these indices), and
            shares worked out from Yahoo Finance market values with each index's published caps. The indices reset
            their weights every quarter, so the real ones drift a little from these in between.
@@ -89,7 +91,13 @@ def yahoo_info(symbols):
 ACRONYMS = {"HSBC", "BP", "IAG", "JD", "BAE", "BT", "GSK", "RELX", "ITV", "IMI", "WPP", "SSE", "DCC", "ICG", "ASOS", "B&M", "TBC", "IG",
             "US", "UK", "SPX", "AJ", "LSEG", "IHG", "BBVA", "BNP", "ING", "UPM", "ABB", "DSV", "CRH", "TUI", "SEB", "KBC", "NN",
             "NVIDIA", "AMD", "ASML", "BASF", "BMW", "UBS", "AIB", "RWE", "SAP", "ENI", "OMV", "SSAB", "NXP", "KLA", "SLB", "NOV", "CSX", "UPS", "ON", "TSMC", "PNC", "KB", "LNG", "II", "III"}
-_LEGAL = r"(PLC|P\.L\.C\.?|Inc\.?|Incorporated|Corp(oration)?\.?|Company|Co\.?|Ltd\.?|Limited|S\.A\.?|SA|N\.V\.?|NV|AG|SE|ASA|AB( \(publ\))?|S\.p\.A\.?|SpA|Oyj|Group Plc)"
+_LEGAL = r"(PLC|P\.L\.C\.?|Inc\.?|Incorporated|Corp(oration)?\.?|Company|Co\.?|Ltd\.?|Limited|S\.A\.?|SA|N\.V\.?|NV|AG|SE|ASA|AB( \(publ\))?|S\.p\.A\.?|SpA|Oyj|Group Plc|Aktiengesellschaft|KGaA)"
+
+
+SHORT = {"Compagnie Générale des Établissements Michelin": "Michelin", "L'Air Liquide": "Air Liquide",
+         "Compagnie de Saint-Gobain": "Saint-Gobain", "Banco Bilbao Vizcaya Argentaria": "BBVA", "Rio Tinto Group": "Rio Tinto",
+         "International Consolidated Airlines Group": "IAG (British Airways)", "Bayerische Motoren Werke": "BMW",
+         "Taiwan Semiconductor Manufacturing": "TSMC", "Lloyds Banking": "Lloyds Banking Group"}
 
 
 def tidy(name):
@@ -105,7 +113,8 @@ def tidy(name):
         n = re.sub(r"(,|\s)+(&\s+)?" + _LEGAL + r"$", "", n.strip(" ,."), flags=re.I)
     if n.isupper():  # the exchange's capitals: "LLOYDS BANKING GROUP" -> "Lloyds Banking Group", but keep HSBC, BP...
         n = " ".join(w if w in ACRONYMS else w.capitalize() for w in n.split())
-    return n.strip(" ,.") or name
+    n = re.sub(r"\s+(Soci[ée]t[ée] en commandite par actions|SCA|S\.C\.A\.)$", "", n.strip(" ,."))
+    return SHORT.get(n, n) or name
 
 
 # ---------------------------------------------------------------- the four kinds of source
@@ -130,7 +139,7 @@ def from_funds():
 
 
 def ishares_members():
-    """The FTSE 350 (FTSE 100 + FTSE 250) as held by iShares' funds: {ticker: index}, and the files' date."""
+    """The FTSE 350 (FTSE 100 + FTSE 250) as held by iShares' funds: {ticker: (index, weight in that fund)}, and the date."""
     members, dates = {}, []
     for index, url in ISHARES.items():
         text = _get(url).decode("utf-8-sig")
@@ -141,7 +150,11 @@ def ishares_members():
         for row in csv.DictReader(io.StringIO(body)):
             t = (row.get("Ticker") or "").strip()
             if t and (row.get("Asset Class") or "").strip() == "Equity":
-                members[t] = index
+                try:
+                    w = float((row.get("Weight (%)") or "0").replace(",", "")) / 100
+                except ValueError:
+                    w = 0.0
+                members[t] = (index, w)
     if len(members) < 300:
         raise RuntimeError(f"only {len(members)} FTSE 350 members found")
     return members, max(d for d in dates if d)
@@ -168,10 +181,21 @@ def from_lse():
     info = lse_info(members)
     if len(info) < 0.9 * len(members):
         raise RuntimeError(f"London Stock Exchange data for only {len(info)} of {len(members)} companies")
+    # each fund's weights on one scale: value = weight x the fund's typical market value per unit of weight
+    # (a company whose shares are nearly all freely traded sits at the typical ratio; one with a big controlling
+    # owner, such as Antofagasta, has a smaller weight for its size, as in FTSE's own index)
+    scale = {}
+    for index in ISHARES:
+        ratios = sorted(float(info[t]["cap"]) / w for t, (ix, w) in members.items() if ix == index and w > 0 and (info.get(t) or {}).get("cap"))
+        scale[index] = ratios[len(ratios) // 2] if ratios else None
     out = {}
     for key, code in LSE_SECTOR.items():
-        rows = sorted(({"sym": t, "name": v["name"], "cap": float(v["cap"])} for t, v in info.items()
-                       if v.get("sector") == code and v.get("cap")), key=lambda r: -r["cap"])
+        rows = []
+        for t, v in info.items():
+            ix, w = members.get(t, (None, 0))
+            if v.get("sector") == code and w > 0 and scale.get(ix):
+                rows.append({"sym": t, "name": v["name"], "cap": w * scale[ix]})
+        rows.sort(key=lambda r: -r["cap"])
         total = sum(r["cap"] for r in rows)
         if not rows or total <= 0:
             continue

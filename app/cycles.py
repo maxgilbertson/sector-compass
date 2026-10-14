@@ -22,6 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+import constituents
 import engine
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -626,12 +627,19 @@ def describe(t, c):
     }
 
 
+def _names(top, n=4):
+    """'Rio Tinto, Glencore, Anglo American and Antofagasta' from an index's biggest companies, or ''."""
+    names = [r["name"] for r in ((top or {}).get("top") or [])[:n] if r.get("name")]
+    return ", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else "".join(names)
+
+
 def build():
     region_of = {x[0]: x[4] for x in INDICES}
     markets = [r["market"] for r in REGIONS.values()]
     series, errors = load([x[0] for x in INDICES] + markets + sorted(AUX))
     t0 = time.time()
     test, own = cached_test(series, region_of)
+    tops = constituents.load()
     rows = []
     for sym, key, name, full, region, drives, what, includes, buy in INDICES:
         if sym not in series:
@@ -640,7 +648,7 @@ def build():
         if not d:
             continue
         rows.append({"symbol": sym, "key": key, "name": name, "full": full, "region": region, "drives": DRIVES[drives],
-                     "what": what, "includes": includes, "note": NOTES.get(key, ""),
+                     "what": what, "includes": _names(tops.get(key)) or includes, "note": NOTES.get(key, ""), "top": tops.get(key),
                      "buy": buy and {"ticker": buy[0], "exchange": buy[1], "name": buy[2], "match": buy[3], "differs": buy[4]},
                      "own": own.get(sym), **d})
     mkts = {}

@@ -820,7 +820,27 @@ function cycleTestSection(T){
 }
 
 /* ---------------------------------------------------------------- one index's detail panel */
-const CTABS=[["cycle","Cycle"],["falls","Past falls"],["dips","Its dips"],["about","About & buying"]];
+const CTABS=[["cycle","Cycle"],["companies","Companies"],["falls","Past falls"],["dips","Its dips"],["about","About & buying"]];
+// an index's biggest companies (constituents.py): a ranked list with each one's share of the index, and where it's from
+function companiesPane(r){
+  const T=r.top, rows=(T&&T.top)||[];
+  if(!rows.length) return `<p class="muted">The biggest companies in this index aren't available right now; they are refreshed every week.</p>`;
+  const share=k=>rows.slice(0,k).reduce((a,x)=>a+(x.w||0),0), half=Math.ceil(rows.length/2), c=T.caps||[];
+  const how = T.kind==="fund"? `Exact: the latest published holdings of the ${esc(T.fundName||T.fund)} fund, which tracks ${T.differs?esc(T.differs):"this index"} and holds its companies in the same proportions.`
+    : T.kind==="lse"? `Estimated: FTSE's own weights aren't published free, so these follow iShares' FTSE 100 and FTSE 250 funds, which hold the index's companies in FTSE's proportions (counting only shares that are freely traded), with each company's sector from the London Stock Exchange. Each share is of the ${T.count} FTSE 350 companies in this sector. Fund holdings of ${esc(dayStr(Date.parse(T.holdingsAsOf)/1000))}.`
+    : T.kind==="capped"? `Estimated: each company's market value, with the index's own caps applied (no company above ${pct(c[0],0,false)}; after the ${c[1]} biggest, none above ${pct(c[2],0,false)}). Nasdaq, which runs the index, resets the weights every quarter, so the real ones drift a little in between. Members from Nasdaq on ${esc(dayStr(Date.parse(T.membersAsOf)/1000))}.`
+    : `This index is weighted by share price, not company size: each company's share is its price as a part of the total of all ${T.count} prices. Members from Wikipedia's list of the index.`;
+  return `<div class="card" style="padding:16px;display:grid;gap:14px"><div class="eyebrow">Its biggest companies</div>
+      <div class="trio">
+        <div><span>Biggest company</span><b>${pct(rows[0].w,0,false)}</b><small>${esc(rows[0].name)}</small></div>
+        <div><span>The biggest 3</span><b>${pct(share(3),0,false)}</b><small>of the index</small></div>
+        ${T.count&&T.count<=rows.length? `<div><span>Companies in the index</span><b>${T.count}</b><small>all of them shown below</small></div>`
+          : `<div><span>The biggest ${rows.length}</span><b>${pct(share(rows.length),0,false)}</b><small>${T.count?`of the index's ${T.count} companies`:"of the index"}</small></div>`}</div></div>
+      <ol class="toplist" style="grid-template-rows:repeat(${half},auto)">${rows.map((x,i)=>`<li><span class="c-rank">${i+1}</span>
+        <span class="c-name"><b title="${esc(x.name)}">${esc(x.name)}</b><small>${esc(x.sym)}</small></span><b class="c-w">${pct(x.w,x.w<0.1?1:0,false)}</b></li>`).join("")}</ol>
+      <p class="note" style="margin:0">${how} Updated ${esc(dayStr(Date.parse(T.asOf)/1000))}.</p></div>`;
+}
+
 // today's depth beside its usual and worst past falls, as three plain numbers
 function depthTrio(r){
   const all=r.falls||[], fs=fallsOf(r), typ=medianOf(fs), w=all.length?all.reduce((a,b)=>b.fall<a.fall?b:a):null;
@@ -876,6 +896,7 @@ function openCycle(key){
         <span class="seg" role="group" aria-label="Range">${rangeBtn("1y","1 yr")}${rangeBtn("5y","5 yrs")}${rangeBtn("all","All")}</span></div>
         <div id="cchart"></div><p class="note" id="cnote"></p></div>
     </div>
+    <div class="dgrid" data-pane="companies">${companiesPane(r)}</div>
     <div class="dgrid" data-pane="falls">
       <div class="card" style="padding:16px;display:grid;gap:8px"><div class="eyebrow">Big falls since ${yearOf(r.since)}</div>
         <p style="margin:0">Every fall of ${pct(r.swing,0,false)} or more from a peak to a bottom (about as much as it typically moves in a year), most recent first. A fall only counts as over once the index has climbed ${pct(r.swing*((S.cyc&&S.cyc.recover)||1.5),0,false)} from its low, so short rallies inside a long slump don't split it in two.</p>${nowLine}</div>
