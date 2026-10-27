@@ -2,7 +2,7 @@
 
 Two live trackers on one site, sharing one scoring engine:
 
-- **Sectors** (`index.html`): 86 sector and theme funds across the US, Europe, Japan, Canada and global markets (no whole-country funds),
+- **Sectors** (`index.html`): 87 sector and theme funds across the US, Europe, Japan, Canada and global markets (no whole-country funds),
   each scored 0–100 against its own local benchmark, with a business-cycle read, rotation map, fund facts, top-10 holdings,
   score history and a plain-English verdict.
 - **Countries** (`world.html`): 36 national stock markets, with each headline index in local currency and a US-listed country fund
@@ -30,7 +30,7 @@ Returns can be shown in **pounds** as well as the local currency (and US dollars
   history and must still win on the second half, which it never saw. It only reports; it never changes the live score.
 - **Buying on IBKR** (`universe.BUY_ON_IBKR`): a UK retail IBKR account can't buy US, Japanese or Canadian funds (no UK key
   information document). Each fund shows what to buy instead: the fund itself if it's UCITS (the European ones), or a UCITS
-  "twin" in London tracking the same or a similar index. 57 of 86 funds are buyable; tickers checked in IBKR on 7 Oct 2026.
+  "twin" in London tracking the same or a similar index. 58 of 87 funds are buyable; tickers checked in IBKR on 7 Oct 2026 (the Luxury Goods fund, GLUX on Xetra, added 27 Oct 2026, is a UCITS fund itself).
   Scores stay based on the original funds, which have longer histories.
 - **Worth a look for a new holding** (Sectors overview): the buyable funds in the top fifth by score. A stricter rule that
   also skipped fast risers was fixed in advance and tested once (`app/candidates_test.py`); it did worse than holding every

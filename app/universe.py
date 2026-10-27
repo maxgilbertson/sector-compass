@@ -55,6 +55,8 @@ GROUPS = [
             ("EXV5.DE", "Automobiles & Parts", "discr"),
             ("EXH8.DE", "Retail", "discr"),
             ("EXV9.DE", "Travel & Leisure", "discr"),
+            # global luxury (Richemont, LVMH, Ferrari, Hermès...), mostly European companies, so measured against Europe
+            ("GLUX.DE", "Luxury Goods", "discr"),
             ("EXH3.DE", "Food & Beverage", "staples"),
             ("EXH7.DE", "Personal & Household Goods", "staples"),
             ("EXH9.DE", "Utilities", "util"),
