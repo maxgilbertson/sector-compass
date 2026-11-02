@@ -1,8 +1,11 @@
 name: Update prices and publish
 
 on:
+  # GitHub's scheduler drops many runs when it is busy (in late October 2026 it started only one every 3 to 7
+  # hours), and the start of each hour is its busiest time. So the schedule avoids the hour, and each run also
+  # queues the next one itself (the "next" job below); the schedule is only the backup that restarts the chain.
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes (GitHub may run it a few minutes late)
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:          # "Run workflow" button in the Actions tab
   push:
     branches: [main]
@@ -11,6 +14,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write   # to queue the next run
 
 # A newer run replaces one still running or stuck in GitHub's queue, so a single stuck run can't hold up
 # every later update (each run publishes the latest prices anyway, so nothing is lost).
@@ -59,3 +63,17 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Wait, then start the next run, so the site updates about every 15 minutes whatever GitHub's scheduler does.
+  # Runs even if this build failed, so one bad price fetch doesn't stop the updates. A newer run (from the
+  # schedule, a push or another job) cancels this one while it waits, so there is only ever one chain.
+  next:
+    needs: deploy
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - run: sleep 780
+      - run: gh workflow run deploy.yml --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

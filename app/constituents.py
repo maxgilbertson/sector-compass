@@ -167,15 +167,20 @@ def lse_info(tickers):
 
     def one(t):
         try:
-            d = json.loads(_get("https://api.londonstockexchange.com/api/gw/lse/instruments/alldata/" + urllib.parse.quote(t), headers=h))
+            d = json.loads(_get("https://api.londonstockexchange.com/api/gw/lse/instruments/alldata/" + urllib.parse.quote(t), headers=h, tries=2))
             time.sleep(0.3)
             return t, {"name": d.get("issuername") or d.get("shortname"), "sector": d.get("sectorcode"), "cap": d.get("marketcapitalization")}
         except Exception as e:  # noqa: BLE001
             print(f"[lse {t}] {e}", flush=True)
             return t, None
+    # if the exchange refuses the first few (it blocked GitHub's machines on 1 Nov 2026), stop at once and keep
+    # last week's UK lists, rather than spend an hour retrying every company
+    first = sorted(tickers)[:3]
+    if not any(one(t)[1] for t in first):
+        raise RuntimeError("the London Stock Exchange refused the first requests; kept the last UK lists")
     with ThreadPoolExecutor(max_workers=3) as ex:
         got = {t: v for t, v in ex.map(one, sorted(tickers)) if v}
-    for t in sorted(set(tickers) - set(got)):  # one at a time, after a pause
+    for t in sorted(set(tickers) - set(got))[:30]:  # one at a time, after a pause
         time.sleep(2)
         t, v = one(t)
         if v:
