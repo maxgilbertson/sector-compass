@@ -123,6 +123,66 @@
     "PH": 11.1,
     "ID": 7.1
    }
+  },
+  {
+   "date": "2026-11-03",
+   "ts": 1793676508,
+   "top": [
+    "PL",
+    "TW",
+    "NO",
+    "CA",
+    "CH",
+    "GB",
+    "JP"
+   ],
+   "bottom": [
+    "VN",
+    "PH",
+    "SA",
+    "TR",
+    "AR",
+    "CN",
+    "ID"
+   ],
+   "scores": {
+    "PL": 87.1,
+    "TW": 85.7,
+    "NO": 85.1,
+    "CA": 84.7,
+    "CH": 78.3,
+    "GB": 77.1,
+    "JP": 75.1,
+    "US": 72.3,
+    "SG": 71.1,
+    "BE": 69.3,
+    "ES": 68.0,
+    "AU": 67.1,
+    "SE": 65.9,
+    "MX": 62.0,
+    "NL": 61.1,
+    "TH": 59.3,
+    "DK": 58.7,
+    "IT": 54.3,
+    "KR": 54.0,
+    "HK": 49.0,
+    "DE": 46.7,
+    "MY": 43.0,
+    "IL": 42.4,
+    "BR": 39.7,
+    "NZ": 38.7,
+    "ZA": 32.3,
+    "FR": 29.9,
+    "IN": 28.7,
+    "CL": 23.0,
+    "VN": 20.9,
+    "PH": 19.0,
+    "SA": 17.9,
+    "TR": 12.1,
+    "AR": 10.9,
+    "CN": 9.1,
+    "ID": 0.3
+   }
   }
  ],
  "rule": "Each month, hold the 20% of markets with the highest scores in equal amounts; compare with the lowest-scored 20% and with the same money in each holding's own market."
