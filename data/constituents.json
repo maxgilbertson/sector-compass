@@ -1,5 +1,5 @@
 {
- "generated": 1792308960.5605724,
+ "generated": 1794147346.1536262,
  "indices": {
   "eu-resources": {
    "kind": "fund",
@@ -59,7 +59,7 @@
      "w": 0.02915
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.855550801
   },
   "eu-autos": {
@@ -120,7 +120,7 @@
      "w": 0.02407
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.937548792
   },
   "eu-banks": {
@@ -181,7 +181,7 @@
      "w": 0.0305
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.582918205
   },
   "eu-chem": {
@@ -242,7 +242,7 @@
      "w": 0.02668
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.842766292
   },
   "eu-build": {
@@ -303,7 +303,7 @@
      "w": 0.03978
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.723091192
   },
   "eu-travel": {
@@ -364,7 +364,7 @@
      "w": 0.03272
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.907038698
   },
   "eu-energy": {
@@ -425,7 +425,7 @@
      "w": 0.01648
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.8720989
   },
   "us-chips": {
@@ -438,56 +438,56 @@
     {
      "sym": "NVDA",
      "name": "NVIDIA",
-     "w": 0.11353
+     "w": 0.12015
     },
     {
      "sym": "AVGO",
      "name": "Broadcom",
-     "w": 0.08673
+     "w": 0.09511
     },
     {
      "sym": "MU",
      "name": "Micron Technology",
-     "w": 0.08128
+     "w": 0.07974
     },
     {
-     "sym": "INTC",
-     "name": "Intel",
-     "w": 0.04914
-    },
-    {
-     "sym": "AMD",
-     "name": "Advanced Micro Devices",
-     "w": 0.04755
-    },
-    {
-     "sym": "MRVL",
-     "name": "Marvell Technology",
-     "w": 0.04567
-    },
-    {
-     "sym": "AMAT",
-     "name": "Applied Materials",
-     "w": 0.04081
-    },
-    {
-     "sym": "KLAC",
-     "name": "KLA",
-     "w": 0.04065
-    },
-    {
-     "sym": "TSM",
-     "name": "TSMC",
-     "w": 0.04018
+     "sym": "TXN",
+     "name": "Texas Instruments",
+     "w": 0.04982
     },
     {
      "sym": "ADI",
      "name": "Analog Devices",
-     "w": 0.04007
+     "w": 0.04977
+    },
+    {
+     "sym": "AMD",
+     "name": "Advanced Micro Devices",
+     "w": 0.04634
+    },
+    {
+     "sym": "TSM",
+     "name": "TSMC",
+     "w": 0.04225
+    },
+    {
+     "sym": "QCOM",
+     "name": "Qualcomm",
+     "w": 0.04177
+    },
+    {
+     "sym": "MRVL",
+     "name": "Marvell Technology",
+     "w": 0.04009
+    },
+    {
+     "sym": "ASML",
+     "name": "ASML Holding",
+     "w": 0.03989
     }
    ],
-   "asOf": "2026-10-18",
-   "topShare": 0.585594794
+   "asOf": "2026-11-08",
+   "topShare": 0.604929396
   },
   "us-banks": {
    "kind": "fund",
@@ -497,58 +497,58 @@
    "differs": "",
    "top": [
     {
-     "sym": "JPM",
-     "name": "JPMorgan Chase",
-     "w": 0.0809
-    },
-    {
      "sym": "WFC",
      "name": "Wells Fargo",
-     "w": 0.08067
+     "w": 0.08297
     },
     {
-     "sym": "MS",
-     "name": "Morgan Stanley",
-     "w": 0.07676
+     "sym": "JPM",
+     "name": "JPMorgan Chase",
+     "w": 0.0814
     },
     {
      "sym": "GS",
      "name": "Goldman Sachs Group",
-     "w": 0.07653
+     "w": 0.07493
+    },
+    {
+     "sym": "MS",
+     "name": "Morgan Stanley",
+     "w": 0.07425
     },
     {
      "sym": "BAC",
      "name": "Bank of America",
-     "w": 0.0765
-    },
-    {
-     "sym": "C",
-     "name": "Citigroup",
-     "w": 0.04282
+     "w": 0.06939
     },
     {
      "sym": "FITB",
      "name": "Fifth Third Bancorp",
-     "w": 0.04095
-    },
-    {
-     "sym": "USB",
-     "name": "U.S. Bancorp",
-     "w": 0.04083
+     "w": 0.04305
     },
     {
      "sym": "TFC",
      "name": "Truist Financial",
-     "w": 0.04065
+     "w": 0.04229
+    },
+    {
+     "sym": "USB",
+     "name": "U.S. Bancorp",
+     "w": 0.04148
+    },
+    {
+     "sym": "COF",
+     "name": "Capital One Financial",
+     "w": 0.04103
     },
     {
      "sym": "PNC",
      "name": "PNC Financial Services Group",
-     "w": 0.04037
+     "w": 0.04087
     }
    ],
-   "asOf": "2026-10-18",
-   "topShare": 0.596974798
+   "asOf": "2026-11-08",
+   "topShare": 0.591647307
   },
   "uk-mining": {
    "kind": "lse",
@@ -1060,7 +1060,7 @@
    "basis": "estimated",
    "index": "HGX",
    "count": 20,
-   "membersAsOf": "2026-10-16",
+   "membersAsOf": "2026-11-06",
    "caps": [
     0.15,
     2,
@@ -1090,43 +1090,43 @@
     {
      "sym": "MAS",
      "name": "Masco",
-     "w": 0.07976
+     "w": 0.08
     },
     {
      "sym": "WY",
      "name": "Weyerhaeuser",
-     "w": 0.07845
-    },
-    {
-     "sym": "LII",
-     "name": "Lennox International",
-     "w": 0.06862
+     "w": 0.07875
     },
     {
      "sym": "TOL",
      "name": "Toll Brothers",
-     "w": 0.06838
+     "w": 0.07326
+    },
+    {
+     "sym": "LII",
+     "name": "Lennox International",
+     "w": 0.06096
     },
     {
      "sym": "OC",
      "name": "Owens Corning",
-     "w": 0.04949
+     "w": 0.04876
     },
     {
      "sym": "AWI",
      "name": "Armstrong World Industries",
-     "w": 0.03945
+     "w": 0.03733
     }
    ],
-   "asOf": "2026-10-18",
-   "topShare": 0.8441532610590373
+   "asOf": "2026-11-08",
+   "topShare": 0.8390485067015989
   },
   "us-oilserv": {
    "kind": "capped",
    "basis": "estimated",
    "index": "OSX",
    "count": 15,
-   "membersAsOf": "2026-10-16",
+   "membersAsOf": "2026-11-06",
    "caps": [
     0.15,
     2,
@@ -1149,50 +1149,50 @@
      "w": 0.08
     },
     {
-     "sym": "RIG",
-     "name": "Transocean",
-     "w": 0.08
-    },
-    {
      "sym": "WFRD",
      "name": "Weatherford International",
      "w": 0.08
     },
     {
-     "sym": "GLNG",
-     "name": "Golar LNG",
-     "w": 0.07388
-    },
-    {
-     "sym": "OII",
-     "name": "Oceaneering International",
-     "w": 0.06968
+     "sym": "RIG",
+     "name": "Transocean",
+     "w": 0.08
     },
     {
      "sym": "WHD",
      "name": "Cactus",
-     "w": 0.0688
+     "w": 0.08
     },
     {
-     "sym": "TDW",
-     "name": "Tidewater",
-     "w": 0.06324
+     "sym": "GLNG",
+     "name": "Golar LNG",
+     "w": 0.07496
+    },
+    {
+     "sym": "USAC",
+     "name": "USA Compression Partners, LP",
+     "w": 0.06169
     },
     {
      "sym": "HP",
      "name": "Helmerich & Payne",
-     "w": 0.05981
+     "w": 0.06
+    },
+    {
+     "sym": "TDW",
+     "name": "Tidewater",
+     "w": 0.05942
     }
    ],
-   "asOf": "2026-10-18",
-   "topShare": 0.8754107167902718
+   "asOf": "2026-11-08",
+   "topShare": 0.8760713893374161
   },
   "us-gold": {
    "kind": "capped",
    "basis": "estimated",
    "index": "XAU",
    "count": 30,
-   "membersAsOf": "2026-10-16",
+   "membersAsOf": "2026-11-06",
    "caps": [
     0.08,
     5,
@@ -1205,13 +1205,13 @@
      "w": 0.08
     },
     {
-     "sym": "FCX",
-     "name": "Freeport-McMoRan",
+     "sym": "AEM",
+     "name": "Agnico Eagle Mines",
      "w": 0.08
     },
     {
-     "sym": "AEM",
-     "name": "Agnico Eagle Mines",
+     "sym": "FCX",
+     "name": "Freeport-McMoRan",
      "w": 0.08
     },
     {
@@ -1250,7 +1250,7 @@
      "w": 0.04
     }
    ],
-   "asOf": "2026-10-18",
+   "asOf": "2026-11-08",
    "topShare": 0.6
   },
   "us-transport": {
@@ -1261,57 +1261,59 @@
     {
      "sym": "NSC",
      "name": "Norfolk Southern",
-     "w": 0.10473
+     "w": 0.10304
     },
     {
      "sym": "FDX",
      "name": "FedEx",
-     "w": 0.09404
+     "w": 0.09924
     },
     {
      "sym": "UNP",
      "name": "Union Pacific",
-     "w": 0.0926
+     "w": 0.09345
     },
     {
      "sym": "R",
      "name": "Ryder",
-     "w": 0.07637
-    },
-    {
-     "sym": "MATX",
-     "name": "Matson",
-     "w": 0.07528
+     "w": 0.08579
     },
     {
      "sym": "JBHT",
      "name": "J.B. Hunt",
-     "w": 0.07329
+     "w": 0.07006
+    },
+    {
+     "sym": "MATX",
+     "name": "Matson",
+     "w": 0.06825
     },
     {
      "sym": "EXPD",
      "name": "Expeditors International",
-     "w": 0.06276
+     "w": 0.05945
     },
     {
      "sym": "ODFL",
      "name": "Old Dominion Freight Line",
-     "w": 0.06014
+     "w": 0.05311
     },
     {
      "sym": "LSTR",
      "name": "Landstar System",
-     "w": 0.05499
+     "w": 0.04616
     },
     {
      "sym": "CHRW",
      "name": "C.H. Robinson",
-     "w": 0.04469
+     "w": 0.04036
     }
    ],
-   "asOf": "2026-10-18",
-   "topShare": 0.738883620800123
+   "asOf": "2026-11-08",
+   "topShare": 0.7189311570865432
   }
  },
- "errors": []
+ "errors": [
+  "UK: the London Stock Exchange refused the first requests; kept the last UK lists"
+ ]
 }
